@@ -1,8 +1,10 @@
-{ df, ... }:
+{ config, lib, df, ... }:
 
 {
-  xdg.configFile."jj" = {
-    source = df "jj";
-    recursive = true;
+  config = lib.mkIf config.programs.zine.jj.enable {
+    xdg.configFile."jj" = {
+      source = df "jj";
+      recursive = true;
+    };
   };
 }

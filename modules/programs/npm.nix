@@ -1,5 +1,7 @@
-{ df, ... }:
+{ config, lib, df, ... }:
 
 {
-  home.file.".npmrc".source = df "npmrc";
+  config = lib.mkIf config.programs.zine.npm.enable {
+    home.file.".npmrc".source = df "npmrc";
+  };
 }

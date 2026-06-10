@@ -1,8 +1,10 @@
-{ df, ... }:
+{ config, lib, df, ... }:
 
 {
-  xdg.configFile."yay" = {
-    source = df "yay";
-    recursive = true;
+  config = lib.mkIf config.programs.zine.yay.enable {
+    xdg.configFile."yay" = {
+      source = df "yay";
+      recursive = true;
+    };
   };
 }

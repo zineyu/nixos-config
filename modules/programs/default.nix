@@ -3,31 +3,43 @@
 let
   dotfiles = ../../dotfiles;
   df = path: dotfiles + "/${path}";
-  out = config.lib.file.mkOutOfStoreSymlink;
+  storeLinks = import ../../lib/storeLinks.nix { inherit config; };
+
+  programNames = [
+    "aria2"
+    "bash"
+    "dank-material-shell"
+    "direnv"
+    "fish"
+    "fontconfig"
+    "ghostty"
+    "git"
+    "jj"
+    "kitty"
+    "niri"
+    "npm"
+    "nvim"
+    "starship"
+    "systemd"
+    "yay"
+    "yazi"
+    "zed"
+    "zellij"
+  ];
+
+  mkProgramOption = name: {
+    inherit name;
+    value = {
+      enable = lib.mkEnableOption "zine's ${name} dotfiles" // {
+        default = true;
+      };
+    };
+  };
 in
 {
-  _module.args = { inherit dotfiles df out; };
+  options.programs.zine = lib.listToAttrs (map mkProgramOption programNames);
 
-  imports = [
-    ./bash.nix
-    ./git.nix
-    ./npm.nix
+  imports = map (name: ./. + "/${name}.nix") programNames;
 
-    ./aria2.nix
-    ./dank-material-shell.nix
-    ./direnv.nix
-    ./fish.nix
-    ./fontconfig.nix
-    ./ghostty.nix
-    ./jj.nix
-    ./kitty.nix
-    ./niri.nix
-    ./nvim.nix
-    ./starship.nix
-    ./systemd.nix
-    ./yay.nix
-    ./yazi.nix
-    ./zed.nix
-    ./zellij.nix
-  ];
+  config._module.args = { inherit dotfiles df; } // storeLinks;
 }

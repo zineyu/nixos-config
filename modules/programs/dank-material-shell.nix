@@ -1,8 +1,10 @@
-{ df, ... }:
+{ config, lib, df, ... }:
 
 {
-  xdg.configFile."DankMaterialShell" = {
-    source = df "DankMaterialShell";
-    recursive = true;
+  config = lib.mkIf config.programs.zine.dank-material-shell.enable {
+    xdg.configFile."DankMaterialShell" = {
+      source = df "DankMaterialShell";
+      recursive = true;
+    };
   };
 }

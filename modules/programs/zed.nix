@@ -1,8 +1,10 @@
-{ df, ... }:
+{ config, lib, df, ... }:
 
 {
-  xdg.configFile."zed" = {
-    source = df "zed";
-    recursive = true;
+  config = lib.mkIf config.programs.zine.zed.enable {
+    xdg.configFile."zed" = {
+      source = df "zed";
+      recursive = true;
+    };
   };
 }

@@ -20,13 +20,29 @@
   outputs =
     inputs@{ nixpkgs, home-manager, ... }:
     let
-      system = "x86_64-linux";
+      mkHome = import ./lib/mkHome.nix {
+        inherit inputs nixpkgs home-manager;
+      };
+      hosts = import ./hosts;
     in
     {
-      homeConfigurations.zine = home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs { inherit system; };
-        modules = [ ./home.nix ];
-        extraSpecialArgs = { inherit inputs; };
-      };
+      homeConfigurations = builtins.foldl'
+        (acc: hostname:
+          let
+            host = hosts.${hostname};
+          in
+          acc // {
+            "${host.username}@${hostname}" = mkHome {
+              username = host.username;
+              system = host.system;
+              modules = [
+                ./home.nix
+                (./hosts + "/${hostname}.nix")
+              ];
+            };
+          }
+        )
+        { }
+        (builtins.attrNames hosts);
     };
 }

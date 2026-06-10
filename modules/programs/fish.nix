@@ -1,8 +1,10 @@
-{ df, ... }:
+{ config, lib, df, ... }:
 
 {
-  xdg.configFile."fish" = {
-    source = df "fish";
-    recursive = true;
+  config = lib.mkIf config.programs.zine.fish.enable {
+    xdg.configFile."fish" = {
+      source = df "fish";
+      recursive = true;
+    };
   };
 }

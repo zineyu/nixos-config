@@ -1,8 +1,10 @@
-{ df, ... }:
+{ config, lib, df, ... }:
 
 {
-  xdg.configFile."zellij" = {
-    source = df "zellij";
-    recursive = true;
+  config = lib.mkIf config.programs.zine.zellij.enable {
+    xdg.configFile."zellij" = {
+      source = df "zellij";
+      recursive = true;
+    };
   };
 }

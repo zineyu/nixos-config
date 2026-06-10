@@ -1,8 +1,10 @@
-{ df, ... }:
+{ config, lib, df, ... }:
 
 {
-  xdg.configFile."ghostty" = {
-    source = df "ghostty";
-    recursive = true;
+  config = lib.mkIf config.programs.zine.ghostty.enable {
+    xdg.configFile."ghostty" = {
+      source = df "ghostty";
+      recursive = true;
+    };
   };
 }

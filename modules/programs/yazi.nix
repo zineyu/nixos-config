@@ -1,8 +1,10 @@
-{ df, ... }:
+{ config, lib, df, ... }:
 
 {
-  xdg.configFile."yazi" = {
-    source = df "yazi";
-    recursive = true;
+  config = lib.mkIf config.programs.zine.yazi.enable {
+    xdg.configFile."yazi" = {
+      source = df "yazi";
+      recursive = true;
+    };
   };
 }
