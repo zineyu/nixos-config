@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   dotfiles = ../../dotfiles;
@@ -21,7 +21,6 @@ let
     "nvim"
     "starship"
     "systemd"
-    "yay"
     "yazi"
     "zed"
     "zellij"
@@ -37,9 +36,27 @@ let
   };
 in
 {
-  options.programs.zine = lib.listToAttrs (map mkProgramOption programNames);
+  options.programs.zine = lib.listToAttrs (map mkProgramOption programNames) // {
+    dev-tools.enable = lib.mkEnableOption "zine's dev-tools packages" // {
+      default = true;
+    };
+  };
 
   imports = map (name: ./. + "/${name}.nix") programNames;
 
-  config._module.args = { inherit dotfiles df; } // storeLinks;
+  config = {
+    _module.args = { inherit dotfiles df; } // storeLinks;
+
+    home.packages = lib.mkIf config.programs.zine.dev-tools.enable (with pkgs; [
+      curl
+      fd
+      fzf
+      gcc
+      gnumake
+      ripgrep
+      stylua
+      tree-sitter
+      unzip
+    ]);
+  };
 }

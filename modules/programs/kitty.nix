@@ -1,7 +1,9 @@
-{ config, lib, df, ... }:
+{ config, lib, pkgs, df, ... }:
 
 {
   config = lib.mkIf config.programs.zine.kitty.enable {
+    home.packages = [ pkgs.kitty ];
+
     xdg.configFile = {
       "kitty/current-theme.conf".source = df "kitty/current-theme.conf";
       "kitty/dank-tabs.conf".source = df "kitty/dank-tabs.conf";

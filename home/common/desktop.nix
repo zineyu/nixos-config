@@ -1,8 +1,8 @@
 { pkgs, inputs, ... }:
 
 let
-  niriConfig = import ../modules/lib/niri-config.nix {
-    niriDir = ../dotfiles/niri;
+  niriConfig = import ../../modules/lib/niri-config.nix {
+    niriDir = ../../dotfiles/niri;
     inherit (pkgs) lib;
   };
 in

@@ -18,8 +18,9 @@
   };
 
   outputs =
-    inputs@{ nixpkgs, home-manager, ... }:
+    { self, nixpkgs, home-manager, ... }@inputs:
     let
+      inherit (self) outputs;
       mkHome = import ./lib/mkHome.nix {
         inherit inputs nixpkgs home-manager;
       };
@@ -36,9 +37,11 @@
               username = host.username;
               system = host.system;
               modules = [
-                ./home.nix
-                (./hosts + "/${hostname}.nix")
+                ./home/common
+                ./home/users/${host.username}
+                ./home/hosts/${hostname}
               ];
+              inherit outputs;
             };
           }
         )

@@ -2,7 +2,7 @@
 #
 # IMPORTANT: This is NOT the place for general "desktop" role configuration.
 # Shared desktop settings (compositor, bar, wayland tools, etc.) belong in
-# `profiles/desktop.nix`. This module is only for overrides that apply to
+# `home/common/desktop.nix`. This module is only for overrides that apply to
 # THIS SPECIFIC machine, e.g. display scaling, external monitor layout,
 # hardware-specific packages, or per-machine program toggles.
 #
