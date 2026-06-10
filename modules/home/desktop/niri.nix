@@ -5,6 +5,7 @@ let
     niriDir = ./niri;
     inherit (pkgs) lib;
   };
+
 in
 {
   imports = [
@@ -20,10 +21,10 @@ in
     enableAudioWavelength = true;
     enableClipboardPaste = true;
 
-    systemd.enable = false;
+    systemd.enable = true;
 
     niri = {
-      enableSpawn = true;
+      enableSpawn = false;
       enableKeybinds = false;
       includes.enable = false;
     };
