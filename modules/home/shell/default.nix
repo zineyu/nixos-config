@@ -3,7 +3,7 @@
 {
   imports = [
     ./fish.nix
-    ./bash.nix
+    ./bash
     ./starship.nix
   ];
 }

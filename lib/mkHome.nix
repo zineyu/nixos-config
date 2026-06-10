@@ -1,7 +1,7 @@
 # Build a Home Manager configuration for a given user and system.
 #
 # Interface:
-#   { username, system, modules ? [] }
+#   { username, hostname, system, modules ? [] }
 # Returns:
 #   home-manager.lib.homeManagerConfiguration
 {
@@ -13,6 +13,7 @@
 
 {
   username,
+  hostname,
   system,
   modules ? [ ],
 }:
@@ -20,5 +21,5 @@
 home-manager.lib.homeManagerConfiguration {
   pkgs = import nixpkgs { inherit system; };
   inherit modules;
-  extraSpecialArgs = { inherit inputs username; };
+  extraSpecialArgs = { inherit inputs username hostname; };
 }

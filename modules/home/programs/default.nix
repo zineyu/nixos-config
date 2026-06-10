@@ -2,8 +2,8 @@
 
 {
   imports = [
-    ./git.nix
-    ./jj.nix
+    ./git
+    ./jj
     ./neovim
     ./kitty
     ./ghostty
@@ -12,7 +12,8 @@
     ./zed
     ./direnv
     ./fontconfig
-    ./npm.nix
-    ./aria2.nix
+    ./npm
+    ./aria2
+    ./yay
   ];
 }

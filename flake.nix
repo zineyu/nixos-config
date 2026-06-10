@@ -32,9 +32,31 @@
         inherit inputs nixpkgs home-manager;
       };
       hosts = import ./hosts;
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
     in
     {
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt;
+      formatter.${system} = pkgs.writeShellApplication {
+        name = "nixfmt-tree";
+        runtimeInputs = [
+          pkgs.findutils
+          pkgs.nixfmt
+        ];
+        text = ''
+          if [ "$#" -eq 0 ]; then
+            mapfile -d "" files < <(
+              find . \
+                \( -path ./.git -o -path ./.jj -o -path ./result \) -prune \
+                -o -type f -name '*.nix' -print0
+            )
+            if [ "''${#files[@]}" -gt 0 ]; then
+              nixfmt "''${files[@]}"
+            fi
+          else
+            nixfmt "$@"
+          fi
+        '';
+      };
 
       homeConfigurations = builtins.foldl' (
         acc: hostname:
@@ -44,12 +66,13 @@
         acc
         // {
           "${host.username}@${hostname}" = mkHome {
+            inherit hostname;
             username = host.username;
             system = host.system;
             modules = [
               ./users/${host.username}
-              ./users/${host.username}/${hostname}.nix
-            ];
+            ]
+            ++ (host.modules or [ ]);
           };
         }
       ) { } (builtins.attrNames hosts);
