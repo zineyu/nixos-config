@@ -4,5 +4,5 @@
 #   1. Create hosts/<hostname>/default.nix with username, system and modules.
 #   2. Run `home-manager build --flake .#<username>@<hostname>`.
 {
-  desktop = import ./desktop;
+  tianxuan = import ./tianxuan;
 }
