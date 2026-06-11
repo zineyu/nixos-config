@@ -1,7 +1,11 @@
 { ... }:
 
 {
-  programs.direnv.enable = true;
-
-  xdg.configFile."direnv/direnv.toml".source = ./direnv.toml;
+  programs.direnv = {
+    enable = true;
+    config = {
+      global.load_dotenv = true;
+      whitelist.prefix = [ "/home/zine/Work/Projects" ];
+    };
+  };
 }

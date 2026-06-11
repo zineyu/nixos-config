@@ -1,7 +1,8 @@
-{ pkgs, ... }:
+{ config, ... }:
 
 {
-  home.packages = [ pkgs.nodejs ];
-
-  home.file.".npmrc".source = ./npmrc;
+  programs.npm = {
+    enable = true;
+    settings.prefix = "${config.home.homeDirectory}/.npm-global";
+  };
 }

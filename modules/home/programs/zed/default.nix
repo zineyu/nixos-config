@@ -1,10 +1,135 @@
 { ... }:
 
 {
-  programs.zed-editor.enable = true;
+  programs.zed-editor = {
+    enable = true;
+    mutableUserSettings = false;
+    mutableUserKeymaps = false;
+    mutableUserTasks = false;
 
-  xdg.configFile."zed" = {
-    source = ./config;
-    recursive = true;
+    userSettings = {
+      project_panel.dock = "left";
+      collaboration_panel.dock = "right";
+      git_panel.dock = "left";
+      outline_panel.dock = "right";
+
+      agent = {
+        dock = "right";
+        default_profile = "ask";
+        default_model = {
+          provider = "GLM";
+          model = "GLM-4.7";
+          enable_thinking = false;
+        };
+        favorite_models = [ ];
+        inline_assistant_model = {
+          provider = "GLM";
+          model = "GLM-4.7";
+          enable_thinking = false;
+        };
+        model_parameters = [ ];
+      };
+
+      language_models.openai_compatible.GLM = {
+        api_url = "https://open.bigmodel.cn/api/coding/paas/v4";
+        available_models = [
+          {
+            name = "GLM-4.7";
+            max_tokens = 200000;
+            max_output_tokens = 128000;
+            max_completion_tokens = 200000;
+            capabilities = {
+              tools = true;
+              images = false;
+              parallel_tool_calls = false;
+              prompt_cache_key = false;
+              chat_completions = true;
+            };
+          }
+        ];
+      };
+
+      agent_servers = {
+        codex-acp.type = "registry";
+        pi-acp.type = "registry";
+        opencode.type = "registry";
+      };
+
+      ui_font_family = ".ZedSans";
+      restore_on_startup = "none";
+      buffer_font_family = "Maple Mono NF CN";
+      buffer_font_fallbacks = [ "Hack Nerd Font Mono" ];
+      relative_line_numbers = "enabled";
+      buffer_font_features = {
+        calt = true;
+        liga = true;
+        ss01 = true;
+      };
+      minimap.show = "auto";
+      inlay_hints.enabled = true;
+      icon_theme = {
+        mode = "light";
+        light = "Material Icon Theme";
+        dark = "Material Icon Theme";
+      };
+      vim_mode = true;
+      ui_font_size = 16;
+      buffer_font_size = 16;
+      theme = {
+        mode = "dark";
+        light = "One Light";
+        dark = "One Dark Pro";
+      };
+      autosave.after_delay.milliseconds = 100;
+      auto_signature_help = true;
+      gutter = {
+        line_numbers = true;
+        runnables = true;
+        breakpoints = true;
+        folds = true;
+      };
+      diagnostics.inline.enabled = true;
+      lsp = {
+        clangd.enable_lsp_tasks = true;
+        rust-analyzer.initialization_options = {
+          diagnostics.experimental.enable = true;
+          checkOnSave = true;
+          cargo.allTargets = false;
+          check = {
+            command = "clippy";
+            workspace = false;
+          };
+        };
+      };
+    };
+
+    userKeymaps = [
+      {
+        context = "Workspace";
+        bindings = { };
+      }
+      {
+        context = "Editor && vim_mode == insert";
+        bindings = { };
+      }
+      {
+        context = "Dock";
+        bindings = {
+          "ctrl-w h" = "workspace::ActivatePaneLeft";
+          "ctrl-w l" = "workspace::ActivatePaneRight";
+          "ctrl-w k" = "workspace::ActivatePaneUp";
+          "ctrl-w j" = "workspace::ActivatePaneDown";
+        };
+      }
+      {
+        context = "vim_mode == normal || vim_mode == visual";
+        bindings = {
+          s = "vim::PushSneak";
+          "shift-s" = "vim::PushSneakBackward";
+        };
+      }
+    ];
+
+    userTasks = [ ];
   };
 }
