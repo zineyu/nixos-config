@@ -57,9 +57,6 @@ fish_add_path /opt/stepai/earth/cmd
 #conda
 fish_add_path /opt/miniconda3/condabin
 
-# gpg agent to replace ssh agent
-export GPG_TTY=$(tty)
-export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
 
 # fzf.fish
 set fzf_preview_dir_cmd eza --all -lh --group-directories-first --icons=auto

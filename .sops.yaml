@@ -1,0 +1,8 @@
+keys:
+  - &zine_desktop age12vugtyl2fwzjv8zay6muqlnrgc0qgt0evwgprm25ktfv8rutz9vstzapve
+
+creation_rules:
+  - path_regex: ^secrets/[^/]+\.yaml$
+    key_groups:
+      - age:
+          - *zine_desktop

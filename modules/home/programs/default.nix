@@ -3,6 +3,7 @@
 {
   imports = [
     ./git
+    ./gnupg
     ./jj
     ./neovim
     ./kitty
