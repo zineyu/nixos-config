@@ -15,6 +15,7 @@
     ./fontconfig
     ./npm
     ./aria2
+    ./zen-browser
     ./yay
   ];
 }
