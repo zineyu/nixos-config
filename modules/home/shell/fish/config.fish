@@ -6,6 +6,9 @@ end
 if test -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish
     source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish
 end
+if test -e "$HOME/.nix-profile/etc/profile.d/hm-session-vars.fish"
+    source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.fish"
+end
 
 zoxide init fish | source
 starship init fish | source

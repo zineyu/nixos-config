@@ -7,6 +7,8 @@
 
   programs.home-manager.enable = true;
 
+  targets.genericLinux.enable = true;
+
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
