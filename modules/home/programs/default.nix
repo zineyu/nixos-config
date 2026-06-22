@@ -14,6 +14,7 @@
     ./direnv
     ./fontconfig
     ./npm
+    ./devtools
     ./aria2
     ./zen-browser
     ./yay
