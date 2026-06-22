@@ -11,6 +11,9 @@
     ./yazi
     ./zellij
     ./zed
+    ./atuin
+    ./mise
+    ./zoxide
     ./direnv
     ./fontconfig
     ./npm

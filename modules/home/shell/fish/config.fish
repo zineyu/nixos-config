@@ -10,9 +10,6 @@ if test -e "$HOME/.nix-profile/etc/profile.d/hm-session-vars.fish"
     source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.fish"
 end
 
-zoxide init fish | source
-starship init fish | source
-direnv hook fish | source
 
 alias cl clear
 alias ls 'eza --group-directories-first --icons=auto'
@@ -65,7 +62,6 @@ fzf_configure_bindings --directory=\cf
 set -g fish_greeting ''
 fish_vi_key_bindings
 
-mise activate fish | source
 
 set -gx EDITOR nvim
 
@@ -96,4 +92,3 @@ end
 
 set -x N_PREFIX "$HOME/n"
 contains "$N_PREFIX/bin" $PATH; or set -a PATH "$N_PREFIX/bin" # Added by n-install (see http://git.io/n-install-repo).
-/usr/bin/mise activate fish | source

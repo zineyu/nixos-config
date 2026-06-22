@@ -2,7 +2,6 @@
 
 {
   home.packages = with pkgs; [
-    atuin
     bitwarden-cli
     buf
     bun
@@ -19,7 +18,6 @@
     lazyjj
     llvm
     maven
-    mise
     mold
     ninja
     opencode
@@ -32,6 +30,5 @@
     uv
     websocat
     zip
-    zoxide
   ];
 }
