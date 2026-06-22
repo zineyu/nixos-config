@@ -19,7 +19,10 @@
 }:
 
 home-manager.lib.homeManagerConfiguration {
-  pkgs = import nixpkgs { inherit system; };
+  pkgs = import nixpkgs {
+    inherit system;
+    config.allowUnfree = true;
+  };
   inherit modules;
   extraSpecialArgs = { inherit inputs username hostname; };
 }
