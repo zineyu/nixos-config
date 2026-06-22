@@ -1,9 +1,38 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 let
   storeLinks = import ../../../../lib/storeLinks.nix { inherit config; };
 in
 {
+  fonts.fontconfig = {
+    enable = true;
+    defaultFonts = {
+      sansSerif = [
+        "Noto Sans"
+        "Noto Sans CJK SC"
+      ];
+      serif = [
+        "Noto Serif"
+        "Noto Serif CJK SC"
+      ];
+      monospace = [
+        "Maple Mono NF CN"
+        "Fira Code"
+        "DejaVu Sans Mono"
+      ];
+      emoji = [ "Noto Color Emoji" ];
+    };
+  };
+
+  home.packages = with pkgs; [
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-cjk-serif
+    noto-fonts-color-emoji
+    fira-code
+    maple-mono.NF-CN
+  ];
+
   xdg.configFile = {
     # Static dotfiles are linked from the Nix store.
     "fontconfig" = {
