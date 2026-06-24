@@ -10,7 +10,6 @@ if test -e "$HOME/.nix-profile/etc/profile.d/hm-session-vars.fish"
     source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.fish"
 end
 
-
 alias cl clear
 alias ls 'eza --group-directories-first --icons=auto'
 alias ll 'ls -lh'
@@ -22,6 +21,7 @@ alias cd z
 alias .. 'cd ..'
 alias ... 'cd ../..'
 alias .... 'cd ../../..'
+alias fabric fabric-ai
 
 set -gx TERM xterm-256color
 
@@ -54,14 +54,12 @@ fish_add_path /opt/stepai/earth/cmd
 #conda
 fish_add_path /opt/miniconda3/condabin
 
-
 # fzf.fish
 set fzf_preview_dir_cmd eza --all -lh --group-directories-first --icons=auto
 fzf_configure_bindings --directory=\cf
 
 set -g fish_greeting ''
 fish_vi_key_bindings
-
 
 set -gx EDITOR nvim
 
