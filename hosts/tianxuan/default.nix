@@ -36,6 +36,8 @@
         };
       in
       {
+        targets.genericLinux.enable = true;
+
         targets.genericLinux.nixGL = {
           packages = nixGLPackages;
           defaultWrapper = "nvidia";
