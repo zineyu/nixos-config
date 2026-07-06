@@ -41,9 +41,6 @@ fish_add_path -g -p ~/flutter/bin
 # go
 fish_add_path /usr/local/go/bin
 
-# cargo/bin
-source "$HOME/.cargo/env.fish"
-
 # flutter
 fish_add_path /opt/flutter/bin
 

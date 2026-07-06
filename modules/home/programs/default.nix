@@ -26,5 +26,6 @@
     ./aria2
     ./zen-browser
     ./yay
+    ./rustup
   ];
 }
