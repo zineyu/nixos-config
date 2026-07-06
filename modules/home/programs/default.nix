@@ -7,10 +7,10 @@
     ./jj
     ./neovim
     ./kitty
-    ./ghostty
     ./yazi
     ./zellij
     ./firefox
+    ./chromium
     ./zed
     ./atuin
     ./mise
@@ -19,14 +19,10 @@
     ./fontconfig
     ./npm
     ./devtools
-    # ./localsend
-    # ./telegram-desktop
-    # ./qbittorrent
-    # ./vlc
-    # ./gimp
-    # ./dbeaver-bin
-    # ./thunderbird
-    # ./alacritty
+    ./coding-agents
+    ./python
+    ./qq
+    ./wechat
     ./aria2
     ./zen-browser
     ./yay
