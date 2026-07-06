@@ -47,12 +47,38 @@
       ...
     }@inputs:
     let
-      mkHome = import ./lib/mkHome.nix {
-        inherit inputs nixpkgs home-manager;
-      };
       hosts = import ./hosts;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      mkHome = import ./lib/mkHome.nix { inherit inputs nixpkgs home-manager; };
+      mkSystem =
+        {
+          hostname,
+          username,
+          system ? "x86_64-linux",
+          modules ? [ ],
+        }:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit inputs; };
+          modules = [
+            home-manager.nixosModules.home-manager
+            inputs.dms.nixosModules.greeter
+            inputs.niri.nixosModules.niri
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.extraSpecialArgs = { inherit inputs username hostname; };
+              home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ];
+
+              home-manager.users.${username} = import ./users/${username};
+            }
+
+            (import ./hosts/${hostname}/configuration.nix)
+          ]
+          ++ modules;
+        };
     in
     {
       formatter.${system} = pkgs.writeShellApplication {
@@ -77,21 +103,18 @@
         '';
       };
 
-      homeConfigurations = builtins.foldl' (
+      nixosConfigurations = builtins.foldl' (
         acc: hostname:
         let
           host = hosts.${hostname};
         in
         acc
         // {
-          "${host.username}@${hostname}" = mkHome {
+          ${hostname} = mkSystem {
             inherit hostname;
             username = host.username;
-            system = host.system;
-            modules = [
-              ./users/${host.username}
-            ]
-            ++ (host.modules or [ ]);
+            system = host.system or "x86_64-linux";
+            modules = host.modules or [ ];
           };
         }
       ) { } (builtins.attrNames hosts);
