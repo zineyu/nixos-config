@@ -14,16 +14,15 @@
 - 格式化器：flake formatter（当前为 `nixfmt`）
 - 引号：字符串优先使用双引号；nix store 路径或字面量按 formatter 输出为准
 - 模块结构：
-  - `hosts/<hostname>/default.nix` — 主机注册信息（`username`、`system`、`modules`）与该机器专属 NixOS 模块
+  - `hosts/<hostname>/default.nix` — 该机器专属 NixOS 模块，导入 `configuration.nix` 并声明 `home-manager.users.<username>`
   - `hosts/<hostname>/configuration.nix` — NixOS 系统配置，通常 `imports` 同目录的 `hardware-configuration.nix`
   - `hosts/<hostname>/hardware-configuration.nix` — `nixos-generate-config` 生成的硬件扫描结果
-  - `users/<username>/default.nix` — 用户入口，导入共享 Home Manager 模块
-  - `modules/home/common.nix` — Home Manager 通用基础配置
+  - `users/<username>/default.nix` — 用户入口，设置 `home.username` / `home.homeDirectory` 并导入共享 Home Manager 模块
+  - `modules/home/common.nix` — Home Manager 通用基础配置（不再接收 `username` 参数）
   - `modules/home/shell/` — shell 与启动文件
   - `modules/home/programs/<name>/` — 每个用户程序一个目录，原生配置文件与模块共置
   - `modules/home/desktop/` — 用户级桌面环境组件与配置
   - `lib/` — 可复用 Nix 函数
-  - `lib/mkHome.nix` — 旧 standalone Home Manager 模式的遗留封装，当前未使用
 - 新增 program 时，在 `modules/home/programs/default.nix` 中注册，并优先使用 `modules/home/programs/<name>/default.nix` 结构
 - 新增 host 时，在 `hosts/default.nix` 添加条目，并创建 `hosts/<hostname>/default.nix` 和 `hosts/<hostname>/configuration.nix`
 - `hosts/<hostname>/default.nix` 只放**该具体机器**的系统级覆盖（如显示器缩放、外设、特定硬件开关、greeter 配置等）；通用桌面配置放入 `modules/home/desktop/`
@@ -51,10 +50,9 @@
 
 ## Architecture Notes
 
-- `flake.nix` 通过 `hosts/default.nix` 自动生成 `nixosConfigurations`
-- `lib/mkHome.nix` 为旧 standalone Home Manager 的封装，当前项目已改用 NixOS 系统 flake，因此未使用
+- `hosts/default.nix` 现在是 `hostname -> system` 的显式映射，`flake.nix` 通过它生成 `nixosConfigurations`
 - `modules/home/default.nix` 是 Home Manager 共享层 orchestrator，按顺序导入 `common` → `shell` → `desktop` → `programs`
-- Home Manager 作为 NixOS 模块集成：`flake.nix` 通过 `home-manager.users.${username}` 将 `users/<username>/default.nix` 导入系统配置
+- Home Manager 作为 NixOS 模块集成：每个 host module 通过 `home-manager.users.<username>` 将 `users/<username>/default.nix` 导入系统配置
 - 每个 `modules/home/programs/<name>/default.nix` 管理该程序的启用、依赖和配置文件
 - `lib/niri-config.nix` 自动扫描 `modules/home/desktop/niri/dms/*.kdl`，新增 include 无需改 Nix 代码
 

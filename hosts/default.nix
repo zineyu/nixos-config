@@ -1,8 +1,10 @@
-# Registry of standalone Home Manager host configurations.
+# Host registry.
 #
+# Maps each hostname to the system architecture it builds for.
 # To add a new host:
-#   1. Create hosts/<hostname>/default.nix with username, system and modules.
-#   2. Run `home-manager build --flake .#<username>@<hostname>`.
+#   1. Create hosts/<hostname>/default.nix as a NixOS module.
+#   2. Add hosts/<hostname>/configuration.nix and hardware-configuration.nix as needed.
+#   3. Add the hostname to this mapping.
 {
-  tianxuan = import ./tianxuan;
+  tianxuan = "x86_64-linux";
 }

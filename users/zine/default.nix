@@ -6,4 +6,7 @@
   imports = [
     ../../modules/home
   ];
+
+  home.username = "zine";
+  home.homeDirectory = "/home/zine";
 }

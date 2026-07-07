@@ -50,16 +50,10 @@
       hosts = import ./hosts;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-      mkHome = import ./lib/mkHome.nix { inherit inputs nixpkgs home-manager; };
       mkSystem =
-        {
-          hostname,
-          username,
-          system ? "x86_64-linux",
-          modules ? [ ],
-        }:
+        hostname: hostSystem:
         nixpkgs.lib.nixosSystem {
-          inherit system;
+          system = hostSystem;
           specialArgs = { inherit inputs; };
           modules = [
             home-manager.nixosModules.home-manager
@@ -69,15 +63,12 @@
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
-              home-manager.extraSpecialArgs = { inherit inputs username hostname; };
+              home-manager.extraSpecialArgs = { inherit inputs; };
               home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ];
-
-              home-manager.users.${username} = import ./users/${username};
             }
 
-            (import ./hosts/${hostname}/configuration.nix)
-          ]
-          ++ modules;
+            ./hosts/${hostname}
+          ];
         };
     in
     {
@@ -103,20 +94,8 @@
         '';
       };
 
-      nixosConfigurations = builtins.foldl' (
-        acc: hostname:
-        let
-          host = hosts.${hostname};
-        in
-        acc
-        // {
-          ${hostname} = mkSystem {
-            inherit hostname;
-            username = host.username;
-            system = host.system or "x86_64-linux";
-            modules = host.modules or [ ];
-          };
-        }
-      ) { } (builtins.attrNames hosts);
+      nixosConfigurations = nixpkgs.lib.mapAttrs (
+        hostname: hostSystem: mkSystem hostname hostSystem
+      ) hosts;
     };
 }
