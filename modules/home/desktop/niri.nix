@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   niriConfig = import ../../../lib/niri-config.nix {
@@ -7,7 +11,6 @@ let
   };
 
 in
-
 {
   xdg.configFile."niri/config.kdl" = {
     source = "${niriConfig}/config.kdl";
