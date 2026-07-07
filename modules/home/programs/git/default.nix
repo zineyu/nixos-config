@@ -1,53 +1,44 @@
-{ lib, ... }:
-
-let
-  gitSettings = {
-    user = {
-      email = "zine.xlws@gmail.com";
-      name = "zine yu";
-      signingKey = "EE86111F659E24AB";
-    };
-
-    core.editor = "nvim";
-
-    commit.gpgSign = true;
-    tag.gpgSign = true;
-    init.defaultBranch = "main";
-    push.autoSetupRemote = true;
-    pull.rebase = true;
-    safe.directory = "*";
-    lfs.concurrenttransfers = 3;
-
-    alias = {
-      st = "status";
-      co = "checkout";
-      ci = "commit -s -S";
-      br = "branch";
-      lg = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit";
-      lgn = "lg -n";
-    };
-
-    "lfs \"customtransfer.xet\"" = {
-      path = "git-xet";
-      args = "transfer";
-      concurrent = true;
-    };
-
-    "filter \"lfs\"" = {
-      clean = "git-lfs clean -- %f";
-      smudge = "git-lfs smudge -- %f";
-      process = "git-lfs filter-process";
-      required = true;
-    };
-  };
-in
 {
   programs.git = {
     enable = true;
-    settings = gitSettings;
-  };
+    settings = {
+      user = {
+        email = "zine.xlws@gmail.com";
+        name = "zine yu";
+        signingKey = "EE86111F659E24AB";
+      };
 
-  # Preserve the legacy ~/.gitconfig path while also using Home Manager's native
-  # Git module, which writes the same settings to XDG_CONFIG_HOME/git/config.
-  home.file.".gitconfig".text = lib.generators.toGitINI gitSettings;
+      core.editor = "nvim";
+
+      commit.gpgSign = true;
+      tag.gpgSign = true;
+      init.defaultBranch = "main";
+      push.autoSetupRemote = true;
+      pull.rebase = true;
+      safe.directory = "*";
+      lfs.concurrenttransfers = 3;
+
+      alias = {
+        st = "status";
+        co = "checkout";
+        ci = "commit -s -S";
+        br = "branch";
+        lg = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit";
+        lgn = "lg -n";
+      };
+
+      "lfs \"customtransfer.xet\"" = {
+        path = "git-xet";
+        args = "transfer";
+        concurrent = true;
+      };
+
+      "filter \"lfs\"" = {
+        clean = "git-lfs clean -- %f";
+        smudge = "git-lfs smudge -- %f";
+        process = "git-lfs filter-process";
+        required = true;
+      };
+    };
+  };
 }

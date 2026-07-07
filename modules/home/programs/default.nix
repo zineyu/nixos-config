@@ -25,7 +25,6 @@
     ./wechat
     ./aria2
     ./zen-browser
-    ./yay
     ./rustup
     ./xdg-user-dirs
     ./cursor

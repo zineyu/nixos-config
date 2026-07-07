@@ -10,15 +10,18 @@ in
       sansSerif = [
         "Noto Sans"
         "Noto Sans CJK SC"
+        "DejaVu Sans"
+        "Roboto"
       ];
       serif = [
         "Noto Serif"
         "Noto Serif CJK SC"
+        "DejaVu Serif"
       ];
       monospace = [
         "Maple Mono NF CN"
-        "Fira Code"
         "DejaVu Sans Mono"
+        "Noto Sans Mono"
       ];
       emoji = [ "Noto Color Emoji" ];
     };
