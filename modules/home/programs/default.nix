@@ -29,5 +29,6 @@
     ./rustup
     ./xdg-user-dirs
     ./cursor
+    ./localsend
   ];
 }
