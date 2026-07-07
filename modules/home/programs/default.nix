@@ -27,5 +27,6 @@
     ./zen-browser
     ./yay
     ./rustup
+    ./cursor
   ];
 }
