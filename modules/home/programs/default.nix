@@ -27,6 +27,7 @@
     ./zen-browser
     ./yay
     ./rustup
+    ./xdg-user-dirs
     ./cursor
   ];
 }
