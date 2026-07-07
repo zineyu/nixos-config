@@ -37,11 +37,6 @@ config-notification {
     position x=1280 y=0
 }
 
-cursor {
-    xcursor-theme "Breeze_Light"
-    xcursor-size 24
-}
-
 gestures {
     hot-corners {
         off
@@ -149,7 +144,7 @@ spawn-at-startup "/usr/lib/pam_kwallet_init"
 environment {
   XMODIFIERS "@im=fcitx"
   XDG_CURRENT_DESKTOP "niri"
-  XCURSOR_THEME "Breeze_Light"
+  XCURSOR_THEME "BreezeX-Light"
   QT_QPA_PLATFORM "wayland"
   ELECTRON_OZONE_PLATFORM_HINT "auto"
   QT_QPA_PLATFORMTHEME "gtk3"

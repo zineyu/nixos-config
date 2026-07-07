@@ -2,18 +2,20 @@
 
 let
   niriConfig = import ../../../lib/niri-config.nix {
+    inherit pkgs;
     niriDir = ./niri;
-    inherit (pkgs) lib;
   };
 
 in
+
 {
-  programs.niri = {
-    config = niriConfig;
+  xdg.configFile."niri/config.kdl" = {
+    source = "${niriConfig}/config.kdl";
+    force = true;
   };
 
   xdg.configFile."niri/dms" = {
-    source = ./niri/dms;
+    source = "${niriConfig}/dms";
     recursive = true;
     force = true;
   };
