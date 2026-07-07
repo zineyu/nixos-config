@@ -26,7 +26,7 @@
 - 新增 program 时，在 `modules/home/programs/default.nix` 中注册，并优先使用 `modules/home/programs/<name>/default.nix` 结构
 - 新增 host 时，在 `hosts/default.nix` 添加条目，并创建 `hosts/<hostname>/default.nix` 和 `hosts/<hostname>/configuration.nix`
 - `hosts/<hostname>/default.nix` 只放**该具体机器**的系统级覆盖（如显示器缩放、外设、特定硬件开关、greeter 配置等）；通用桌面配置放入 `modules/home/desktop/`
-- 只有系统路径（如 `/usr/share/fontconfig/...`）才使用 `mkOutOfStore`，其余默认 in-store
+- 只有系统路径（如 `/usr/share/fontconfig/...`）或频繁修改的原生 dotfiles（如 Neovim、Kitty 配置）使用 `mkOutOfStore`，其余默认 in-store
 
 ## Testing
 

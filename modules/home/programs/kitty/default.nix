@@ -1,5 +1,10 @@
-{ ... }:
+{ config, ... }:
 
+let
+  storeLinks = import ../../../../lib/storeLinks.nix { inherit config; };
+  kittyConfig =
+    relPath: storeLinks.mkOutOfStoreDotfiles "modules/home/programs/kitty/config/${relPath}";
+in
 {
   programs.kitty = {
     enable = true;
@@ -47,14 +52,11 @@
   };
 
   xdg.configFile = {
-    "kitty/current-theme.conf".source = ./config/current-theme.conf;
-    "kitty/dank-tabs.conf".source = ./config/dank-tabs.conf;
-    "kitty/dank-theme.conf".source = ./config/dank-theme.conf;
-    "kitty/search.py".source = ./config/search.py;
-    "kitty/scroll_mark.py".source = ./config/scroll_mark.py;
-    "kitty/themes" = {
-      source = ./config/themes;
-      recursive = true;
-    };
+    "kitty/current-theme.conf".source = kittyConfig "current-theme.conf";
+    "kitty/dank-tabs.conf".source = kittyConfig "dank-tabs.conf";
+    "kitty/dank-theme.conf".source = kittyConfig "dank-theme.conf";
+    "kitty/search.py".source = kittyConfig "search.py";
+    "kitty/scroll_mark.py".source = kittyConfig "scroll_mark.py";
+    "kitty/themes".source = kittyConfig "themes";
   };
 }
