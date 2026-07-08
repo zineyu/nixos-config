@@ -1,6 +1,5 @@
 {
   pkgs,
-  lib,
   ...
 }:
 
@@ -21,5 +20,24 @@ in
     source = "${niriConfig}/dms";
     recursive = true;
     force = true;
+  };
+
+  home.packages = [ pkgs.xwayland-satellite ];
+
+  systemd.user.services.xwayland-satellite = {
+    Unit = {
+      Description = "Xwayland outside your Wayland compositor";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "notify";
+      ExecStart = "${pkgs.xwayland-satellite}/bin/xwayland-satellite";
+      Restart = "on-failure";
+      PassEnvironment = "WAYLAND_DISPLAY";
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
   };
 }

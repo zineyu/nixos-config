@@ -1,9 +1,9 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 {
-  home.packages = with pkgs; [
-    pi-coding-agent
+  home.packages = with inputs.llm-agents-nix.packages.${pkgs.system}; [
+    pi
     codex
-    cc-switch
+    cc-switch-cli
   ];
 }

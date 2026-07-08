@@ -44,7 +44,19 @@
     fsType = "ext4";
   };
 
-  swapDevices = [ ];
+  # 1. 启用 zramSwap
+  zramSwap = {
+    enable = true;
+    memoryPercent = 50; # 使用 50% 的内存作为 zram，默认是 50
+  };
+
+  # 2. 配置传统的交换文件作为后备
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 32 * 1024; # 8GB，大小根据需要调整
+    }
+  ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

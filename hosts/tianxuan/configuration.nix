@@ -23,8 +23,12 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   nix.settings.substituters = [
+    "https://cache.numtide.com"
     "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
     "https://cache.nixos.org"
+  ];
+  nix.settings.trusted-public-keys = [
+    "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
   ];
   nix.settings.experimental-features = [
     "nix-command"
@@ -70,6 +74,8 @@
   i18n.inputMethod = {
     enable = true;
     type = "fcitx5";
+
+    fcitx5.waylandFrontend = true;
     fcitx5.addons = with pkgs; [
       fcitx5-rime
       rime-data

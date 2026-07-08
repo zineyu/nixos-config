@@ -30,5 +30,6 @@
     ./cursor
     ./localsend
     ./thunderbird
+    ./tela-icon-theme
   ];
 }
