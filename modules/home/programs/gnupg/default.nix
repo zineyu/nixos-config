@@ -101,6 +101,10 @@ in
     pinentry.package = pkgs.pinentry-gnome3;
   };
 
+  programs.ssh = {
+    enable = true;
+  };
+
   systemd.user.services.import-gnupg-private-key = {
     Unit = {
       Description = "Import GnuPG private key from sops-nix";

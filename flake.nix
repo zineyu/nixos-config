@@ -9,6 +9,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    devenv = {
+      url = "github:cachix/devenv";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     dms = {
       url = "github:AvengeMedia/DankMaterialShell/stable";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -45,23 +50,23 @@
 
   };
   outputs =
-    {
+    inputs@{
       self,
       nixpkgs,
-      home-manager,
+      devenv,
       ...
-    }@inputs:
+    }:
     let
-      hosts = import ./hosts;
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      hosts = import ./hosts;
       mkSystem =
         hostname: hostSystem:
         nixpkgs.lib.nixosSystem {
           system = hostSystem;
           specialArgs = { inherit inputs; };
           modules = [
-            home-manager.nixosModules.home-manager
+            inputs.home-manager.nixosModules.home-manager
             inputs.dms.nixosModules.greeter
             inputs.niri.nixosModules.niri
             {
@@ -97,6 +102,27 @@
             nixfmt "$@"
           fi
         '';
+      };
+
+      devShells.${system}.default = devenv.lib.mkShell {
+        inherit inputs pkgs;
+        modules = [
+          {
+            languages.nix.enable = true;
+
+            git-hooks.hooks = {
+              nixfmt.enable = true;
+              deadnix.enable = true;
+              statix.enable = true;
+            };
+
+            packages = with pkgs; [
+              sops
+              ssh-to-age
+              just
+            ];
+          }
+        ];
       };
 
       nixosConfigurations = nixpkgs.lib.mapAttrs (

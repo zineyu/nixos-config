@@ -16,6 +16,8 @@
     ./mise
     ./zoxide
     ./direnv
+    ./devenv
+    ./dbeaver
     ./fontconfig
     ./npm
     ./devtools

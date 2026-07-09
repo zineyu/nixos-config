@@ -124,11 +124,17 @@
       "wheel"
       "video"
       "render"
+      "docker"
     ]; # Enable ‘sudo’ for the user.
     shell = pkgs.fish;
     packages = with pkgs; [
       tree
     ];
+  };
+
+  virtualisation.docker = {
+    enable = true;
+    enableOnBoot = true;
   };
 
   programs.fish.enable = true;
