@@ -7,6 +7,7 @@
     ./jj
     ./neovim
     ./kitty
+    ./dolphin
     ./yazi
     ./zellij
     ./firefox
