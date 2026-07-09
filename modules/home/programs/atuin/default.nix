@@ -5,7 +5,7 @@
     enable = true;
     enableFishIntegration = true;
     settings = {
-      filter_mode = "directory";
+      filter_mode = "session";
     };
   };
 }
