@@ -16,7 +16,6 @@
     ./atuin
     ./mise
     ./zoxide
-    ./direnv
     ./devenv
     ./dbeaver
     ./fontconfig

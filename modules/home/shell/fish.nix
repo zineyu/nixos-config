@@ -38,6 +38,7 @@
       fish_vi_key_bindings
 
       contains "$N_PREFIX/bin" $PATH; or set -a PATH "$N_PREFIX/bin"
+      devenv hook fish | source
     '';
 
     functions = {
