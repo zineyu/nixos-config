@@ -12,6 +12,7 @@ in
   home.packages = [ breezex-cursor ];
 
   home.pointerCursor = {
+    enable = true;
     name = "BreezeX-Light";
     package = breezex-cursor;
     size = 24;
