@@ -5,5 +5,6 @@
     pi
     codex
     cc-switch-cli
+    omp
   ];
 }
