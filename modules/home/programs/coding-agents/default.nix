@@ -6,5 +6,6 @@
     codex
     cc-switch-cli
     omp
+    spec-kit
   ];
 }
