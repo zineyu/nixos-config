@@ -15,7 +15,6 @@
       lt = "eza --tree --level=2 --long --icons --git";
       lta = "lt -a";
       ff = "fzf --preview 'bat --style=numbers --color=always {}'";
-      cd = "z";
       ".." = "cd ..";
       "..." = "cd ../..";
       "...." = "cd ../../..";
