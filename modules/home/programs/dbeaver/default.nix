@@ -1,7 +1,0 @@
-{ ... }:
-
-{
-  programs.dbeaver = {
-    enable = true;
-  };
-}
