@@ -1,10 +1,11 @@
 {
   pkgs,
+  vars,
   ...
 }:
 
 {
-  users.users.zine = {
+  users.users."${vars.linux.user.name}" = {
     isNormalUser = true;
     extraGroups = [
       "wheel"

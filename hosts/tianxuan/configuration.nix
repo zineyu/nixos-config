@@ -2,6 +2,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
+{ vars, ... }:
 {
   imports = [
     # Include the results of the hardware scan.
@@ -21,12 +22,12 @@
   # Host-specific NVIDIA Optimus configuration.
   hardware.nvidia.prime = {
     offload.enable = true;
-    intelBusId = "PCI:66:0:0";
-    nvidiaBusId = "PCI:1:0:0";
+    intelBusId = vars.linux.hardware.intelBusId;
+    nvidiaBusId = vars.linux.hardware.nvidiaBusId;
   };
 
   # Host-specific networking.
-  networking.hostName = "tianxuan";
+  networking.hostName = vars.linux.hostname;
 
   services.mihomo = {
     enable = true;

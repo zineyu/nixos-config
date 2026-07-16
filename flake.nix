@@ -60,7 +60,8 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
       hosts = import ./hosts;
-      mkSystem = (import ./lib/mkSystem.nix { inherit inputs; }).mkSystem;
+      mkSystem = (import ./lib/mkSystem.nix { inherit inputs vars; }).mkSystem;
+      vars = import ./vars;
     in
     {
       formatter.${system} = pkgs.writeShellApplication {
