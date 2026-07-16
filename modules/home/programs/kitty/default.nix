@@ -20,6 +20,7 @@ in
       window_margin_width = 5;
       confirm_os_window_close = 0;
       shell = "fish";
+      term = "xterm-256color";
     };
 
     keybindings = {

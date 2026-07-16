@@ -14,8 +14,7 @@ in
       specialArgs = { inherit inputs vars extraLibs; };
       modules = [
         inputs.home-manager.nixosModules.home-manager
-        inputs.dms.nixosModules.greeter
-        inputs.niri.nixosModules.niri
+        inputs.sops-nix.nixosModules.sops
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;

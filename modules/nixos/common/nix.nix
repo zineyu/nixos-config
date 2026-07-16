@@ -1,5 +1,5 @@
 let
-  shared = import ../../lib/nix-settings.nix;
+  shared = import ../../../lib/nix-settings.nix;
 in
 {
   nix.settings = shared // {

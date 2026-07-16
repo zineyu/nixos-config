@@ -11,8 +11,8 @@
       in
       {
         nixpaks = {
-          qq = prev.callPackage ../../lib/nixpaks-qq.nix { inherit mkNixPak; };
-          wechat = prev.callPackage ../../lib/nixpaks-wechat.nix { inherit mkNixPak; };
+          qq = prev.callPackage ../../../lib/nixpaks-qq.nix { inherit mkNixPak; };
+          wechat = prev.callPackage ../../../lib/nixpaks-wechat.nix { inherit mkNixPak; };
         };
       }
     )
