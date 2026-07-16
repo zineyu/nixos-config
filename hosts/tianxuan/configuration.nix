@@ -7,16 +7,7 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    ../../modules/nixos/system.nix
-    ../../modules/nixos/nix.nix
-    ../../modules/nixos/graphics.nix
-    ../../modules/nixos/networking.nix
-    ../../modules/nixos/i18n.nix
-    ../../modules/nixos/audio.nix
-    ../../modules/nixos/desktop.nix
-    ../../modules/nixos/users.nix
-    ../../modules/nixos/docker.nix
-    ../../modules/nixos/steam.nix
+    ../../modules/nixos
   ];
 
   # Host-specific NVIDIA Optimus configuration.
