@@ -7,7 +7,8 @@
 - 构建：`nixos-rebuild build --flake .#<hostname>`（当前主机为 `.#tianxuan`）
 - 应用：**需用户确认后方可执行** `nixos-rebuild switch --flake .#<hostname>`
 - 格式化：`nix fmt`
-- 类型检查：`nix flake check`
+- 类型检查：`nix flake check`（CI 在 push/PR 时自动运行，包含 nixfmt、deadnix、statix 检查）
+- CI 在 push/PR 时自动构建所有 `nixosConfigurations`（当前为 `.#tianxuan`），并在每日定时尝试更新 `flake.lock`，详见 `.github/workflows/ci.yml` 和 `.github/workflows/update-lock.yml`。
 
 ## Code Style
 
@@ -33,7 +34,7 @@
 
 ## Testing
 
-- 当前无自动化测试套件。
+- 已配置 GitHub Actions：`.github/workflows/ci.yml` 运行 `nix flake check` 与 NixOS 系统构建验证；`.github/workflows/update-lock.yml` 每日自动更新 `flake.lock` 并在验证通过后推送。
 - 修改后必须运行：`nixos-rebuild build --flake .#<hostname>`
 - 验证重点：
   - 构建无 evaluation error

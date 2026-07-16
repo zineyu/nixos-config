@@ -1,0 +1,27 @@
+name: Setup Nix
+description: Setup Nix with disk cleanup and GitHub Actions-backed cache
+inputs:
+  free-space:
+    description: Whether to free space before building
+    required: false
+    default: "true"
+  github-token:
+    description: The GitHub token to use for Nix GitHub access tokens
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: wimpysworld/nothing-but-nix@main
+      if: inputs.free-space == 'true'
+      with:
+        hatchet-protocol: rampage
+        witness-carnage: true
+        mnt-safe-haven: 6144
+
+    - uses: NixOS/nix-installer-action@main
+      with:
+        extra-conf: |
+          experimental-features = nix-command flakes
+          access-tokens = github.com=${{ inputs.github-token }}
+
+    - uses: DeterminateSystems/magic-nix-cache-action@main

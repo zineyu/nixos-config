@@ -1,0 +1,27 @@
+name: NixOS Build
+description: Build all NixOS system closures, applying the shared nix.conf first
+runs:
+  using: "composite"
+  steps:
+    - name: Apply shared Nix settings
+      shell: bash
+      run: |
+        nix build ".#nix-conf"
+        mkdir -p ~/.config/nix
+        cat ./result | tee -a ~/.config/nix/nix.conf
+
+    - name: Restart Nix Daemon
+      shell: bash
+      run: |
+        sudo systemctl restart nix-daemon.service
+
+    - name: Build system closures
+      shell: bash
+      run: |
+        mapfile -t hosts < <(nix eval --json ".#nixosConfigurations" --apply "builtins.attrNames" | jq --raw-output '.[]')
+        for host in "${hosts[@]}"; do
+          nix build ".#nixosConfigurations.$host.config.system.build.toplevel" \
+            --fallback \
+            --print-build-logs \
+            --out-link "result-$host"
+        done

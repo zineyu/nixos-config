@@ -1,0 +1,115 @@
+name: Nix Flake Lock Update
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+env:
+  COMMIT_MSG_SUBJECT: "automated flake lock maintenance at"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Update flake.lock
+    runs-on: ubuntu-latest
+    outputs:
+      lock_updated: ${{ steps.update-lock.outputs.lock_updated }}
+      base_sha: ${{ steps.update-lock.outputs.base_sha }}
+      patch: ${{ steps.update-lock.outputs.patch }}
+    steps:
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Reset Maintenance Commit
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          LATEST_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+          if [[ "$LATEST_COMMIT_MESSAGE" =~ ^${COMMIT_MSG_SUBJECT}.* ]]; then
+            echo "Previous commit is a maintenance commit. Resetting to the one before it."
+            git reset --hard HEAD~1
+            echo "Reset complete. Current HEAD is now at $(git rev-parse HEAD)"
+          else
+            echo "Previous commit is a manmade commit. Proceeding."
+          fi
+
+      - uses: ./.github/actions/setup-nix
+        with:
+          free-space: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Flake Lock
+        id: update-lock
+        run: |
+          set -eo pipefail
+          UPDATE_OUTPUT=$(nix flake update --quiet 2>&1)
+
+          if git diff --quiet; then
+            echo "No changes to commit."
+            echo "lock_updated=false" >> "$GITHUB_OUTPUT"
+          else
+            git diff --color
+            echo "base_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            git add flake.lock
+            COMMIT_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            git commit -m "${COMMIT_MSG_SUBJECT} ${COMMIT_TIME}" -m "${UPDATE_OUTPUT}"
+            {
+              echo "patch<<PATCH_EOF"
+              git format-patch -1 --stdout
+              echo "PATCH_EOF"
+            } >> "$GITHUB_OUTPUT"
+            echo "lock_updated=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  check:
+    name: Verify lock update
+    needs: update
+    if: needs.update.outputs.lock_updated == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Apply Patch
+        env:
+          BASE_SHA: ${{ needs.update.outputs.base_sha }}
+          PATCH: ${{ needs.update.outputs.patch }}
+        run: |
+          git reset --hard "$BASE_SHA"
+          echo "$PATCH" | git apply
+
+      - uses: ./.github/actions/setup-nix
+        with:
+          free-space: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/nixos-build
+
+  commit:
+    name: Push updated lock
+    needs: [update, check]
+    if: needs.update.outputs.lock_updated == 'true' && needs.check.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Commit Changes
+        env:
+          BASE_SHA: ${{ needs.update.outputs.base_sha }}
+          PATCH: ${{ needs.update.outputs.patch }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git reset --hard "$BASE_SHA"
+          echo "$PATCH" | git am
+          git push --force-with-lease || echo "Push failed, likely due to concurrent changes."

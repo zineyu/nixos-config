@@ -2,11 +2,11 @@
 {
   nixpkgs.overlays = [
     (
-      final: prev:
+      _final: prev:
       let
         mkNixPak = inputs.nixpak.lib.nixpak {
           pkgs = prev;
-          lib = prev.lib;
+          inherit (prev) lib;
         };
       in
       {

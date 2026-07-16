@@ -1,0 +1,47 @@
+name: Nix Build CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "scripts/**"
+      - "Justfile"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "scripts/**"
+      - "Justfile"
+
+jobs:
+  check:
+    name: Flake check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+
+      - uses: ./.github/actions/setup-nix
+        with:
+          free-space: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run flake check
+        run: nix flake check --print-build-logs
+
+  build:
+    name: Build NixOS systems
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+
+      - uses: ./.github/actions/setup-nix
+        with:
+          free-space: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/nixos-build

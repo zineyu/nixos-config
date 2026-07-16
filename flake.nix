@@ -65,7 +65,7 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
       hosts = import ./hosts;
-      mkSystem = (import ./lib/mkSystem.nix { inherit inputs vars; }).mkSystem;
+      inherit (import ./lib/mkSystem.nix { inherit inputs vars; }) mkSystem;
       vars = import ./vars;
     in
     {
@@ -91,10 +91,52 @@
         '';
       };
 
+      checks.${system} = {
+        lint =
+          pkgs.runCommand "lint"
+            {
+              nativeBuildInputs = [
+                pkgs.deadnix
+                pkgs.nixfmt
+                pkgs.statix
+              ];
+            }
+            ''
+              cd ${self}
+              echo "Checking Nix formatting..."
+              find . -type f -name '*.nix' -print0 | xargs -0 nixfmt --check
+              echo "Checking for dead Nix code..."
+              deadnix --fail --exclude ./hosts/tianxuan/hardware-configuration.nix .
+              echo "Running statix..."
+              statix check .
+              touch $out
+            '';
+      };
+
+      packages.${system} = {
+        nix-conf =
+          let
+            shared = import ./lib/nix-settings.nix;
+          in
+          (pkgs.formats.nixConf {
+            package = pkgs.nix;
+            version = pkgs.nix.version;
+            checkConfig = false;
+          }).generate
+            "nix.custom.conf"
+            {
+              extra-substituters = shared.substituters;
+              extra-trusted-public-keys = shared.trusted-public-keys;
+              extra-experimental-features = shared.experimental-features;
+            };
+      };
+
       devShells.${system}.default = devenv.lib.mkShell {
         inherit inputs pkgs;
         modules = [
           {
+            devenv.root = self.outPath;
+
             languages.nix.enable = true;
 
             git-hooks.hooks = {

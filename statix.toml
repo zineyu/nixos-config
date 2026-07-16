@@ -1,0 +1,6 @@
+# Statix 配置
+# empty_pattern 和 repeated_keys 在 NixOS / Home Manager 模块中属于常见写法
+#（如 boot.loader.systemd-boot.enable = true、fileSystems."/" = ... 等），保持开启会产生大量误报，
+# 因此全局禁用。
+disabled = ["empty_pattern", "repeated_keys"]
+ignore = [".direnv", ".devenv", "hosts/tianxuan/hardware-configuration.nix"]
