@@ -1,8 +1,9 @@
 # Host module for the `tianxuan` machine.
 #
-# This module imports the system configuration and wires the user entry
-# into Home Manager. It is consumed by flake.nix via `import ./hosts/${hostname}`.
-{ vars, ... }:
+# This module imports the system configuration and wires the single user
+# Home Manager entry into NixOS. It is consumed by flake.nix via
+# `import ./hosts/${hostname}`.
+{ ... }:
 {
   imports = [ ./configuration.nix ];
 
@@ -19,5 +20,5 @@
     };
   };
 
-  home-manager.users."${vars.linux.user.name}" = import ../../users/zine;
+  home-manager.users.zine = import ../../modules/home;
 }

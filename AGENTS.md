@@ -14,11 +14,11 @@
 - 格式化器：flake formatter（当前为 `nixfmt`）
 - 引号：字符串优先使用双引号；nix store 路径或字面量按 formatter 输出为准
 - 模块结构：
-  - `hosts/<hostname>/default.nix` — 该机器专属 NixOS 模块，导入 `configuration.nix` 并声明 `home-manager.users.<username>`
+  - `hosts/<hostname>/default.nix` — 该机器专属 NixOS 模块，导入 `configuration.nix` 并声明 `home-manager.users.<username>`（本仓库为单用户固定 `zine`）
   - `hosts/<hostname>/configuration.nix` — NixOS 系统配置，通常 `imports` 同目录的 `hardware-configuration.nix`
   - `hosts/<hostname>/hardware-configuration.nix` — `nixos-generate-config` 生成的硬件扫描结果
-  - `users/<username>/default.nix` — 用户入口，设置 `home.username` / `home.homeDirectory` 并导入共享 Home Manager 模块
-  - `modules/home/common.nix` — Home Manager 通用基础配置（不再接收 `username` 参数）
+  - `modules/home/default.nix` — 单用户 Home Manager 入口，设置 `home.username` / `home.homeDirectory` 并 orchestrate 共享 Home Manager 模块
+  - `modules/home/common.nix` — Home Manager 通用基础配置（本仓库为单用户，不再接收 `username` 参数）
   - `modules/home/tools.nix` — 共享用户工具包（如 `ripgrep`、`fzf`、`just` 等），与具体程序解耦的常用 CLI 工具
   - `modules/home/shell/` — shell 与启动文件
   - `modules/home/programs/<name>/` — 每个用户程序一个目录，原生配置文件与模块共置
@@ -55,7 +55,7 @@
 
 - `hosts/default.nix` 现在是 `hostname -> system` 的显式映射，`flake.nix` 通过它生成 `nixosConfigurations`
 - `modules/home/default.nix` 是 Home Manager 共享层 orchestrator，按顺序导入 `common` → `tools` → `shell` → `desktop` → `programs`
-- Home Manager 作为 NixOS 模块集成：每个 host module 通过 `home-manager.users.<username>` 将 `users/<username>/default.nix` 导入系统配置
+- Home Manager 作为 NixOS 模块集成：唯一用户 `zine` 直接通过 `home-manager.users.zine = import ../../modules/home` 接入系统配置，不再经过 `users/<username>/default.nix` 层。
 - 每个 `modules/home/programs/<name>/default.nix` 管理该程序的启用、依赖和配置文件
 - `lib/niri-config.nix` 自动扫描 `modules/home/desktop/niri/dms/*.kdl`，新增 include 无需改 Nix 代码
 
