@@ -1,0 +1,19 @@
+{ pkgs, inputs, ... }:
+
+{
+  languages.nix.enable = true;
+
+  git-hooks.hooks = {
+    nixfmt.enable = true;
+    deadnix.enable = true;
+    statix.enable = true;
+  };
+
+  packages = with pkgs; [
+    git
+    sops
+    ssh-to-age
+    just
+    inputs.deploy-rs.packages.${pkgs.system}.deploy-rs
+  ];
+}

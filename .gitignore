@@ -3,5 +3,7 @@ result
 __pycache__/
 *.pyc
 .direnv
-.devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
 .pre-commit-config.yaml

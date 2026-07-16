@@ -9,11 +9,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    devenv = {
-      url = "github:cachix/devenv";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     dms = {
       url = "github:AvengeMedia/DankMaterialShell/stable";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -63,7 +58,6 @@
     inputs@{
       self,
       nixpkgs,
-      devenv,
       deploy-rs,
       ...
     }:
@@ -135,30 +129,6 @@
               extra-trusted-public-keys = shared.trusted-public-keys;
               extra-experimental-features = shared.experimental-features;
             };
-      };
-
-      devShells.${system}.default = devenv.lib.mkShell {
-        inherit inputs pkgs;
-        modules = [
-          {
-            devenv.root = self.outPath;
-
-            languages.nix.enable = true;
-
-            git-hooks.hooks = {
-              nixfmt.enable = true;
-              deadnix.enable = true;
-              statix.enable = true;
-            };
-
-            packages = with pkgs; [
-              sops
-              ssh-to-age
-              just
-              inputs.deploy-rs.packages.${system}.deploy-rs
-            ];
-          }
-        ];
       };
 
       nixosConfigurations = nixpkgs.lib.mapAttrs (
