@@ -1,8 +1,12 @@
 {
   inputs,
+  pkgs,
   ...
 }:
 
+let
+  jsonFormat = pkgs.formats.json { };
+in
 {
   imports = [
     inputs.dms.homeModules.dank-material-shell
@@ -26,7 +30,9 @@
   };
 
   xdg.configFile = {
-    "DankMaterialShell/settings.json".source = ./DankMaterialShell/settings.json;
+    "DankMaterialShell/settings.json".source = jsonFormat.generate "dms-settings.json" (
+      import ./DankMaterialShell/settings.nix
+    );
     "DankMaterialShell/zen.css".source = ./DankMaterialShell/zen.css;
   };
 }

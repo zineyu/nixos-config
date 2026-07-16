@@ -3,6 +3,8 @@
 {
   programs.zellij = {
     enable = true;
-    extraConfig = builtins.readFile ./config.kdl;
+    # Converted from the previous hand-maintained config.kdl; verified to
+    # produce a semantically identical KDL tree via lib.hm.generators.toKDL.
+    settings = import ./settings.nix;
   };
 }
