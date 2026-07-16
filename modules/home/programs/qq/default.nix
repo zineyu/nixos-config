@@ -1,5 +1,5 @@
 { pkgs, ... }:
 
 {
-  home.packages = [ pkgs.qq ];
+  home.packages = [ pkgs.nixpaks.qq ];
 }
