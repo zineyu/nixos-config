@@ -16,7 +16,8 @@
   # boot.loader.grub.enable = true;
   # boot.loader.grub.device = "/dev/vda";
 
-  # sops-nix 框架已就绪；拿到 age public key 后 uncomment：
+  # sops-nix 框架已就绪；流程见 docs/secrets.md。
+  # 拿到 aliyun-01 的 age public key 后取消下面两行注释：
   # sops.defaultSopsFile = ./secrets/aliyun-01.yaml;
   # sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 

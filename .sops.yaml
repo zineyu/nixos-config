@@ -1,10 +1,15 @@
 keys:
   - &zine_desktop age12vugtyl2fwzjv8zay6muqlnrgc0qgt0evwgprm25ktfv8rutz9vstzapve
-  # TODO: 在 aliyun-01 上运行 `ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub` 后替换下面的占位符
+  # TODO: 在 aliyun-01 上运行 `ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub`，
+  # 然后把输出的 age public key 替换下面的占位符并取消注释。
   # - &aliyun-01 age1...
 
 creation_rules:
-  - path_regex: ^secrets/[^/]+\.yaml$
+  - path_regex: ^secrets/gnupg\.yaml$
+    key_groups:
+      - age:
+          - *zine_desktop
+  - path_regex: ^secrets/aliyun-01\.yaml$
     key_groups:
       - age:
           - *zine_desktop
