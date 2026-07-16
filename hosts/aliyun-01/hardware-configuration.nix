@@ -1,14 +1,28 @@
+{ modulesPath, ... }:
 {
-  lib,
-  ...
-}:
-{
-  # 占位符硬件配置：请替换为远程服务器 `nixos-generate-config` 的真实输出。
-  # 当前仅用于本地构建验证，不可直接部署。
+  imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
+  boot.loader = {
+    efi.efiSysMountPoint = "/boot/efi";
+    grub = {
+      efiSupport = true;
+      efiInstallAsRemovable = true;
+      device = "nodev";
+    };
+  };
+  fileSystems."/boot/efi" = {
+    device = "/dev/disk/by-uuid/EA30-7EBB";
+    fsType = "vfat";
+  };
+  boot.initrd.availableKernelModules = [
+    "ata_piix"
+    "uhci_hcd"
+    "xen_blkfront"
+    "vmw_pvscsi"
+  ];
+  boot.initrd.kernelModules = [ "nvme" ];
   fileSystems."/" = {
-    device = "/dev/disk/by-label/nixos";
+    device = "/dev/vda3";
     fsType = "ext4";
   };
 
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

@@ -141,6 +141,8 @@
         nodes.aliyun-01 = {
           hostname = "aliyun-01";
           profiles.system = {
+
+            fastConnection = true;
             user = "root";
             sshUser = "root";
             path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.aliyun-01;

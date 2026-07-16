@@ -1,25 +1,31 @@
-{ ... }:
-{
+{ lib, pkgs, ... }: {
   imports = [
-    # FIXME: 替换为服务器上 `nixos-generate-config` 的真实输出
     ./hardware-configuration.nix
-    ../../modules/nixos
-    ../../modules/nixos/server
+
   ];
 
+  # Workaround for https://github.com/NixOS/nix/issues/8502
+  services.logrotate.checkConfig = false;
+
+  boot.tmp.cleanOnBoot = true;
+  zramSwap.enable = true;
   networking.hostName = "aliyun-01";
+  networking.domain = "";
+  services.openssh.enable = true;
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHGgIF/RgUlwjhijDzN9pzFhKNaFCZZ/fTo+CVrBmgu7 openpgp:0xD075FA27"
+  ];
+  system.stateVersion = "26.11";
 
-  time.timeZone = "Asia/Shanghai";
+  # Workaround: dbus-broker user unit reload hangs during deploy-rs activation,
+  # causing the entire deployment to fail and roll back.
+  # Force a restart instead of reload when the unit changes.
+  systemd.user.services.dbus-broker = {
+    serviceConfig = {
+      X-ReloadIfChanged = lib.mkForce "false";
+      ExecReload = lib.mkForce "";
+      X-RestartIfChanged = lib.mkForce "true";
+    };
+  };
 
-  # 如有需要，后续可覆盖 bootloader：
-  # boot.loader.systemd-boot.enable = lib.mkForce false;
-  # boot.loader.grub.enable = true;
-  # boot.loader.grub.device = "/dev/vda";
-
-  # sops-nix 框架已就绪；流程见 docs/secrets.md。
-  # 拿到 aliyun-01 的 age public key 后取消下面两行注释：
-  # sops.defaultSopsFile = ./secrets/aliyun-01.yaml;
-  # sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-
-  system.stateVersion = "26.05";
 }
