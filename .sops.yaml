@@ -14,3 +14,7 @@ creation_rules:
       - age:
           - *zine_desktop
           # - *aliyun-01
+  - path_regex: ^secrets/ssh-hosts\.yaml$
+    key_groups:
+      - age:
+          - *zine_desktop

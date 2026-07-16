@@ -13,8 +13,39 @@
 
 - `.sops.yaml`：定义了用户 `zine_desktop` 的 age public key，以及 `aliyun-01` 占位符。
 - `secrets/aliyun-01.yaml.template`：未加密模板，**不能直接作为 `sops.defaultSopsFile`**。
-- `Justfile`：提供 `age-key`、`sops-edit`、`sops-updatekeys`、`build`、`deploy` 等命令。
+- `secrets/ssh-hosts.yaml`：加密保存了 `aliyun-01` 的真实 IP/域名，只有本机（`zine_desktop`）能解密。
+- `modules/home/ssh.nix`：用 sops template 生成 `~/.ssh/config.d/nixos-hosts`，并自动 `Include` 到 `~/.ssh/config`。
+- `Justfile`：提供 `age-key`、`sops-edit`、`ssh-hosts`、`sops-updatekeys`、`build`、`deploy` 等命令。
 - `lib/mkSystem.nix` 已导入 `sops-nix` 系统级模块。
+
+## SSH alias 与 IP 加密
+
+部署配置里只写非敏感别名（如 `aliyun-01`），真实 IP/域名加密保存在 `secrets/ssh-hosts.yaml`，由本机 home-manager 解密并生成 `~/.ssh/config.d/nixos-hosts`：
+
+```ssh
+Host aliyun-01
+  HostName <真实 IP 或域名>
+  User root
+  IdentityFile ~/.ssh/id_ed25519
+```
+
+home-manager 激活时会自动确保 `~/.ssh/config` 包含：
+
+```ssh
+Include ~/.ssh/config.d/nixos-hosts
+```
+
+修改 IP/域名：
+
+```bash
+just ssh-hosts
+```
+
+或直接：
+
+```bash
+sops secrets/ssh-hosts.yaml
+```
 
 ## 新增一台 host 的流程
 

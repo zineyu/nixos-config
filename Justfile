@@ -14,6 +14,10 @@ sops-edit host:
     cp -n secrets/{{ host }}.yaml.template secrets/{{ host }}.yaml || true
     sops secrets/{{ host }}.yaml
 
+# 编辑本机 SSH alias 的真实地址（aliyun-01 等）
+ssh-hosts:
+    sops secrets/ssh-hosts.yaml
+
 # 新增 host 或轮换 age key 后，更新所有 sops 文件的 recipient
 sops-updatekeys:
     find secrets -maxdepth 1 -name '*.yaml' -print0 | xargs -0 sops updatekeys

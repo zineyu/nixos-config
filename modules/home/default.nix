@@ -7,6 +7,7 @@
     ./shell
     ./desktop
     ./programs
+    ./ssh.nix
   ];
 
   home.username = "zine";
