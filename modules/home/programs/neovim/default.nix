@@ -11,11 +11,7 @@ in
     # we manage the whole nvim directory as an out-of-store symlink below.
     sideloadInitLua = true;
     extraPackages = with pkgs; [
-      ripgrep
-      fd
       lua-language-server
-      stylua
-      tree-sitter
     ];
   };
 

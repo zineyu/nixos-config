@@ -60,26 +60,7 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
       hosts = import ./hosts;
-      mkSystem =
-        hostname: hostSystem:
-        nixpkgs.lib.nixosSystem {
-          system = hostSystem;
-          specialArgs = { inherit inputs; };
-          modules = [
-            inputs.home-manager.nixosModules.home-manager
-            inputs.dms.nixosModules.greeter
-            inputs.niri.nixosModules.niri
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "backup";
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ];
-            }
-
-            ./hosts/${hostname}
-          ];
-        };
+      mkSystem = (import ./lib/mkSystem.nix { inherit inputs; }).mkSystem;
     in
     {
       formatter.${system} = pkgs.writeShellApplication {
