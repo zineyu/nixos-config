@@ -7,4 +7,5 @@
 #   3. Add the hostname to this mapping.
 {
   tianxuan = "x86_64-linux";
+  aliyun-01 = "x86_64-linux";
 }

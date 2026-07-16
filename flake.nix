@@ -34,6 +34,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs = {
@@ -59,6 +64,7 @@
       self,
       nixpkgs,
       devenv,
+      deploy-rs,
       ...
     }:
     let
@@ -149,6 +155,7 @@
               sops
               ssh-to-age
               just
+              inputs.deploy-rs.packages.${system}.deploy-rs
             ];
           }
         ];
@@ -157,5 +164,18 @@
       nixosConfigurations = nixpkgs.lib.mapAttrs (
         hostname: hostSystem: mkSystem hostname hostSystem
       ) hosts;
+
+      deploy = {
+        user = "root";
+        sshUser = "root";
+        nodes.aliyun-01 = {
+          hostname = "aliyun-01";
+          profiles.system = {
+            user = "root";
+            sshUser = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.aliyun-01;
+          };
+        };
+      };
     };
 }
