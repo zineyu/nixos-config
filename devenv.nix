@@ -14,6 +14,6 @@
     sops
     ssh-to-age
     just
-    inputs.deploy-rs.packages.${pkgs.system}.deploy-rs
+    inputs.deploy-rs.packages.${stdenv.hostPlatform.system}.deploy-rs
   ];
 }
