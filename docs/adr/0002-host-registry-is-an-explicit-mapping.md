@@ -1,3 +1,5 @@
 # Host registry is an explicit mapping
 
+> **Update (after ADR-0004)**: The host registry itself remains unchanged, but the single user identity has been collapsed into `modules/home/default.nix`. Host modules now wire the user via `home-manager.users.zine = import ../../modules/home`, not via a per-user `users/<username>/default.nix` layer. See ADR-0004 for details.
+
 With ADR-0001 we committed to NixOS flake only. The next question is how `flake.nix` discovers the set of hosts and their build systems. We considered directory scanning, a hardcoded list in `flake.nix`, and a registry in `hosts/default.nix`. We chose an explicit registry in `hosts/default.nix` because it keeps the host set visible and version-controlled while avoiding the implicit magic of directory scanning. We also considered keeping only hostnames versus a richer mapping. The final shape is a minimal mapping of hostname to system: `hosts/default.nix` returns `{ tianxuan = "x86_64-linux"; }`. The username is not part of the registry; each host module declares its own user and imports `users/<username>` directly. This keeps build parameters in the registry and host identity in the host module.

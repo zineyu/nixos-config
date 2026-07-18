@@ -11,6 +11,9 @@
 
   packages = with pkgs; [
     git
+    nixfmt
+    deadnix
+    statix
     sops
     ssh-to-age
     just

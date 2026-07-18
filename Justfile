@@ -1,31 +1,43 @@
-# 常用命令
-# 在 devShell 中运行：`just <task>`
+# Justfile: common commands for this NixOS flake
+# Requires: just (provided by devenv)
 
-# 列出任务
+# List available recipes
+[private]
 default:
     @just --list
 
-# 从远程服务器获取 age public key（要求 ~/.ssh/config 中已配置 host 别名）
-age-key host:
-    ssh root@{{ host }} 'nix-shell -p ssh-to-age --run "ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub"'
+# Build a host configuration without activating it
+build host:
+    nixos-rebuild build --flake .#{{host}}
 
-# 编辑/创建指定 host 的 sops 加密文件（需要 .sops.yaml 中已配置该 host 的 age key）
-sops-edit host:
-    cp -n secrets/{{ host }}.yaml.template secrets/{{ host }}.yaml || true
-    sops secrets/{{ host }}.yaml
+# Switch a host configuration (requires confirmation in real use)
+switch host:
+    sudo nixos-rebuild switch --flake .#{{host}}
 
-# 编辑本机 SSH alias 的真实地址（aliyun-01 等）
+# Run flake checks (formatting, deadnix, statix, eval)
+check:
+    nix flake check --print-build-logs
+
+# Format all Nix files
+fmt:
+    nix fmt
+
+# Deploy a remote host via deploy-rs
+deploy host:
+    nix run .#deploy -- .#{{host}}
+
+# Edit the encrypted SSH hosts alias file
 ssh-hosts:
     sops secrets/ssh-hosts.yaml
 
-# 新增 host 或轮换 age key 后，更新所有 sops 文件的 recipient
+# Edit an encrypted host secret (e.g. just sops-edit aliyun-01)
+sops-edit host:
+    sops secrets/{{host}}.yaml
+
+# Re-encrypt all secrets with current recipients from .sops.yaml
 sops-updatekeys:
-    find secrets -maxdepth 1 -name '*.yaml' -print0 | xargs -0 sops updatekeys
+    sops updatekeys secrets/*.yaml
 
-# 本地构建指定 host
-build host:
-    nixos-rebuild build --flake .#{{ host }}
-
-# 部署指定 host（需要 deploy-rs 已配置）
-deploy host:
-    deploy .#{{ host }}
+# Fetch the age public key from a remote host via SSH-to-age
+age-key host:
+    ssh root@{{host}} "nix-shell -p ssh-to-age --run 'ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub'"

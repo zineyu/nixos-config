@@ -131,6 +131,20 @@
             };
       };
 
+      devShells.${system}.default = pkgs.mkShell {
+        name = "home-manager-dev";
+        packages = [
+          pkgs.git
+          pkgs.nixfmt
+          pkgs.deadnix
+          pkgs.statix
+          pkgs.sops
+          pkgs.ssh-to-age
+          pkgs.just
+          deploy-rs.packages.${system}.deploy-rs
+        ];
+      };
+
       nixosConfigurations = nixpkgs.lib.mapAttrs (
         hostname: hostSystem: mkSystem hostname hostSystem
       ) hosts;

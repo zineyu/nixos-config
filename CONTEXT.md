@@ -13,8 +13,8 @@ A single NixOS machine configuration, represented by `hosts/<hostname>/default.n
 _Avoid_: machine, device, node.
 
 **User**:
-A Home Manager user entry, represented by `users/<username>/default.nix`. It imports the shared Home Manager modules and sets its own identity (`home.username`, `home.homeDirectory`).
-_Avoid_: account, profile.
+The single Home Manager entry in `modules/home/default.nix`, which sets `home.username = "zine"` and `home.homeDirectory = "/home/zine"` and imports the shared Home Manager modules. The flake wires one Host to this single User.
+_Avoid_: account, profile, `users/<username>/default.nix`.
 
 **Shared Home**:
 The common Home Manager modules under `modules/home/` that are imported by every user entry.
