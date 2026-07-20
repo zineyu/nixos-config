@@ -14,8 +14,5 @@
     templates = "$HOME/Templates";
     videos = "$HOME/Videos";
 
-    extraConfig = {
-      XDG_PROJECTS_DIR = "$HOME/Projects";
-    };
   };
 }
