@@ -14,12 +14,12 @@
   # Host-specific NVIDIA Optimus configuration.
   hardware.nvidia.prime = {
     offload.enable = true;
-    intelBusId = vars.linux.hardware.intelBusId;
-    nvidiaBusId = vars.linux.hardware.nvidiaBusId;
+    intelBusId = vars.hosts.tianxuan.hardware.intelBusId;
+    nvidiaBusId = vars.hosts.tianxuan.hardware.nvidiaBusId;
   };
 
   # Host-specific networking.
-  networking.hostName = vars.linux.hostname;
+  networking.hostName = vars.hosts.tianxuan.hostname;
 
   services.mihomo = {
     enable = true;

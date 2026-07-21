@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> 个人 NixOS 系统配置仓库，使用 Flakes 管理系统与用户环境、桌面环境（niri + DankMaterialShell）及开发工具链。devenv 开发环境配置在 `flake.nix` 的 `devShells` 中。
+> 个人 NixOS 系统配置仓库，使用 Flakes 管理系统与用户环境、桌面环境（niri + DankMaterialShell）及开发工具链。devenv 开发环境配置在 `devenv.nix` 中。
 
 ## Build & Test
 
@@ -21,18 +21,18 @@
   - `hosts/<hostname>/hardware-configuration.nix` — `nixos-generate-config` 生成的硬件扫描结果
   - `modules/home/default.nix` — 单用户 Home Manager 入口，设置 `home.username` / `home.homeDirectory` 并 orchestrate 共享 Home Manager 模块
   - `modules/home/common.nix` — Home Manager 通用基础配置
-  - `modules/home/tools.nix` — 共享用户工具包（如 `ripgrep`、`fzf`、`just` 等），与具体程序解耦的常用 CLI 工具
-  - `modules/home/shell/` — shell 与启动文件
+  - `modules/home/tools.nix` — 共享用户工具包（如 `ripgrep`、`fzf`、`just` 等日常通用 CLI 工具）；语言/编译器/构建工具放在 `modules/home/programs/devtools/`
+  - `modules/home/shell/` — shell 与启动文件（`fish.nix`、`bash.nix`、`starship.nix` 及原生 `fish/` 配置树）
   - `modules/home/programs/<name>/` — 每个用户程序一个目录，原生配置文件与模块共置；`modules/home/programs/default.nix` 通过 `lib/scanPaths.nix` 自动扫描
-  - `modules/home/desktop/` — 用户级桌面环境组件与配置
+  - `modules/home/desktop/` — 用户级桌面环境组件与配置（含 `fontconfig/`、`tela-icon-theme/`、`xdg-user-dirs/` 等非程序项，需显式注册）
   - `modules/home/ssh.nix` — sops-nix 解密的 SSH alias 配置（如 `aliyun-01`）
-  - `modules/nixos/` — 系统级 NixOS 模块目录，按用途分为 `common/`、`desktop/`、`server/`
+  - `modules/nixos/` — 系统级 NixOS 模块目录，按用途分为 `common/`（所有 host 共享，含 Docker）、`desktop/`、`server/`
   - `modules/nixos/common/users.nix` — 单用户账户 `zine` 的声明
   - `lib/` — 可复用 Nix 函数（`mkSystem.nix`、`niri-config.nix`、`storeLinks.nix`、`nix-settings.nix`、`nixpaks-*.nix`、`scanPaths.nix`）
   - `lib/storeLinks.nix` — 统一封装 in-store / out-of-store 链接策略，供 `xdg.configFile` 使用
-  - `vars/default.nix` — 共享变量（Git 身份、当前主机名、硬件总线 ID 等）
+  - `vars/default.nix` — 共享变量（`git` 身份）与按 host 组织的变量（`hosts.<hostname>.hostname`、`hosts.<hostname>.hardware` 等）
 - 新增 program 时，在 `modules/home/programs/<name>/default.nix` 创建模块；目录创建后 `modules/home/programs/default.nix` 会自动扫描导入，无需手动注册。
-- 新增 host 时，在 `hosts/default.nix` 添加条目，并创建 `hosts/<hostname>/default.nix` 和 `hosts/<hostname>/configuration.nix`。服务器通常额外导入 `modules/nixos/server`。
+- 新增 host 时，在 `hosts/default.nix` 添加条目，并创建 `hosts/<hostname>/default.nix` 和 `hosts/<hostname>/configuration.nix`（导入 `modules/nixos` 以获得 common 基础配置）。服务器额外导入 `modules/nixos/server`。
 - `hosts/<hostname>/default.nix` 只放**该具体机器**的系统级覆盖（如显示器缩放、外设、特定硬件开关、greeter 配置等）；通用桌面配置放入 `modules/home/desktop/`
 - 只有系统路径（如 `/usr/share/fontconfig/...`）或频繁修改的原生 dotfiles（如 Neovim、Kitty 配置）使用 `mkOutOfStore`，其余默认 in-store
 

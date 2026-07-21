@@ -13,8 +13,5 @@
       "docker"
     ];
     shell = pkgs.fish;
-    packages = with pkgs; [
-      tree
-    ];
   };
 }

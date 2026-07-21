@@ -19,11 +19,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixGL = {
-      url = "github:nix-community/nixGL";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -131,19 +126,7 @@
             };
       };
 
-      devShells.${system}.default = pkgs.mkShell {
-        name = "home-manager-dev";
-        packages = [
-          pkgs.git
-          pkgs.nixfmt
-          pkgs.deadnix
-          pkgs.statix
-          pkgs.sops
-          pkgs.ssh-to-age
-          pkgs.just
-          deploy-rs.packages.${system}.deploy-rs
-        ];
-      };
+      # NOTE: 开发环境的唯一来源是 devenv.nix（见根 AGENTS.md）；此处不提供 devShells。
 
       nixosConfigurations = nixpkgs.lib.mapAttrs (
         hostname: hostSystem: mkSystem hostname hostSystem

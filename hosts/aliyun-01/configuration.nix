@@ -7,6 +7,7 @@
 {
   imports = [
     ./hardware-configuration.nix
+    ../../modules/nixos
     ../../modules/nixos/server
   ];
 
@@ -31,6 +32,7 @@
 
   boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
+  # Server hostname is declared directly here instead of via vars/.
   networking.hostName = "aliyun-01";
   networking.domain = "";
   services.openssh.enable = true;

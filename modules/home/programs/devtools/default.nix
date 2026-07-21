@@ -1,34 +1,26 @@
+# 编程语言、编译器、构建与开发辅助工具；日常通用 CLI 工具见 modules/home/tools.nix。
 { lib, pkgs, ... }:
 
 {
   home.packages = with pkgs; [
-    bitwarden-cli
     buf
     bun
     ccache
-    chafa
-    chezmoi
     (lib.setPrio 20 clang)
     cmake
     dart-sass
+    gcc
     github-cli
+    gnumake
     go
-    hugo
-    imagemagick
     lazyjj
     llvm
     maven
     mold
     ninja
     opencode
-    pandoc
-    pigz
-    resvg
-    stow
-    trash-cli
-    tree
+    stylua
+    tree-sitter
     uv
-    websocat
-    zip
   ];
 }
