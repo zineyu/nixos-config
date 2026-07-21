@@ -4,8 +4,7 @@
 }:
 
 {
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  # Bootloader is configured per-host (see hosts/<hostname>/).
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   programs.fish.enable = true;
