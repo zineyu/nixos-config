@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 let
-  storeLinks = import ../../../../lib/storeLinks.nix { inherit config; };
+  storeLinks = import ../../../../../lib/storeLinks.nix { inherit config; };
 in
 {
   programs.neovim = {
@@ -18,5 +18,5 @@ in
   # Symlink to the working-tree config directory so edits take effect without
   # re-running nixos-rebuild. See lib/storeLinks.nix.
   xdg.configFile."nvim".source =
-    storeLinks.mkOutOfStoreDotfiles "modules/home/programs/neovim/config";
+    storeLinks.mkOutOfStoreDotfiles "modules/home/programs/dev/neovim/config";
 }

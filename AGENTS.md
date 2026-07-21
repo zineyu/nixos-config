@@ -21,9 +21,9 @@
   - `hosts/<hostname>/hardware-configuration.nix` — `nixos-generate-config` 生成的硬件扫描结果
   - `modules/home/default.nix` — 单用户 Home Manager 入口，设置 `home.username` / `home.homeDirectory` 并 orchestrate 共享 Home Manager 模块
   - `modules/home/common.nix` — Home Manager 通用基础配置
-  - `modules/home/tools.nix` — 共享用户工具包（如 `ripgrep`、`fzf`、`just` 等日常通用 CLI 工具）；语言/编译器/构建工具放在 `modules/home/programs/devtools/`
+  - `modules/home/tools.nix` — 共享用户工具包（如 `ripgrep`、`fzf`、`just` 等日常通用 CLI 工具）；语言/编译器/构建工具放在 `modules/home/programs/dev/devtools/`
   - `modules/home/shell/` — shell 与启动文件（`fish.nix`、`bash.nix`、`starship.nix` 及原生 `fish/` 配置树）
-  - `modules/home/programs/<name>/` — 每个用户程序一个目录，原生配置文件与模块共置；`modules/home/programs/default.nix` 通过 `lib/scanPaths.nix` 自动扫描
+  - `modules/home/programs/<category>/<name>/` — 每个用户程序一个目录，原生配置文件与模块共置；程序按用途分为 `dev/`（开发工具链）、`terminal/`（终端与 shell 增强）、`gui/`（图形界面应用）、`misc/`（其他）四个类别；`modules/home/programs/default.nix` 与各 `programs/<category>/default.nix` 通过 `lib/scanPaths.nix` 逐层自动扫描
   - `modules/home/desktop/` — 用户级桌面环境组件与配置（含 `fontconfig/`、`tela-icon-theme/`、`xdg-user-dirs/` 等非程序项，需显式注册）
   - `modules/home/ssh.nix` — sops-nix 解密的 SSH alias 配置（如 `aliyun-01`）
   - `modules/nixos/` — 系统级 NixOS 模块目录，按用途分为 `common/`（所有 host 共享，含 Docker）、`desktop/`、`server/`
@@ -31,7 +31,7 @@
   - `lib/` — 可复用 Nix 函数（`mkSystem.nix`、`niri-config.nix`、`storeLinks.nix`、`nix-settings.nix`、`nixpaks-*.nix`、`scanPaths.nix`）
   - `lib/storeLinks.nix` — 统一封装 in-store / out-of-store 链接策略，供 `xdg.configFile` 使用
   - `vars/default.nix` — 共享变量（`git` 身份）与按 host 组织的变量（`hosts.<hostname>.hostname`、`hosts.<hostname>.hardware` 等）
-- 新增 program 时，在 `modules/home/programs/<name>/default.nix` 创建模块；目录创建后 `modules/home/programs/default.nix` 会自动扫描导入，无需手动注册。
+- 新增 program 时，按用途在对应类别下创建 `modules/home/programs/<category>/<name>/default.nix`；目录创建后各层 `default.nix` 会自动扫描导入，无需手动注册。若现有类别都不合适，可新增类别目录并配一个调用 `extraLibs.scanPaths` 的 `default.nix`。
 - 新增 host 时，在 `hosts/default.nix` 添加条目，并创建 `hosts/<hostname>/default.nix` 和 `hosts/<hostname>/configuration.nix`（导入 `modules/nixos` 以获得 common 基础配置）。服务器额外导入 `modules/nixos/server`。
 - `hosts/<hostname>/default.nix` 只放**该具体机器**的系统级覆盖（如显示器缩放、外设、特定硬件开关、greeter 配置等）；通用桌面配置放入 `modules/home/desktop/`
 - 只有系统路径（如 `/usr/share/fontconfig/...`）或频繁修改的原生 dotfiles（如 Neovim、Kitty 配置）使用 `mkOutOfStore`，其余默认 in-store
@@ -61,9 +61,9 @@
 - `hosts/default.nix` 现在是 `hostname -> system` 的显式映射，`flake.nix` 通过它生成 `nixosConfigurations`
 - `modules/home/default.nix` 是 Home Manager 共享层 orchestrator，按顺序导入 `common` → `tools` → `shell` → `desktop` → `programs` → `ssh`
 - Home Manager 作为 NixOS 模块集成：唯一用户 `zine` 直接通过 `home-manager.users.zine = import ../../modules/home` 接入系统配置，不再经过 `users/<username>/default.nix` 层。
-- 每个 `modules/home/programs/<name>/default.nix` 管理该程序的启用、依赖和配置文件；`modules/home/programs/default.nix` 通过 `lib/scanPaths.nix` 自动导入。
+- 每个 `modules/home/programs/<category>/<name>/default.nix` 管理该程序的启用、依赖和配置文件；`modules/home/programs/default.nix` 与 `programs/<category>/default.nix` 通过 `lib/scanPaths.nix` 逐层自动导入。
 - `lib/niri-config.nix` 自动扫描 `modules/home/desktop/niri/dms/*.kdl`，新增 include 无需改 Nix 代码。
-- `lib/nixpaks-qq.nix` 与 `lib/nixpaks-wechat.nix` 在 `modules/nixos/desktop/nixpak.nix` 中构建为 overlay，供 `modules/home/programs/qq` 与 `modules/home/programs/wechat` 使用。
+- `lib/nixpaks-qq.nix` 与 `lib/nixpaks-wechat.nix` 在 `modules/nixos/desktop/nixpak.nix` 中构建为 overlay，供 `modules/home/programs/gui/qq` 与 `modules/home/programs/gui/wechat` 使用。
 
 ## References
 

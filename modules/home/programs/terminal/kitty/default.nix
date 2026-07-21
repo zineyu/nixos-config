@@ -1,9 +1,9 @@
 { config, ... }:
 
 let
-  storeLinks = import ../../../../lib/storeLinks.nix { inherit config; };
+  storeLinks = import ../../../../../lib/storeLinks.nix { inherit config; };
   kittyConfig =
-    relPath: storeLinks.mkOutOfStoreDotfiles "modules/home/programs/kitty/config/${relPath}";
+    relPath: storeLinks.mkOutOfStoreDotfiles "modules/home/programs/terminal/kitty/config/${relPath}";
 in
 {
   programs.kitty = {

@@ -59,7 +59,7 @@
 |------|---------|---------|
 | `default.nix` | 按顺序 orchestrate home 模块：`common` → `tools` → `shell` → `desktop` → `programs` → `ssh`。 | `home.username = "zine"`、`home.homeDirectory = "/home/zine"` |
 | `common.nix` | Home Manager 基础状态与自启用。 | `programs.home-manager.enable` |
-| `tools.nix` | 日常通用 CLI 工具（与具体开发活动无关）。 | `fzf`、`ripgrep`、`eza`、`btop`、`just`、`wl-clipboard`；开发工具链见 `programs/devtools/` |
+| `tools.nix` | 日常通用 CLI 工具（与具体开发活动无关）。 | `fzf`、`ripgrep`、`eza`、`btop`、`just`、`wl-clipboard`；开发工具链见 `programs/dev/devtools/` |
 | `ssh.nix` | 基于 sops-nix 的 SSH alias 配置（如 `aliyun-01`）。 | `sops.secrets.aliyun-01`、`sops.templates.ssh-hosts` |
 
 ### `modules/home/shell/`
@@ -92,38 +92,55 @@ Shell 配置。
 
 ### `modules/home/programs/`
 
-每个应用一个 Home Manager 模块。
+每个应用一个 Home Manager 模块，按用途分为 4 个类别目录；`programs/default.nix` 与各 `programs/<category>/default.nix` 均通过 `extraLibs.scanPaths` 自动扫描导入，新增模块无需注册。
+
+#### `programs/dev/` — 开发工具链
 
 | Directory | Purpose | Notable |
 |-----------|---------|---------|
-| `aria2/` | 下载管理器，启用 RPC。 | `programs.aria2` |
-| `atuin/` | Shell 历史同步，集成 fish。 | `programs.atuin` |
-| `chromium/` | Chromium 浏览器。 | `programs.chromium` |
 | `coding-agents/` | LLM agent 工具包（`pi`、`codex`、`cc-switch-cli`、`omp`、`spec-kit`）。 | `inputs.llm-agents-nix` |
-| `cursor/` | BreezeX 光标主题与指针配置。 | 自定义 `breezex-cursor.nix` derivation |
 | `dbeaver/` | DBeaver 数据库工具。 | `programs.dbeaver` |
 | `devenv/` | devenv shell 集成。 | `programs.devenv` |
 | `devtools/` | 开发工具链（语言、编译器、构建工具）；通用 CLI 见 `tools.nix`。 | `clang`、`go`、`maven`、`uv`、`github-cli` 等 |
-| `dolphin/` | KDE Dolphin 文件管理器与默认目录关联。 | `xdg.mimeApps` |
-| `firefox/` | Firefox 浏览器。 | `programs.firefox` |
 | `git/` | Git 配置，含 GPG 签名与 LFS。 | `programs.git` |
-| `gnupg/` | GnuPG、gpg-agent 与 SSH agent，通过 sops-nix 导入私钥。 | `programs.gpg`、`services.gpg-agent`、自定义导入服务 |
 | `jj/` | Jujutsu 版本控制，含 GPG 签名。 | `programs.jujutsu` |
-| `kitty/` | Kitty 终端，含主题与自定义配置。 | 使用 `lib/storeLinks.nix`（`mkOutOfStoreDotfiles`） |
-| `localsend/` | 局域网文件传输。 | `pkgs.localsend` |
 | `mise/` | mise 运行时管理器，集成 fish。 | `programs.mise` |
 | `neovim/` | Neovim 编辑器，使用 out-of-store 配置软链接。 | 使用 `lib/storeLinks.nix`（`mkOutOfStoreDotfiles`） |
 | `npm/` | npm prefix 配置。 | `programs.npm` |
 | `python/` | Python 基础包。 | `python3`、`pip` |
-| `qq/` | 腾讯 QQ，通过 nixpak 沙盒运行。 | `pkgs.nixpaks.qq`（来自 `lib/nixpaks-qq.nix`） |
 | `rustup/` | Rust 工具链（via rustup）。 | `pkgs.rustup`、cargo bin 加入 PATH |
+| `zed/` | Zed 编辑器，含 GLM 模型与 vim 键位。 | `programs.zed-editor` |
+
+#### `programs/terminal/` — 终端与 shell 增强
+
+| Directory | Purpose | Notable |
+|-----------|---------|---------|
+| `atuin/` | Shell 历史同步，集成 fish。 | `programs.atuin` |
+| `kitty/` | Kitty 终端，含主题与自定义配置。 | 使用 `lib/storeLinks.nix`（`mkOutOfStoreDotfiles`） |
+| `yazi/` | 终端文件管理器，配置拆分为 settings/keymap/theme。 | `programs.yazi`；`settings.nix`、`keymap.nix`、`theme.nix` |
+| `zellij/` | 终端复用器，生成 KDL 设置。 | `programs.zellij`；`settings.nix` |
+| `zoxide/` | 智能目录跳转。 | `programs.zoxide` |
+
+#### `programs/gui/` — 图形界面应用
+
+| Directory | Purpose | Notable |
+|-----------|---------|---------|
+| `chromium/` | Chromium 浏览器。 | `programs.chromium` |
+| `cursor/` | BreezeX 光标主题与指针配置。 | 自定义 `breezex-cursor.nix` derivation |
+| `dolphin/` | KDE Dolphin 文件管理器与默认目录关联。 | `xdg.mimeApps` |
+| `firefox/` | Firefox 浏览器。 | `programs.firefox` |
+| `localsend/` | 局域网文件传输。 | `pkgs.localsend` |
+| `qq/` | 腾讯 QQ，通过 nixpak 沙盒运行。 | `pkgs.nixpaks.qq`（来自 `lib/nixpaks-qq.nix`） |
 | `thunderbird/` | Thunderbird 邮件客户端。 | `programs.thunderbird` |
 | `wechat/` | 微信，通过 nixpak 沙盒运行。 | `pkgs.nixpaks.wechat`（来自 `lib/nixpaks-wechat.nix`） |
-| `yazi/` | 终端文件管理器，配置拆分为 settings/keymap/theme。 | `programs.yazi`；`settings.nix`、`keymap.nix`、`theme.nix` |
-| `zed/` | Zed 编辑器，含 GLM 模型与 vim 键位。 | `programs.zed-editor` |
-| `zellij/` | 终端复用器，生成 KDL 设置。 | `programs.zellij`；`settings.nix` |
 | `zen-browser/` | Zen Browser，使用自定义 unwrapped 包与策略。 | `inputs.zen-browser.homeModules.default` |
-| `zoxide/` | 智能目录跳转。 | `programs.zoxide` |
+
+#### `programs/misc/` — 其他
+
+| Directory | Purpose | Notable |
+|-----------|---------|---------|
+| `aria2/` | 下载管理器，启用 RPC。 | `programs.aria2` |
+| `gnupg/` | GnuPG、gpg-agent 与 SSH agent，通过 sops-nix 导入私钥。 | `programs.gpg`、`services.gpg-agent`、自定义导入服务 |
 
 ---
 
@@ -138,8 +155,8 @@ Shell 配置。
 | `lib/niri-config.nix` | 构建并校验 niri 配置 derivation，包含 `dms/` 片段。 | `modules/home/desktop/niri.nix` |
 | `lib/nix-settings.nix` | 共享 Nix substituters、trusted public keys 与 experimental features。 | `modules/nixos/common/nix.nix`、`flake.nix` |
 | `lib/nixpaks-common.nix` | 通用 nixpak 沙盒策略（GPU、DBus、bubblewrap、字体、portals）。 | `lib/nixpaks-qq.nix`、`lib/nixpaks-wechat.nix` |
-| `lib/nixpaks-qq.nix` | 腾讯 QQ 的 nixpak 包装器。 | `modules/home/programs/qq` |
-| `lib/nixpaks-wechat.nix` | 微信的 nixpak 包装器。 | `modules/home/programs/wechat` |
+| `lib/nixpaks-qq.nix` | 腾讯 QQ 的 nixpak 包装器。 | `modules/home/programs/gui/qq` |
+| `lib/nixpaks-wechat.nix` | 微信的 nixpak 包装器。 | `modules/home/programs/gui/wechat` |
 | `lib/scanPaths.nix` | 返回路径下所有 `.nix` 文件与子目录（排除 `default.nix`）。 | 所有 `default.nix` 模块聚合器 |
 | `lib/storeLinks.nix` | 显式 in-store / out-of-store 软链接辅助函数（`mkInStore`、`mkOutOfStore`、`mkOutOfStoreDotfiles`）。 | `fontconfig`、`kitty`、`neovim` |
 
@@ -157,8 +174,8 @@ Shell 配置。
 
 ## 辅助函数使用小结
 
-- **`extraLibs.scanPaths`** — 用于 `modules/nixos/common/default.nix`、`modules/nixos/desktop/default.nix`、`modules/nixos/server/default.nix` 与 `modules/home/programs/default.nix`，自动扫描并导入同级模块。
+- **`extraLibs.scanPaths`** — 用于 `modules/nixos/{common,desktop,server}/default.nix`、`modules/home/programs/default.nix` 与各 `modules/home/programs/<category>/default.nix`，自动扫描并导入同级模块。
 - **`lib/niri-config.nix`** — 被 `modules/home/desktop/niri.nix` 使用，构建并校验 niri 配置 derivation。
-- **`lib/storeLinks.nix`** — 被 `modules/home/desktop/fontconfig`、`modules/home/programs/kitty`、`modules/home/programs/neovim` 使用，显式选择 in-store 或 out-of-store 软链接策略。
-- **`lib/nixpaks-*.nix`** — 被 `modules/home/programs/qq` 与 `modules/home/programs/wechat` 使用，通过 nixpak 沙盒运行 QQ 与微信。
+- **`lib/storeLinks.nix`** — 被 `modules/home/desktop/fontconfig`、`modules/home/programs/terminal/kitty`、`modules/home/programs/dev/neovim` 使用，显式选择 in-store 或 out-of-store 软链接策略。
+- **`lib/nixpaks-*.nix`** — 被 `modules/home/programs/gui/qq` 与 `modules/home/programs/gui/wechat` 使用，通过 nixpak 沙盒运行 QQ 与微信。
 - **`lib/nix-settings.nix`** — 被 `modules/nixos/common/nix.nix` 与 `flake.nix` 使用，统一 Nix 缓存与实验特性配置。

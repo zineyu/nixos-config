@@ -15,7 +15,7 @@
   - `secrets/gnupg.yaml`：仅本机桌面可解密。
   - `secrets/aliyun-01.yaml`：本机桌面与 `aliyun-01` 均可解密。
   - `secrets/ssh-hosts.yaml`：仅本机桌面可解密。
-- `secrets/gnupg.yaml`：加密保存 GnuPG 私钥，由 `modules/home/programs/gnupg` 导入。
+- `secrets/gnupg.yaml`：加密保存 GnuPG 私钥，由 `modules/home/programs/misc/gnupg` 导入。
 - `secrets/aliyun-01.yaml`：加密保存 `luogo_checkin` 服务所需的环境变量，由 `hosts/aliyun-01/configuration.nix` 直接引用。
 - `secrets/ssh-hosts.yaml`：加密保存 `aliyun-01` 的真实 IP/域名，由 `modules/home/ssh.nix` 解密并渲染为 SSH alias 配置。
 - `modules/home/ssh.nix`：用 sops-nix template 渲染 SSH alias，并通过 `programs.ssh.extraConfig` 将渲染后的文件 `Include` 到 `~/.ssh/config`。
