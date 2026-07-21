@@ -50,7 +50,7 @@ direnv allow
 
 | 路径 | 说明 |
 |------|------|
-| `flake.nix` | Flake 入口，声明 inputs、formatter、checks、`packages.nix-conf`、`nixosConfigurations` 和 `deploy`（开发环境 devShell 由 `devenv.nix` 提供） |
+| `flake.nix` | Flake 入口，基于 flake-parts `mkFlake` 声明 inputs、formatter、checks、`packages.nix-conf`、`nixosConfigurations` 和 `deploy`（开发环境 devShell 由 `devenv.nix` 提供） |
 | `hosts/default.nix` | 主机注册表，显式映射 `hostname -> system`（当前为 `tianxuan`、`aliyun-01`） |
 | `hosts/<hostname>/default.nix` | 该机器的 NixOS 模块，导入 `configuration.nix` 并声明 `home-manager.users.zine` |
 | `hosts/<hostname>/configuration.nix` | 该机器的系统级配置，通常导入 `hardware-configuration.nix` 和 `modules/nixos/` 模块 |
