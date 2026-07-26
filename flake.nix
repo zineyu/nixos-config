@@ -70,8 +70,15 @@
         systems = [ "x86_64-linux" ];
 
         perSystem =
-          { pkgs, ... }:
+          { pkgs, system, ... }:
           {
+            # `nix run .#deploy -- .#<hostname>` 调用 deploy-rs CLI，
+            # 读取顶层 `deploy` 输出中的节点定义进行远程部署
+            apps.deploy = {
+              type = "app";
+              program = pkgs.lib.getExe inputs.deploy-rs.packages.${system}.deploy-rs;
+              meta.description = "Deploy remote hosts via deploy-rs";
+            };
 
             formatter = pkgs.writeShellApplication {
               name = "nixfmt-tree";

@@ -1,6 +1,6 @@
 { config, ... }:
 let
-  domain = "vault.zineyu.com";
+  domain = "vault.zineyu.cn";
 in
 {
   sops.secrets.vaultwarden = {
@@ -24,7 +24,7 @@ in
       # 通过 unix socket + peer 认证连接，无需密码
       DATABASE_URL = "postgresql:///vaultwarden?host=/run/postgresql";
       # TODO: 部署后注册首个账号，然后改为 false 并重新部署
-      SIGNUPS_ALLOWED = true;
+      SIGNUPS_ALLOWED = false;
     };
   };
 
