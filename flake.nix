@@ -52,12 +52,12 @@
       url = "github:nixpak/nixpak";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    
+
     nixvim = {
-url = "github:nix-community/nixvim";
-        };
+      url = "github:nix-community/nixvim";
+    };
   };
-            
+
   outputs =
     inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } (
@@ -72,6 +72,7 @@ url = "github:nix-community/nixvim";
         perSystem =
           { pkgs, ... }:
           {
+
             formatter = pkgs.writeShellApplication {
               name = "nixfmt-tree";
               runtimeInputs = [

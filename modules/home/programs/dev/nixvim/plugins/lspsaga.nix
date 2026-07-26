@@ -30,7 +30,10 @@
       options.desc = "Find references";
     }
     {
-      mode = [ "n" "v" ];
+      mode = [
+        "n"
+        "v"
+      ];
       key = "<leader>ca";
       action = "<cmd>Lspsaga code_action<cr>";
       options.desc = "Code action";

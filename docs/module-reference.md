@@ -44,8 +44,10 @@
 | `default.nix` | 通过 `scanPaths` 自动导入同级 `.nix` 文件。 | `extraLibs.scanPaths` |
 | `fail2ban.nix` | 启用 fail2ban 入侵防护。 | `services.fail2ban` |
 | `luogo_checkin.nix` | 自定义 NixOS 模块与 systemd timer，用于 Luogu 每日签到。 | 从 GitHub 构建 Go 包；`systemd.services.luogo_checkin` |
-| `networking.nix` | 服务器防火墙，允许 SSH 端口。 | `allowedTCPPorts = [ 22 ]` |
+| `networking.nix` | 服务器防火墙，允许 SSH 与 HTTP/HTTPS 端口。 | `allowedTCPPorts = [ 22 80 443 ]` |
+| `postgresql.nix` | 独立管理的 PostgreSQL 17 实例，供本机服务复用。 | `services.postgresql`；仅 unix socket；大版本升级需手动迁移 |
 | `ssh.nix` | 启用 OpenSSH 并限制 root 仅密钥登录。 | `services.openssh` |
+| `vaultwarden.nix` | Vaultwarden 密码管理服务（pgsql 后端 + Nginx + ACME）。 | `services.vaultwarden`；`sops.secrets.vaultwarden`（ADMIN_TOKEN） |
 
 ---
 
