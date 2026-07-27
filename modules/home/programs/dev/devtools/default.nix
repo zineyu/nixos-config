@@ -14,6 +14,7 @@
     gnumake
     go
     lazyjj
+    lazygit
     llvm
     maven
     mold
