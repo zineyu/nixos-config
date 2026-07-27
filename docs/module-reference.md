@@ -18,6 +18,7 @@
 | `nix.nix` | 共享 Nix daemon 设置，并声明 `trusted-users`。 | 导入 `lib/nix-settings.nix`；允许 unfree |
 | `system.nix` | 内核、最小系统包（引导加载器由各 host 自行配置）。 | `linuxPackages_latest`、fish、vim、wget |
 | `users.nix` | 定义单用户 `zine` 及其用户组。 | `wheel`、`video`、`render`、`docker`；shell = fish |
+| `wireguard.nix` | 为所有注册 host 和外部客户端建立中心辐射式 WireGuard 虚拟局域网，并校验完整元数据。 | `wg0`、`10.77.0.0/24`、SOPS 私钥、固定主机名映射、hub IPv4 forwarding |
 
 ### `modules/nixos/desktop/`
 
@@ -153,7 +154,7 @@ Shell 配置。
 | File | Purpose | Consumers |
 |------|---------|-----------|
 | `lib/default.nix` | 暴露 `scanPaths` 辅助函数。 | 各模块的 `default.nix` |
-| `lib/mkSystem.nix` | 为所有 host 构建 `nixosSystem`，并接入 home-manager 与 sops-nix。 | `flake.nix` |
+| `lib/mkSystem.nix` | 为所有 host 构建 `nixosSystem`，并接入 home-manager、sops-nix 与当前 `hostname` 模块参数。 | `flake.nix` |
 | `lib/niri-config.nix` | 构建并校验 niri 配置 derivation，包含 `dms/` 片段。 | `modules/home/desktop/niri.nix` |
 | `lib/nix-settings.nix` | 共享 Nix substituters、trusted public keys 与 experimental features。 | `modules/nixos/common/nix.nix`、`flake.nix` |
 | `lib/nixpaks-common.nix` | 通用 nixpak 沙盒策略（GPU、DBus、bubblewrap、字体、portals）。 | `lib/nixpaks-qq.nix`、`lib/nixpaks-wechat.nix` |
@@ -168,7 +169,7 @@ Shell 配置。
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、`hosts.tianxuan.hostname`、`hosts.tianxuan.hardware.*` |
+| `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、WireGuard overlay/外部 peer 设置、`hosts.<hostname>.wireguard.*`、硬件参数 |
 | `hosts/default.nix` | host 到系统架构的注册表。 | `tianxuan = x86_64-linux`、`aliyun-01 = x86_64-linux` |
 | `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、`nixosConfigurations`、deploy-rs 配置。 | `nixosConfigurations` 通过 `mkSystem` 从 `hosts` 构建 |
 

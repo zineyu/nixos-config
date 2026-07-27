@@ -11,7 +11,14 @@ in
     hostname: hostSystem:
     inputs.nixpkgs.lib.nixosSystem {
       system = hostSystem;
-      specialArgs = { inherit inputs vars extraLibs; };
+      specialArgs = {
+        inherit
+          inputs
+          vars
+          extraLibs
+          hostname
+          ;
+      };
       modules = [
         inputs.home-manager.nixosModules.home-manager
         inputs.sops-nix.nixosModules.sops
