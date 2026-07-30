@@ -10,6 +10,7 @@
   };
 
   packages = with pkgs; [
+    cachix
     git
     nixfmt
     deadnix
