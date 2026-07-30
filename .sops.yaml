@@ -3,6 +3,10 @@ keys:
   - &aliyun-01 age1nt3n3qns256x4z6v9q0lp8n56nczj63ynft65nss7elcyy2p9ptsa5cqnp
 
 creation_rules:
+  - path_regex: ^secrets/cachix\.yaml$
+    key_groups:
+      - age:
+          - *zine_desktop
   - path_regex: ^secrets/gnupg\.yaml$
     key_groups:
       - age:

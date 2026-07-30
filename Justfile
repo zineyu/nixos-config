@@ -28,6 +28,26 @@ fmt:
 deploy host:
     nix run .#deploy -- .#{{host}}
 
+# Build a host's system closure and push it to the zineyu cachix cache.
+# Reads the auth token from sops-encrypted secrets/cachix.yaml; create it once
+# with `just cachix-token` (content: `auth_token: <token>`).
+[script]
+push-cachix host=`hostname`:
+    set -euo pipefail
+    if [[ ! -f secrets/cachix.yaml ]]; then
+      echo "secrets/cachix.yaml not found." >&2
+      echo "Create it with 'just cachix-token' and add: auth_token: <your cachix auth token>" >&2
+      exit 1
+    fi
+    export CACHIX_AUTH_TOKEN
+    CACHIX_AUTH_TOKEN=$(sops decrypt --extract '["auth_token"]' secrets/cachix.yaml)
+    out=$(nix build ".#nixosConfigurations.$1.config.system.build.toplevel" --print-out-paths)
+    cachix push zineyu "$out"
+
+# Edit the encrypted cachix auth token used by push-cachix
+cachix-token:
+    sops secrets/cachix.yaml
+
 # Edit the encrypted SSH hosts alias file
 ssh-hosts:
     sops secrets/ssh-hosts.yaml
