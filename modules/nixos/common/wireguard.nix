@@ -138,6 +138,7 @@ in
     sopsFile = ../../../secrets + "/${hostname}.yaml";
     format = "yaml";
     mode = "0400";
+    restartUnits = [ "wireguard-wg0.service" ];
   };
 
   networking = {
@@ -151,6 +152,11 @@ in
       privateKeyFile = config.sops.secrets.wireguard_private_key.path;
       listenPort = if isHub then vars.wireguard.listenPort else null;
       peers = if isHub then hubPeers else spokePeers;
+      # A failed oneshot start does not run postStop. Remove any interface left
+      # behind so every start assigns the address and peers from a clean state.
+      preSetup = ''
+        ip link delete dev wg0 2>/dev/null || true
+      '';
     };
   };
 
