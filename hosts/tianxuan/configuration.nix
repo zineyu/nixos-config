@@ -21,9 +21,9 @@
   # Host-specific networking.
   networking.hostName = vars.hosts.tianxuan.hostname;
 
-  # The desktop already uses this age identity for Home Manager secrets.
-  # Reuse it for the system-level WireGuard private key.
-  sops.age.keyFile = "/home/zine/.config/sops/age/keys.txt";
+  # System activation runs before /home is mounted, so keep the system copy
+  # of the administrator age identity on the root filesystem.
+  sops.age.keyFile = "/var/lib/sops-nix/key.txt";
 
   services.mihomo = {
     enable = true;

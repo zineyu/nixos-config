@@ -24,7 +24,18 @@
 - `modules/nixos/common/wireguard.nix` 将各 NixOS host 的 `wireguard_private_key` 解密到 `/run/secrets/wireguard_private_key`，并通过 `privateKeyFile` 交给 WireGuard；私钥不会进入 Nix store。
 - 外部客户端私钥不部署到任何 NixOS host，只用于在管理员机器生成本地导入配置。
 - `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
-- `tianxuan` 的系统级 sops-nix 复用 `/home/zine/.config/sops/age/keys.txt`。系统激活前必须确保该文件存在且 root 可读取；不要删除或移动它，除非同时迁移系统 secret recipient。
+- `tianxuan` 的系统级 sops-nix 使用 `/var/lib/sops-nix/key.txt`。这是管理员 age identity 的 rootfs 副本，recipient 仍是 `zine_desktop`；系统激活早于 `/home` 挂载，因此不能依赖用户 home 中的 key。`/home/zine/.config/sops/age/keys.txt` 继续用于管理员操作和 Home Manager secret。
+
+## tianxuan 系统 age key 初始化
+
+首次迁移或重建 rootfs 后，把现有管理员 age identity 复制到系统路径。两个路径保存同一把私钥，因此不需要修改 `.sops.yaml` recipient 或重新加密 secret：
+
+```bash
+sudo install -d -m 0700 /var/lib/sops-nix
+sudo install -m 0600 \
+  /home/zine/.config/sops/age/keys.txt \
+  /var/lib/sops-nix/key.txt
+```
 
 ## SSH alias 与 IP 加密
 
