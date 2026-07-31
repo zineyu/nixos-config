@@ -53,6 +53,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    dbx = {
+      url = "github:t8y2/dbx";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixvim = {
       url = "github:nix-community/nixvim";
     };
