@@ -149,6 +149,10 @@ in
     };
     wireguard.interfaces.wg0 = {
       ips = [ "${currentAddress}/24" ];
+      # The interface address already installs the connected overlay route.
+      # Peer AllowedIPs control crypto routing; peer units must not own
+      # duplicate kernel routes that may already have disappeared externally.
+      allowedIPsAsRoutes = false;
       privateKeyFile = config.sops.secrets.wireguard_private_key.path;
       listenPort = if isHub then vars.wireguard.listenPort else null;
       peers = if isHub then hubPeers else spokePeers;
