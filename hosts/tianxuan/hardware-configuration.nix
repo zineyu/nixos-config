@@ -75,4 +75,12 @@
       enable = lib.mkDefault true;
     };
   };
+
+  # asus-shutdown defers exit on SIGTERM until a deferred shutdown apply
+  # completes, which never happens on a plain service restart (e.g. when
+  # nixos-rebuild switch restarts asusd, asus-shutdown is stopped via PartOf).
+  # With the packaged SendSIGKILL=no the hung process is never killed, so the
+  # unit fails with "resources" and aborts switch-to-configuration.
+  # Allow SIGKILL after TimeoutStopSec as a workaround.
+  systemd.services.asus-shutdown.serviceConfig.SendSIGKILL = lib.mkForce true;
 }
