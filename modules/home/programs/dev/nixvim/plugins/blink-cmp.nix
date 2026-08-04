@@ -5,7 +5,7 @@
       settings = {
         # default preset: <C-n>/<C-p> 选择，<C-y> 确认，<C-Space> 打开菜单
         # 可选 "enter"（回车确认）或 "super-tab"（Tab 导航/确认）
-        keymap.preset = "default";
+        keymap.preset = "super-tab";
 
         completion = {
           # 补全函数/方法后自动补括号（与 nvim-autopairs 互补）
