@@ -26,7 +26,8 @@
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `default.nix` | 导入桌面模块，并引入 `dms` greeter 与 `niri` flake 模块。 | `inputs.dms.nixosModules.greeter`、`inputs.niri.nixosModules.niri` |
+| `default.nix` | 导入桌面模块，并引入 `dms` greeter、`niri` 与 `aagl` flake 模块。 | `inputs.dms.nixosModules.greeter`、`inputs.niri.nixosModules.niri`、`inputs.aagl.nixosModules.default` |
+| `an-anime-game-launcher.nix` | 安装 An Anime Game Launcher（AAGL）。 | `programs.anime-game-launcher`；按上游默认屏蔽米哈游遥测 |
 | `audio.nix` | 启用 PipeWire 音频。 | `services.pipewire` |
 | `desktop.nix` | 配置 greetd、niri、libinput 与 xdg-portal。 | `programs.niri`、`services.greetd`、`xdg.portal` |
 | `graphics.nix` | NVIDIA 专有驱动设置。 | `hardware.nvidia`、modesetting、powerManagement |
