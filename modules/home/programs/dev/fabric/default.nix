@@ -11,7 +11,7 @@
 #   git diff main...HEAD | fabric -p my_pr_description
 #   echo "给登录页加上验证码" | fabric -p my_branch_name
 {
-  home.packages = [ pkgs.fabric-ai ];
+  home.packages = with pkgs; [ fabric-ai ];
 
   xdg.configFile = {
     "fabric/patterns/my_conventional_commit/system.md".source =
