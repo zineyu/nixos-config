@@ -146,4 +146,3 @@ function __fabric_register_completions
 end
 
 __fabric_register_completions fabric
-__fabric_register_completions fabric-ai
