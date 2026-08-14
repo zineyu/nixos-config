@@ -10,6 +10,7 @@
 #   jj diff --git | fabric -p my_conventional_commit
 #   git diff main...HEAD | fabric -p my_pr_description
 #   echo "给登录页加上验证码" | fabric -p my_branch_name
+#   jj diff --git | fabric -p my_pr_bundle   # 一次输出分支名 + commit + PR 描述
 {
   home.packages = with pkgs; [ fabric-ai ];
 
@@ -18,5 +19,6 @@
       ./patterns/my_conventional_commit/system.md;
     "fabric/patterns/my_pr_description/system.md".source = ./patterns/my_pr_description/system.md;
     "fabric/patterns/my_branch_name/system.md".source = ./patterns/my_branch_name/system.md;
+    "fabric/patterns/my_pr_bundle/system.md".source = ./patterns/my_pr_bundle/system.md;
   };
 }
