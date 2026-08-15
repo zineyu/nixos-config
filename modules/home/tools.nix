@@ -18,6 +18,7 @@
     jq
     just
     ncdu
+    nvtopPackages.full
     pandoc
     pigz
     resvg

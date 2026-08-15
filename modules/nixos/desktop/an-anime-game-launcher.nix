@@ -1,5 +1,5 @@
 { ... }:
 
 {
-  programs.anime-game-launcher.enable = true;
+  programs.anime-game-launcher.enable = true; # Adds launcher and /etc/hosts rules
 }
