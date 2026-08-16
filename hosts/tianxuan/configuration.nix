@@ -31,9 +31,14 @@
     tunMode = true;
   };
 
-  environment.systemPackages = [
-    pkgs.bluez
-  ];
+  # Bluetooth: the kernel already detects the adapter (hci0), but without
+  # hardware.bluetooth.enable the BlueZ daemon (bluetoothd) never starts, so
+  # desktop clients like DankMaterialShell report "no adapter".
+  # bluez is pulled in automatically by this option; no separate package needed.
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
 
   # Host-specific timezone.
   time.timeZone = "Asia/Shanghai";
