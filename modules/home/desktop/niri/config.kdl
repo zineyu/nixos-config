@@ -55,6 +55,8 @@ input {
     touchpad {
         tap
         natural-scroll
+        // Disable the touchpad while an external mouse is plugged in.
+        disabled-on-external-mouse
     }
     mouse {
     }
