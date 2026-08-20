@@ -7,11 +7,14 @@ let
   # 导致 pnpm install 报 ERR_PNPM_NO_OFFLINE_TARBALL。在此覆盖为新 hash。
   # 重新生成方法：将 outputHash 置为 lib.fakeHash 后构建 pnpmDeps，
   # 取报错中的 "got: sha256-..." 值。
-  dbx-desktop = inputs.dbx.packages.${system}.dbx-desktop.overrideAttrs (old: {
-    pnpmDeps = old.pnpmDeps.overrideAttrs (_: {
-      outputHash = "sha256-wkjQz/nNx4D7p5B/5NcdXnMGvOljM+nGKyKDxvMRCgw=";
-    });
-  });
+
+  # dbx-desktop = inputs.dbx.packages.${system}.dbx-desktop.overrideAttrs (old: {
+  #   pnpmDeps = old.pnpmDeps.overrideAttrs (_: {
+  #     outputHash = "sha256-wkjQz/nNx4D7p5B/5NcdXnMGvOljM+nGKyKDxvMRCgw=";
+  #   });
+  # });
+
+  dbx-desktop = inputs.dbx.packages.${system}.dbx-desktop;
 in
 {
   home.packages = [ dbx-desktop ];
