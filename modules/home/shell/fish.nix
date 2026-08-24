@@ -18,6 +18,7 @@
       ".." = "cd ..";
       "..." = "cd ../..";
       "...." = "cd ../../..";
+      commit = "jj desc -m $(jj diff | fabric -p my_conventional_commit )";
     };
 
     shellInit = ''

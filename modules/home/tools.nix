@@ -17,6 +17,7 @@
     imagemagick
     jq
     just
+    lnav
     ncdu
     nvtopPackages.full
     pandoc
