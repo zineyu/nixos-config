@@ -32,11 +32,4 @@ in
     after = [ "postgresql.target" ];
     requires = [ "postgresql.target" ];
   };
-
-  # services.vaultwarden.configureNginx 只设置 forceSSL，ACME 证书需要单独声明
-  services.nginx.virtualHosts.${domain}.enableACME = true;
-  security.acme = {
-    acceptTerms = true;
-    defaults.email = "admin@zineyu.com";
-  };
 }
