@@ -7,5 +7,13 @@
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_18;
+    # vaultwarden 的数据库与用户，由本实例承载
+    ensureDatabases = [ "vaultwarden" ];
+    ensureUsers = [
+      {
+        name = "vaultwarden";
+        ensureDBOwnership = true;
+      }
+    ];
   };
 }

@@ -28,17 +28,6 @@ in
     };
   };
 
-  # vaultwarden 的数据库与用户，由独立 PostgreSQL 实例承载
-  services.postgresql = {
-    ensureDatabases = [ "vaultwarden" ];
-    ensureUsers = [
-      {
-        name = "vaultwarden";
-        ensureDBOwnership = true;
-      }
-    ];
-  };
-
   systemd.services.vaultwarden = {
     after = [ "postgresql.target" ];
     requires = [ "postgresql.target" ];
