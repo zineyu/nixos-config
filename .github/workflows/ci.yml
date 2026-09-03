@@ -25,10 +25,13 @@ jobs:
     steps:
       - uses: actions/checkout@main
 
-      - uses: ./.github/actions/setup-nix
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
         with:
-          free-space: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          nix-path: "nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixpkgs-unstable.tar.gz"
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Run flake check
         run: nix flake check --print-build-logs
@@ -39,10 +42,20 @@ jobs:
     steps:
       - uses: actions/checkout@main
 
-      - uses: ./.github/actions/setup-nix
+      - name: Free disk space
+        uses: wimpysworld/nothing-but-nix@main
         with:
-          free-space: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          hatchet-protocol: rampage
+          witness-carnage: true
+          mnt-safe-haven: 6144
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          nix-path: "nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixpkgs-unstable.tar.gz"
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       # Watch the store and push build artifacts to cachix (main only).
       # PR builds are not pushed to avoid polluting the cache, and forked PRs
@@ -53,4 +66,25 @@ jobs:
           name: zineyu
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - uses: ./.github/actions/nixos-build
+      - name: Apply shared Nix settings
+        shell: bash
+        run: |
+          nix build ".#nix-conf"
+          mkdir -p ~/.config/nix
+          cat ./result | tee -a ~/.config/nix/nix.conf
+
+      - name: Restart Nix Daemon
+        shell: bash
+        run: |
+          sudo systemctl restart nix-daemon.service
+
+      - name: Build system closures
+        shell: bash
+        run: |
+          mapfile -t hosts < <(nix eval --json ".#nixosConfigurations" --apply "builtins.attrNames" | jq --raw-output '.[]')
+          for host in "${hosts[@]}"; do
+            nix build ".#nixosConfigurations.$host.config.system.build.toplevel" \
+              --fallback \
+              --print-build-logs \
+              --out-link "result-$host"
+          done
