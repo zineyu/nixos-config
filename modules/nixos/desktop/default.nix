@@ -1,7 +1,7 @@
 { inputs, extraLibs, ... }:
 {
   imports = [
-    inputs.dms.nixosModules.greeter
+    inputs.dank-greeter.nixosModules.default
     inputs.niri.nixosModules.niri
     inputs.aagl.nixosModules.default
   ]

@@ -8,7 +8,7 @@
 
   services.greetd.settings.default_session.user = "zine";
 
-  programs.dank-material-shell.greeter = {
+  programs.dms-greeter = {
     enable = true;
     compositor.name = "niri";
   };
