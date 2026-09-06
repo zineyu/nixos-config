@@ -18,7 +18,9 @@ let
 
   registeredHosts = import ../../../hosts;
   hostNames = attrNames registeredHosts;
-  nixosHostNames = builtins.filter (name: lib.hasSuffix "-linux" registeredHosts.${name}) hostNames;
+  nixosHostNames = builtins.filter (
+    name: (registeredHosts.${name}.kind or null) == "nixos"
+  ) hostNames;
   configuredHosts = vars.hosts;
   configuredHostNames = attrNames configuredHosts;
   nixosConfiguredHostNames = builtins.filter (
@@ -28,7 +30,7 @@ let
   currentWireguard = currentHost.wireguard or { };
   currentAddress = currentWireguard.address or "0.0.0.0";
   wireguardHosts = filterAttrs (
-    _: host: host ? hostname && host ? wireguard && host.wireguard ? address
+    _: host: host ? wireguard && host.wireguard ? address
   ) configuredHosts;
   hubHosts = filterAttrs (_: host: host.wireguard.role or null == "hub") wireguardHosts;
   spokeHosts = filterAttrs (_: host: host.wireguard.role or null == "spoke") wireguardHosts;
@@ -63,8 +65,7 @@ let
       host = configuredHosts.${name} or { };
       wireguard = host.wireguard or { };
     in
-    (host.hostname or "") == name
-    && validAddress (wireguard.address or "")
+    validAddress (wireguard.address or "")
     && validRole (wireguard.role or "")
     && validPublicKey (wireguard.publicKey or "");
 
@@ -78,7 +79,7 @@ let
     && validPublicKey (peer.publicKey or "");
 
   hostAliases =
-    mapAttrs' (name: host: nameValuePair host.wireguard.address [ host.hostname ]) wireguardHosts
+    mapAttrs' (name: host: nameValuePair host.wireguard.address [ name ]) wireguardHosts
     // mapAttrs' (name: peer: nameValuePair peer.address [ peer.hostname ]) externalPeers;
 
   hubPeers =
@@ -114,7 +115,7 @@ in
   assertions = [
     {
       assertion = lib.all validHost nixosHostNames;
-      message = "Every registered NixOS host needs a matching vars.hosts entry and hostname, a 10.77.0.1-254 address, a canonical WireGuard public key, and role hub or spoke.";
+      message = "Every registered NixOS host needs a matching vars.hosts entry with a 10.77.0.1-254 address, a canonical WireGuard public key, and role hub or spoke.";
     }
     {
       assertion = lib.all validExternalPeer (attrNames externalPeers);

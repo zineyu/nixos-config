@@ -1,4 +1,4 @@
-{ hostname, vars, ... }:
+{ hostname, ... }:
 
 let
   sharedNixSettings = import ../../lib/nix-settings.nix;
@@ -6,7 +6,7 @@ in
 {
   # nix-darwin host entry for macbook-air-01.
 
-  networking.hostName = vars.hosts.${hostname}.hostname;
+  networking.hostName = hostname;
 
   users.users.zine = {
     name = "zine";

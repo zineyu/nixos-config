@@ -170,7 +170,7 @@ Shell 配置。
 | File | Purpose | Notable |
 |------|---------|---------|
 | `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、WireGuard overlay/外部 peer 设置、`hosts.<hostname>.wireguard.*`、硬件参数 |
-| `hosts/default.nix` | host 到系统架构的注册表。 | `tianxuan = x86_64-linux`、`aliyun-01 = x86_64-linux`、`macbook-air-01 = aarch64-darwin` |
+| `hosts/default.nix` | 结构化 host inventory：attr key 为 hostname，声明 `system` / `kind`（nixos 或 darwin）/ 可选 `homeStateVersion` / 可选 `deploy` 元数据。 | `flake.nix` 按 `kind` 生成 `nixosConfigurations` / `darwinConfigurations`，按 `deploy.enable` 生成 deploy-rs nodes |
 | `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `hosts/default.nix` 注册表构建 |
 
 ---

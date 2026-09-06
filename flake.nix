@@ -87,12 +87,9 @@
         hosts = import ./hosts;
         inherit (import ./lib/mkSystem.nix { inherit inputs vars; }) mkSystem mkDarwinSystem;
 
-        nixosHosts = inputs.nixpkgs.lib.filterAttrs (
-          _: system: inputs.nixpkgs.lib.hasSuffix "-linux" system
-        ) hosts;
-        darwinHosts = inputs.nixpkgs.lib.filterAttrs (
-          _: system: inputs.nixpkgs.lib.hasSuffix "-darwin" system
-        ) hosts;
+        nixosHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.kind == "nixos") hosts;
+        darwinHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.kind == "darwin") hosts;
+        deployHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.deploy.enable or false) hosts;
       in
       {
         systems = [
@@ -141,24 +138,24 @@
               )
               // {
                 lint =
-              pkgs.runCommand "lint"
-                {
-                  nativeBuildInputs = [
-                    pkgs.deadnix
-                    pkgs.nixfmt
-                    pkgs.statix
-                  ];
-                }
-                ''
-                  cd ${inputs.self}
-                  echo "Checking Nix formatting..."
-                  find . -type f -name '*.nix' -print0 | xargs -0 nixfmt --check
-                  echo "Checking for dead Nix code..."
-                  deadnix --fail --exclude ./hosts/tianxuan/hardware-configuration.nix .
-                  echo "Running statix..."
-                  statix check .
-                  touch $out
-                '';
+                  pkgs.runCommand "lint"
+                    {
+                      nativeBuildInputs = [
+                        pkgs.deadnix
+                        pkgs.nixfmt
+                        pkgs.statix
+                      ];
+                    }
+                    ''
+                      cd ${inputs.self}
+                      echo "Checking Nix formatting..."
+                      find . -type f -name '*.nix' -print0 | xargs -0 nixfmt --check
+                      echo "Checking for dead Nix code..."
+                      deadnix --fail --exclude ./hosts/tianxuan/hardware-configuration.nix .
+                      echo "Running statix..."
+                      statix check .
+                      touch $out
+                    '';
               };
 
             packages.nix-conf =
@@ -181,27 +178,22 @@
         # NOTE: 开发环境的唯一来源是 devenv.nix（见根 AGENTS.md）；此处不提供 devShells。
 
         flake = {
-          nixosConfigurations = inputs.nixpkgs.lib.mapAttrs (
-            hostname: hostSystem: mkSystem hostname hostSystem
-          ) nixosHosts;
+          nixosConfigurations = inputs.nixpkgs.lib.mapAttrs mkSystem nixosHosts;
 
-          darwinConfigurations = inputs.nixpkgs.lib.mapAttrs (
-            hostname: hostSystem: mkDarwinSystem hostname hostSystem
-          ) darwinHosts;
+          darwinConfigurations = inputs.nixpkgs.lib.mapAttrs mkDarwinSystem darwinHosts;
 
-          deploy = {
-            user = "root";
-            sshUser = "root";
-            nodes.aliyun-01 = {
-              hostname = "aliyun-01";
-              profiles.system = {
-                fastConnection = true;
-                user = "root";
-                sshUser = "root";
-                path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos inputs.self.nixosConfigurations.aliyun-01;
-              };
+          # 由 host inventory 中 deploy.enable = true 的条目生成 deploy-rs nodes，
+          # 新增远程主机只需在 hosts/default.nix 中补充 deploy 元数据。
+          deploy.nodes = inputs.nixpkgs.lib.mapAttrs (hostname: host: {
+            inherit (host.deploy) hostname sshUser;
+            profiles.system = {
+              user = "root";
+              fastConnection = true;
+              path =
+                inputs.deploy-rs.lib.${host.system}.activate.nixos
+                  inputs.self.nixosConfigurations.${hostname};
             };
-          };
+          }) deployHosts;
         };
       }
     );

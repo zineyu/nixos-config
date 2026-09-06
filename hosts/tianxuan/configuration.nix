@@ -2,7 +2,12 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ vars, pkgs, ... }:
+{
+  hostname,
+  vars,
+  pkgs,
+  ...
+}:
 {
   imports = [
     # Include the results of the hardware scan.
@@ -19,8 +24,8 @@
   };
 
   # Host-specific networking.
-  networking.hostName = vars.hosts.tianxuan.hostname;
-
+  # Host-specific networking.
+  networking.hostName = hostname;
   # System activation runs before /home is mounted, so keep the system copy
   # of the administrator age identity on the root filesystem.
   sops.age.keyFile = "/var/lib/sops-nix/key.txt";

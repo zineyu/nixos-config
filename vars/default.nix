@@ -21,7 +21,6 @@
   # Per-host values, keyed by hostname.
   hosts = {
     tianxuan = {
-      hostname = "tianxuan";
       hardware = {
         intelBusId = "PCI:66:0:0";
         nvidiaBusId = "PCI:1:0:0";
@@ -34,16 +33,11 @@
     };
 
     aliyun-01 = {
-      hostname = "aliyun-01";
       wireguard = {
         address = "10.77.0.1";
         publicKey = "+4ZqSxhDULH87sxT0UC4x9bWRi9WymtAZ8cfBcQkQgI=";
         role = "hub";
       };
-    };
-
-    macbook-air-01 = {
-      hostname = "macbook-air-01";
     };
   };
 }
