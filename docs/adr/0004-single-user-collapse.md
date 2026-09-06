@@ -1,5 +1,11 @@
 # Single-user repository: collapse user identity into modules/home
 
+> **Update (after ADR-0007)**: The single-user decision stands, but the shared
+> `modules/home/` layer has moved to top-level `home/` and the per-host wiring
+> (`home-manager.users.zine = import ../../modules/home` in each host module)
+> has been replaced by convention: `lib/mkSystem.nix` automatically wires
+> `home/<hostname>.nix` when it exists. See ADR-0007 for details.
+
 ## Status
 
 Accepted
