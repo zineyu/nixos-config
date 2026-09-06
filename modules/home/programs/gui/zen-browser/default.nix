@@ -33,7 +33,7 @@ let
       variant = sources.variants.beta.${system};
       applicationName = "Zen Browser";
       icon = "zen-browser";
-      policies = zenPolicies;
+      policies = lib.optionalAttrs (!pkgs.stdenv.hostPlatform.isDarwin) zenPolicies;
     };
 
   defaultBrowser = "zen-stable.desktop";

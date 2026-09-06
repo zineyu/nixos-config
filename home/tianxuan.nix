@@ -47,6 +47,7 @@
     firefox.enable = true;
     chromium.enable = true;
     thunderbird.enable = true;
+    dbx-desktop.enable = true;
     zen-browser.enable = true;
     dolphin.enable = true;
 

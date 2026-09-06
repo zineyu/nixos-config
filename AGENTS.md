@@ -24,7 +24,7 @@
   - `modules/home/packages/<category>.nix` — 集中包清单（安装侧）：声明 `zine.programs.<name>.enable` options（默认 false，即定义不启用）并把安装门控到开关上；**不在这里写配置**。无配置的裸包放 opt-in 捆绑 `tools.nix` / `dev-tools.nix` / `gui-extras.nix` / `desktop.nix`，由机器文件显式导入
   - `modules/home/shell/` — shell 与启动文件（`fish.nix`、`bash.nix`、`starship.nix` 及原生 `fish/` 配置树）
   - `modules/home/programs/<category>/<name>/` — 每个用户程序一个目录，**只放配置**（settings、keymap、xdg.configFile 等，不写 `enable` / `home.packages`），原生配置文件与模块共置；程序按用途分为 `dev/`（开发工具链）、`terminal/`（终端与 shell 增强）、`gui/`（图形界面应用）、`misc/`（其他）四个类别；`modules/home/programs/default.nix` 与各 `programs/<category>/default.nix` 通过 `lib/scanPaths.nix` 逐层自动扫描
-  - `modules/home/desktop/` — 用户级桌面环境组件与配置（仅 Linux 桌面机器的组织文件导入）
+  - `modules/home/desktop/` — 用户级桌面环境组件与配置；由机器文件显式导入，具体软件包负责声明平台支持
   - `home/ssh.nix` — sops-nix 解密的 SSH alias 配置（如 `aliyun-01`）
   - `modules/nixos/` — 系统级 NixOS 模块目录，按用途分为 `common/`（所有 host 共享，含 Docker）、`desktop/`、`server/`；各目录下的 `packages.nix` 是系统级软件清单（`programs.<name>.enable` / `environment.systemPackages`），同目录其他模块只放服务与配置
   - `modules/nixos/common/users.nix` — 单用户账户 `zine` 的声明

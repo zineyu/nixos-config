@@ -71,7 +71,7 @@
 |------|---------|---------|
 | `packages/` | options 定义层（安装侧）与裸包捆绑。 | `zine.programs.<name>.enable` 默认 false；配置统一放 `programs/`、`desktop/` 等 |
 | `shell/` | fish、bash、starship 配置。 | 原生 `fish/` 配置树共置 |
-| `desktop/` | 用户级桌面环境组件（niri、DMS、字体、图标等）。 | 仅 Linux 桌面机器的组织文件导入 |
+| `desktop/` | 用户级桌面环境组件（niri、DMS、字体、图标等）。 | 由需要的机器组织文件显式导入；具体包声明平台支持 |
 | `programs/` | 每个用户程序一个配置模块，按 dev/terminal/gui/misc 分类。 | 各层 `default.nix` 通过 `extraLibs.scanPaths` 自动扫描 |
 
 ### `modules/home/packages/`
@@ -80,16 +80,16 @@
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `default.nix` | 聚合跨平台 options 类别（shell、dev、terminal、misc）。 | 机器文件经 `../modules/home/packages` 一次性获得全部 option 声明 |
+| `default.nix` | 聚合基础 options 类别（shell、dev、terminal、misc）。 | 机器文件经 `../modules/home/packages` 一次性获得基础 option 声明 |
 | `shell.nix` | fish、bash、starship 开关。 | `zine.programs.{fish,bash,starship}` |
 | `dev.nix` | 有配置的开发程序开关。 | git、jujutsu、mise、devenv、npm、vscode、dbeaver、nixvim、zed-editor、fabric |
 | `terminal.nix` | 终端程序开关。 | kitty、atuin、yazi、zellij、zoxide |
 | `misc.nix` | 其他工具开关。 | aria2、gpg、ssh、sops（age+sops 包） |
-| `gui.nix` | GUI 程序开关（Linux 桌面机器导入）。 | firefox、chromium、thunderbird、zen-browser、dolphin |
-| `tools.nix` | CLI 裸包捆绑（opt-in）。 | bat、ripgrep、fzf、eza 等 |
+| `gui.nix` | GUI 程序开关。 | firefox、chromium、thunderbird、dbx-desktop、zen-browser、dolphin |
+| `tools.nix` | CLI 裸包捆绑（opt-in）。 | bat、ripgrep、fzf、eza、nvtop 等 |
 | `dev-tools.nix` | 开发工具链与编码 Agent 裸包捆绑（opt-in）。 | clang、go、rustup、codex、pi、自定义 `pkgs/` 包 |
-| `gui-extras.nix` | GUI 裸包捆绑（opt-in，Linux 桌面）。 | localsend、nixpaks.qq/wechat、dbx、orca、breezex-cursor |
-| `desktop.nix` | 桌面环境包捆绑（opt-in，Linux 桌面）。 | DankMaterialShell、字体、xwayland-satellite |
+| `gui-extras.nix` | GUI 裸包捆绑（opt-in）。 | localsend、nixpaks.qq/wechat、orca、easycli、breezex-cursor |
+| `desktop.nix` | 桌面环境包捆绑（opt-in）。 | DankMaterialShell、字体、xwayland-satellite、wl-clipboard |
 
 ### `modules/home/shell/`
 
@@ -104,7 +104,7 @@ Shell 配置。
 
 ### `modules/home/desktop/`
 
-桌面环境与 Wayland 合成器配置（仅 Linux 桌面机器导入）。
+桌面环境与 Wayland 合成器配置；由机器组织文件显式选择，具体依赖的平台支持由包定义决定。
 
 | File | Purpose | Notable |
 |------|---------|---------|
@@ -146,7 +146,7 @@ Shell 配置。
 | `zellij/` | 终端复用器，生成 KDL 设置。 | `programs.zellij`；`settings.nix` |
 | `zoxide/` | 智能目录跳转。 | `programs.zoxide` |
 
-#### `programs/gui/` — 图形界面应用（仅 Linux 桌面机器导入）
+#### `programs/gui/` — 图形界面应用
 
 | Directory | Purpose | Notable |
 |-----------|---------|---------|

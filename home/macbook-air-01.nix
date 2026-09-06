@@ -1,6 +1,6 @@
 # macbook-air-01 的 Home Manager 组织文件（全显式）。
-# 与 tianxuan 的差异：不导入 Linux 桌面相关捆绑、modules/home/desktop、
-# packages/gui.nix 与 programs/gui（平台差异完全由此文件的导入列表表达）。
+# macbook-air-01 按需选择 Home Manager 模块与软件。
+# 平台兼容性由具体软件包定义。
 { ... }:
 
 {
@@ -13,8 +13,8 @@
     ../modules/home/programs/dev
     ../modules/home/programs/terminal
     ../modules/home/programs/misc
+    ../modules/home/programs/gui/zen-browser
     ../modules/home/packages/gui.nix # GUI 程序
-    ../modules/home/packages/gui-extras.nix # GUI 裸包捆绑
     ./ssh.nix
   ];
 
@@ -51,6 +51,5 @@
 
     # gui
     zen-browser.enable = true;
-    dbx-desktop.enable = true;
   };
 }

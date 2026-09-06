@@ -1,12 +1,13 @@
-# 桌面环境组件（仅 Linux 桌面机器导入，见 home/tianxuan.nix）。配置见 desktop/。
+# 桌面环境组件。配置见 modules/home/desktop/。
 { pkgs, ... }:
 
 {
   programs.dank-material-shell.enable = true;
 
   home.packages = with pkgs; [
-    # niri 下的 X11 应用支持
+    # niri 下的 X11 与剪贴板工具
     xwayland-satellite
+    wl-clipboard
 
     # 字体
     noto-fonts

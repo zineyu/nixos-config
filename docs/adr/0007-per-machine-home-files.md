@@ -52,7 +52,8 @@ organization files:
   wiring). A host without a home file (e.g. `aliyun-01`) gets no user
   environment.
 - **The `linuxOnly` helper and `hostIsLinux` specialArg are removed.**
-  Platform differences are expressed by each machine file's import list.
+  Machines explicitly select modules and bundles; package derivations remain the
+  authority on whether software supports the evaluated platform.
 
 ## Alternatives Considered
 
@@ -75,10 +76,11 @@ organization files:
 
 ### Keep `linuxOnly` for GUI/desktop subtrees
 
-- Pros: Darwin machines can import whole category aggregators safely.
-- Cons: a second, hidden mechanism for what machine files now express
-  explicitly; requires the `hostIsLinux` specialArg plumbing.
-- Rejected: machine files simply do not import Linux-only subtrees.
+- Pros: category aggregators can hide unsupported packages from some platforms.
+- Cons: this duplicates package platform metadata and turns repository structure
+  into a second compatibility authority that can drift from package definitions.
+- Rejected: machines select desired software explicitly, while each package
+  determines and reports its own platform support.
 
 ## Consequences
 
