@@ -9,8 +9,12 @@ let
   signingKey = "EE86111F659E24AB";
   authKeygrip = "C714C773B14F2E777BA919679A5A9DD61B2145D0";
   primaryFingerprint = "B6F9CB026D8DE746C15944E8DDA2A8ACF741A8CD";
-  systemctl = config.systemd.user.systemctlPath;
-  sopsNixExecStart = lib.escapeShellArgs config.systemd.user.services.sops-nix.Service.ExecStart;
+  systemctl = if pkgs.stdenv.hostPlatform.isLinux then config.systemd.user.systemctlPath else null;
+  sopsNixExecStart =
+    if pkgs.stdenv.hostPlatform.isLinux then
+      lib.escapeShellArgs config.systemd.user.services.sops-nix.Service.ExecStart
+    else
+      null;
 
   importGnuPGPrivateKey = pkgs.writeShellScript "import-gnupg-private-key" ''
       set -eu
@@ -55,20 +59,22 @@ in
   # generation that introduces sops-nix, the old Home Manager generation has not
   # installed that user unit yet, so restarting it fails. Run the generated
   # sops-nix script directly in that bootstrap case.
-  home.activation.sops-nix = lib.mkForce (
-    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-      systemdStatus=$(${systemctl} --user is-system-running 2>&1 || true)
+  home.activation.sops-nix = lib.mkIf pkgs.stdenv.hostPlatform.isLinux (
+    lib.mkForce (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+        systemdStatus=$(${systemctl} --user is-system-running 2>&1 || true)
 
-      if [[ $systemdStatus == 'running' || $systemdStatus == 'degraded' ]] \
-        && ${systemctl} --user cat sops-nix.service >/dev/null 2>&1; then
-        ${systemctl} restart --user sops-nix
-      else
-        run ${sopsNixExecStart}
-      fi
+        if [[ $systemdStatus == 'running' || $systemdStatus == 'degraded' ]] \
+          && ${systemctl} --user cat sops-nix.service >/dev/null 2>&1; then
+          ${systemctl} restart --user sops-nix
+        else
+          run ${sopsNixExecStart}
+        fi
 
-      unset systemdStatus
-    ''
+        unset systemdStatus
+      ''
+    )
   );
 
   programs.gpg = {
@@ -97,7 +103,8 @@ in
     maxCacheTtl = 7200;
     maxCacheTtlSsh = 7200;
     sshKeys = [ authKeygrip ];
-    pinentry.package = pkgs.pinentry-gnome3;
+    pinentry.package =
+      if pkgs.stdenv.hostPlatform.isDarwin then pkgs.pinentry-curses else pkgs.pinentry-gnome3;
   };
 
   programs.ssh = {
@@ -105,7 +112,7 @@ in
     enableDefaultConfig = false;
   };
 
-  systemd.user.services.import-gnupg-private-key = {
+  systemd.user.services.import-gnupg-private-key = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     Unit = {
       Description = "Import GnuPG private key from sops-nix";
       After = [ "sops-nix.service" ];

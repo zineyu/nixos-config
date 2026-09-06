@@ -1,4 +1,4 @@
 { lib }:
 {
-  inherit (import ./scanPaths.nix { inherit lib; }) scanPaths;
+  inherit (import ./scanPaths.nix { inherit lib; }) scanPaths linuxOnly;
 }

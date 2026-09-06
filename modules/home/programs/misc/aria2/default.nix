@@ -1,11 +1,11 @@
-{ ... }:
+{ config, ... }:
 
 {
   programs.aria2 = {
     enable = true;
     settings = {
       continue = true;
-      dir = "/home/zine/Downloads";
+      dir = "${config.home.homeDirectory}/Downloads";
       file-allocation = "falloc";
       log-level = "debug";
       max-connection-per-server = 4;

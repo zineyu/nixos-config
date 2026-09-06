@@ -1,4 +1,8 @@
 {
+  pkgs,
+  ...
+}:
+{
   programs.nixvim = {
     globals = {
       mapleader = " ";
@@ -41,7 +45,7 @@
     # 注意：这是 nixvim 顶层选项，放在 opts 里会被静默丢弃
     clipboard = {
       register = "unnamedplus";
-      providers.wl-copy.enable = true;
+      providers.wl-copy.enable = pkgs.stdenv.hostPlatform.isLinux;
     };
 
     opts = {

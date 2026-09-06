@@ -41,5 +41,9 @@
         role = "hub";
       };
     };
+
+    macbook-air-01 = {
+      hostname = "macbook-air-01";
+    };
   };
 }

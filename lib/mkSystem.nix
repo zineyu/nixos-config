@@ -26,7 +26,38 @@ in
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.backupFileExtension = "backup";
-          home-manager.extraSpecialArgs = { inherit inputs vars extraLibs; };
+          home-manager.extraSpecialArgs = {
+            inherit inputs vars extraLibs;
+            hostIsLinux = lib.hasSuffix "-linux" hostSystem;
+          };
+          home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ];
+        }
+
+        ../hosts/${hostname}
+      ];
+    };
+  mkDarwinSystem =
+    hostname: hostSystem:
+    inputs.darwin.lib.darwinSystem {
+      system = hostSystem;
+      specialArgs = {
+        inherit
+          inputs
+          vars
+          extraLibs
+          hostname
+          ;
+      };
+      modules = [
+        inputs.home-manager.darwinModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "backup";
+          home-manager.extraSpecialArgs = {
+            inherit inputs vars extraLibs;
+            hostIsLinux = lib.hasSuffix "-linux" hostSystem;
+          };
           home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ];
         }
 

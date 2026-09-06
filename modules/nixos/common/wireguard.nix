@@ -18,8 +18,12 @@ let
 
   registeredHosts = import ../../../hosts;
   hostNames = attrNames registeredHosts;
+  nixosHostNames = builtins.filter (name: lib.hasSuffix "-linux" registeredHosts.${name}) hostNames;
   configuredHosts = vars.hosts;
   configuredHostNames = attrNames configuredHosts;
+  nixosConfiguredHostNames = builtins.filter (
+    name: configuredHosts.${name} ? wireguard
+  ) configuredHostNames;
   currentHost = configuredHosts.${hostname} or { };
   currentWireguard = currentHost.wireguard or { };
   currentAddress = currentWireguard.address or "0.0.0.0";
@@ -35,10 +39,10 @@ let
   isHub = currentWireguard.role or null == "hub";
 
   addresses =
-    (map (name: (configuredHosts.${name}.wireguard or { }).address or "") hostNames)
+    (map (name: (configuredHosts.${name}.wireguard or { }).address or "") nixosHostNames)
     ++ map (name: externalPeers.${name}.address or "") (attrNames externalPeers);
   publicKeys =
-    (map (name: (configuredHosts.${name}.wireguard or { }).publicKey or "") hostNames)
+    (map (name: (configuredHosts.${name}.wireguard or { }).publicKey or "") nixosHostNames)
     ++ map (name: externalPeers.${name}.publicKey or "") (attrNames externalPeers);
   validRole =
     role:
@@ -109,8 +113,8 @@ in
 {
   assertions = [
     {
-      assertion = lib.all validHost hostNames;
-      message = "Every registered host needs a matching vars.hosts entry and hostname, a 10.77.0.1-254 address, a canonical WireGuard public key, and role hub or spoke.";
+      assertion = lib.all validHost nixosHostNames;
+      message = "Every registered NixOS host needs a matching vars.hosts entry and hostname, a 10.77.0.1-254 address, a canonical WireGuard public key, and role hub or spoke.";
     }
     {
       assertion = lib.all validExternalPeer (attrNames externalPeers);
@@ -129,8 +133,8 @@ in
       message = "WireGuard public keys must be unique across NixOS hosts and external peers.";
     }
     {
-      assertion = configuredHostNames == hostNames;
-      message = "vars.hosts and hosts/default.nix must describe the same host set.";
+      assertion = nixosHostNames == nixosConfiguredHostNames;
+      message = "vars.hosts and hosts/default.nix must describe the same host set for NixOS (linux) hosts.";
     }
   ];
 

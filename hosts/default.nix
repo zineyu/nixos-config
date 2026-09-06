@@ -8,4 +8,5 @@
 {
   tianxuan = "x86_64-linux";
   aliyun-01 = "x86_64-linux";
+  macbook-air-01 = "aarch64-darwin";
 }

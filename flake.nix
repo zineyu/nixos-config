@@ -14,6 +14,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    darwin = {
+      url = "github:nix-darwin/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     dms = {
       url = "github:AvengeMedia/DankMaterialShell/stable";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -81,11 +85,20 @@
       let
         vars = import ./vars;
         hosts = import ./hosts;
-        inherit (import ./lib/mkSystem.nix { inherit inputs vars; }) mkSystem;
+        inherit (import ./lib/mkSystem.nix { inherit inputs vars; }) mkSystem mkDarwinSystem;
+
+        nixosHosts = inputs.nixpkgs.lib.filterAttrs (
+          _: system: inputs.nixpkgs.lib.hasSuffix "-linux" system
+        ) hosts;
+        darwinHosts = inputs.nixpkgs.lib.filterAttrs (
+          _: system: inputs.nixpkgs.lib.hasSuffix "-darwin" system
+        ) hosts;
       in
       {
-        systems = [ "x86_64-linux" ];
-
+        systems = [
+          "x86_64-linux"
+          "aarch64-darwin"
+        ];
         perSystem =
           { pkgs, system, ... }:
           {
@@ -161,7 +174,11 @@
         flake = {
           nixosConfigurations = inputs.nixpkgs.lib.mapAttrs (
             hostname: hostSystem: mkSystem hostname hostSystem
-          ) hosts;
+          ) nixosHosts;
+
+          darwinConfigurations = inputs.nixpkgs.lib.mapAttrs (
+            hostname: hostSystem: mkDarwinSystem hostname hostSystem
+          ) darwinHosts;
 
           deploy = {
             user = "root";
