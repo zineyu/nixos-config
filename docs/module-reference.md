@@ -55,27 +55,32 @@
 
 ## Home Manager Modules
 
-### `home/` — 共享定义层与机器组织文件
+### `home/` — 机器组织文件
 
-共享模块只定义、不默认启用；每台机器的组织文件 `home/<hostname>.nix` 显式导入所需定义层与裸包捆绑，并通过 `zine.programs.<name>.enable` 逐个启用软件（见 ADR-0007）。
+`home/` 只保留机器组织文件与通用入口（`<hostname>.nix`、`common.nix`、`ssh.nix`）；共享定义层（`packages/`、`shell/`、`desktop/`、`programs/`）位于 `modules/home/`，只定义、不默认启用。每台机器的组织文件 `home/<hostname>.nix` 显式导入所需定义层与裸包捆绑，并通过 `zine.programs.<name>.enable` 逐个启用软件（见 ADR-0007）。
 
 | File | Purpose | Notable |
 |------|---------|---------|
 | `<hostname>.nix` | 每台机器的 Home Manager 组织文件（全显式 imports + 启用列表）。 | `lib/mkSystem.nix` 在文件存在时自动接入 `home-manager.users.zine` |
 | `common.nix` | Home Manager 基础状态与自启用。 | `programs.home-manager.enable`；`home.stateVersion` 由 host inventory 注入 |
+| `ssh.nix` | 基于 sops-nix 的 SSH alias 配置（如 `aliyun-01`）。 | `sops.secrets.aliyun-01`、`sops.templates.ssh-hosts` |
+
+### `modules/home/` — 共享定义层
+
+| File | Purpose | Notable |
+|------|---------|---------|
 | `packages/` | options 定义层（安装侧）与裸包捆绑。 | `zine.programs.<name>.enable` 默认 false；配置统一放 `programs/`、`desktop/` 等 |
 | `shell/` | fish、bash、starship 配置。 | 原生 `fish/` 配置树共置 |
 | `desktop/` | 用户级桌面环境组件（niri、DMS、字体、图标等）。 | 仅 Linux 桌面机器的组织文件导入 |
 | `programs/` | 每个用户程序一个配置模块，按 dev/terminal/gui/misc 分类。 | 各层 `default.nix` 通过 `extraLibs.scanPaths` 自动扫描 |
-| `ssh.nix` | 基于 sops-nix 的 SSH alias 配置（如 `aliyun-01`）。 | `sops.secrets.aliyun-01`、`sops.templates.ssh-hosts` |
 
-### `home/packages/`
+### `modules/home/packages/`
 
 安装侧：声明 `zine.programs.*` options 并门控安装；无配置的裸包放 opt-in 捆绑。
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `default.nix` | 聚合跨平台 options 类别（shell、dev、terminal、misc）。 | 机器文件经 `./packages` 一次性获得全部 option 声明 |
+| `default.nix` | 聚合跨平台 options 类别（shell、dev、terminal、misc）。 | 机器文件经 `../modules/home/packages` 一次性获得全部 option 声明 |
 | `shell.nix` | fish、bash、starship 开关。 | `zine.programs.{fish,bash,starship}` |
 | `dev.nix` | 有配置的开发程序开关。 | git、jujutsu、mise、devenv、npm、vscode、dbeaver、nixvim、zed-editor、fabric |
 | `terminal.nix` | 终端程序开关。 | kitty、atuin、yazi、zellij、zoxide |
@@ -86,7 +91,7 @@
 | `gui-extras.nix` | GUI 裸包捆绑（opt-in，Linux 桌面）。 | localsend、nixpaks.qq/wechat、dbx、orca、breezex-cursor |
 | `desktop.nix` | 桌面环境包捆绑（opt-in，Linux 桌面）。 | DankMaterialShell、字体、xwayland-satellite |
 
-### `home/shell/`
+### `modules/home/shell/`
 
 Shell 配置。
 
@@ -97,7 +102,7 @@ Shell 配置。
 | `bash.nix` | 最小化 Bash 配置。 | `programs.bash`、基础别名 |
 | `starship.nix` | Starship 提示符，含自定义 jj 与 git 模块。 | `programs.starship` |
 
-### `home/desktop/`
+### `modules/home/desktop/`
 
 桌面环境与 Wayland 合成器配置（仅 Linux 桌面机器导入）。
 
@@ -114,9 +119,9 @@ Shell 配置。
 | `DankMaterialShell/settings.nix` | 生成的 DMS settings JSON。 | `xdg.configFile` |
 | `DankMaterialShell/zen.css` | 自定义 Zen Browser 主题 CSS。 | `xdg.configFile` |
 
-### `home/programs/`
+### `modules/home/programs/`
 
-每个应用一个 Home Manager 配置模块，按用途分为 4 个类别目录；各层 `default.nix` 通过 `extraLibs.scanPaths` 自动扫描导入，新增模块无需注册。模块只放配置；安装与启用开关见 `home/packages/`。
+每个应用一个 Home Manager 配置模块，按用途分为 4 个类别目录；各层 `default.nix` 通过 `extraLibs.scanPaths` 自动扫描导入，新增模块无需注册。模块只放配置；安装与启用开关见 `modules/home/packages/`。
 
 #### `programs/dev/` — 开发工具链
 
@@ -165,11 +170,11 @@ Shell 配置。
 |------|---------|-----------|
 | `lib/default.nix` | 暴露 `scanPaths` 辅助函数。 | 各模块的 `default.nix` |
 | `lib/mkSystem.nix` | 为所有 host 构建 `nixosSystem` / `darwinSystem`，接入 home-manager 与 sops-nix，注入 `hostname` / `homeStateVersion`，并在 `home/<hostname>.nix` 存在时自动接线 `home-manager.users.zine`。 | `flake.nix` |
-| `lib/niri-config.nix` | 构建并校验 niri 配置 derivation，包含 `dms/` 片段。 | `home/desktop/niri.nix` |
+| `lib/niri-config.nix` | 构建并校验 niri 配置 derivation，包含 `dms/` 片段。 | `modules/home/desktop/niri.nix` |
 | `lib/nix-settings.nix` | 共享 Nix substituters、trusted public keys 与 experimental features。 | `modules/nixos/common/nix.nix`、`flake.nix` |
 | `lib/nixpaks-common.nix` | 通用 nixpak 沙盒策略（GPU、DBus、bubblewrap、字体、portals）。 | `lib/nixpaks-qq.nix`、`lib/nixpaks-wechat.nix` |
-| `lib/nixpaks-qq.nix` | 腾讯 QQ 的 nixpak 包装器。 | `home/packages/gui-extras.nix` |
-| `lib/nixpaks-wechat.nix` | 微信的 nixpak 包装器。 | `home/packages/gui-extras.nix` |
+| `lib/nixpaks-qq.nix` | 腾讯 QQ 的 nixpak 包装器。 | `modules/home/packages/gui-extras.nix` |
+| `lib/nixpaks-wechat.nix` | 微信的 nixpak 包装器。 | `modules/home/packages/gui-extras.nix` |
 | `lib/scanPaths.nix` | 返回路径下所有 `.nix` 文件与子目录（排除 `default.nix`）。 | 所有 `default.nix` 模块聚合器 |
 | `lib/storeLinks.nix` | 显式 in-store / out-of-store 软链接辅助函数（`mkInStore`、`mkOutOfStore`、`mkOutOfStoreDotfiles`）。 | `fontconfig`、`kitty` |
 ---
@@ -186,8 +191,8 @@ Shell 配置。
 
 ## 辅助函数使用小结
 
-- **`extraLibs.scanPaths`** — 用于 `modules/nixos/{common,desktop,server}/default.nix`、`home/programs/default.nix` 与各 `home/programs/<category>/default.nix`，自动扫描并导入同级模块。
-- **`lib/niri-config.nix`** — 被 `home/desktop/niri.nix` 使用，构建并校验 niri 配置 derivation。
-- **`lib/storeLinks.nix`** — 被 `home/desktop/fontconfig`、`home/programs/terminal/kitty` 使用，显式选择 in-store 或 out-of-store 软链接策略。
-- **`lib/nixpaks-*.nix`** — 被 `home/packages/gui-extras.nix` 使用，通过 nixpak 沙盒运行 QQ 与微信。
+- **`extraLibs.scanPaths`** — 用于 `modules/nixos/{common,desktop,server}/default.nix`、`modules/home/programs/default.nix` 与各 `modules/home/programs/<category>/default.nix`，自动扫描并导入同级模块。
+- **`lib/niri-config.nix`** — 被 `modules/home/desktop/niri.nix` 使用，构建并校验 niri 配置 derivation。
+- **`lib/storeLinks.nix`** — 被 `modules/home/desktop/fontconfig`、`modules/home/programs/terminal/kitty` 使用，显式选择 in-store 或 out-of-store 软链接策略。
+- **`lib/nixpaks-*.nix`** — 被 `modules/home/packages/gui-extras.nix` 使用，通过 nixpak 沙盒运行 QQ 与微信。
 - **`lib/nix-settings.nix`** — 被 `modules/nixos/common/nix.nix` 与 `flake.nix` 使用，统一 Nix 缓存与实验特性配置。

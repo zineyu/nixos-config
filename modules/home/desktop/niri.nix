@@ -4,7 +4,7 @@
 }:
 
 let
-  niriConfig = import ../../lib/niri-config.nix {
+  niriConfig = import ../../../lib/niri-config.nix {
     inherit pkgs;
     niriDir = ./niri;
   };

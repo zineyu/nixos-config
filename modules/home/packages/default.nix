@@ -7,7 +7,7 @@
 #
 # 纯裸包（无配置的叶子工具）不在此处：见同目录 tools.nix / dev-tools.nix /
 # gui-extras.nix / desktop.nix 等 opt-in 捆绑，由机器文件显式导入。
-# 配置统一放 home/programs/、home/desktop/ 等。
+# 配置统一放 modules/home/programs/、modules/home/desktop/ 等。
 { ... }:
 
 {

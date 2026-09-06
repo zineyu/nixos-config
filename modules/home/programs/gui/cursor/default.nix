@@ -4,7 +4,7 @@
 }:
 
 let
-  breezex-cursor = pkgs.callPackage ../../../../pkgs/breezex-cursor.nix { };
+  breezex-cursor = pkgs.callPackage ../../../../../pkgs/breezex-cursor.nix { };
 in
 {
   home.pointerCursor = {

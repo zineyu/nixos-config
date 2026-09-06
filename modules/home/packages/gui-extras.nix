@@ -21,10 +21,10 @@ in
     dbx-desktop
 
     # 自定义/外部包（定义见仓库根 pkgs/）
-    (pkgs.callPackage ../../pkgs/orca.nix { })
-    (pkgs.callPackage ../../pkgs/easycliproxyapi.nix { })
-    (pkgs.callPackage ../../pkgs/breezex-cursor.nix { })
+    (pkgs.callPackage ../../../pkgs/orca.nix { })
+    (pkgs.callPackage ../../../pkgs/easycliproxyapi.nix { })
+    (pkgs.callPackage ../../../pkgs/breezex-cursor.nix { })
   ];
-  # home/programs/gui/cursor 的 home.pointerCursor.package 引用同一 derivation，
+  # modules/home/programs/gui/cursor 的 home.pointerCursor.package 引用同一 derivation，
   # 用于生成指针主题配置；两处引用同一 store path，不会重复安装。
 }

@@ -21,20 +21,20 @@
   - `hosts/<hostname>/hardware-configuration.nix` — `nixos-generate-config` 生成的硬件扫描结果
   - `home/<hostname>.nix` — 每台机器的 Home Manager 组织文件（全显式）：导入共享定义层与裸包捆绑，并通过 `zine.programs.<name>.enable` 逐个启用软件；文件存在时由 `lib/mkSystem.nix` 自动接入 `home-manager.users.zine`（本仓库为单用户固定 `zine`；`home.username` / `home.homeDirectory` 由 home-manager OS 模块自动派生）
   - `home/common.nix` — Home Manager 通用基础配置（`home.stateVersion` 由 host inventory 注入）
-  - `home/packages/<category>.nix` — 集中包清单（安装侧）：声明 `zine.programs.<name>.enable` options（默认 false，即定义不启用）并把安装门控到开关上；**不在这里写配置**。无配置的裸包放 opt-in 捆绑 `tools.nix` / `dev-tools.nix` / `gui-extras.nix` / `desktop.nix`，由机器文件显式导入
-  - `home/shell/` — shell 与启动文件（`fish.nix`、`bash.nix`、`starship.nix` 及原生 `fish/` 配置树）
-  - `home/programs/<category>/<name>/` — 每个用户程序一个目录，**只放配置**（settings、keymap、xdg.configFile 等，不写 `enable` / `home.packages`），原生配置文件与模块共置；程序按用途分为 `dev/`（开发工具链）、`terminal/`（终端与 shell 增强）、`gui/`（图形界面应用）、`misc/`（其他）四个类别；`home/programs/default.nix` 与各 `programs/<category>/default.nix` 通过 `lib/scanPaths.nix` 逐层自动扫描
-  - `home/desktop/` — 用户级桌面环境组件与配置（仅 Linux 桌面机器的组织文件导入）
+  - `modules/home/packages/<category>.nix` — 集中包清单（安装侧）：声明 `zine.programs.<name>.enable` options（默认 false，即定义不启用）并把安装门控到开关上；**不在这里写配置**。无配置的裸包放 opt-in 捆绑 `tools.nix` / `dev-tools.nix` / `gui-extras.nix` / `desktop.nix`，由机器文件显式导入
+  - `modules/home/shell/` — shell 与启动文件（`fish.nix`、`bash.nix`、`starship.nix` 及原生 `fish/` 配置树）
+  - `modules/home/programs/<category>/<name>/` — 每个用户程序一个目录，**只放配置**（settings、keymap、xdg.configFile 等，不写 `enable` / `home.packages`），原生配置文件与模块共置；程序按用途分为 `dev/`（开发工具链）、`terminal/`（终端与 shell 增强）、`gui/`（图形界面应用）、`misc/`（其他）四个类别；`modules/home/programs/default.nix` 与各 `programs/<category>/default.nix` 通过 `lib/scanPaths.nix` 逐层自动扫描
+  - `modules/home/desktop/` — 用户级桌面环境组件与配置（仅 Linux 桌面机器的组织文件导入）
   - `home/ssh.nix` — sops-nix 解密的 SSH alias 配置（如 `aliyun-01`）
   - `modules/nixos/` — 系统级 NixOS 模块目录，按用途分为 `common/`（所有 host 共享，含 Docker）、`desktop/`、`server/`；各目录下的 `packages.nix` 是系统级软件清单（`programs.<name>.enable` / `environment.systemPackages`），同目录其他模块只放服务与配置
   - `modules/nixos/common/users.nix` — 单用户账户 `zine` 的声明
   - `lib/` — 可复用 Nix 函数（`mkSystem.nix`、`niri-config.nix`、`storeLinks.nix`、`nix-settings.nix`、`nixpaks-*.nix`、`scanPaths.nix`）
   - `lib/storeLinks.nix` — 统一封装 in-store / out-of-store 链接策略，供 `xdg.configFile` 使用
-  - `pkgs/` — 自定义/外部包定义（如 `dsh.nix`、`jj-bond.nix`、`orca.nix`），由 `home/packages/` 或 `modules/nixos/` 通过 `pkgs.callPackage ../../pkgs/<name>.nix { }` 引用
+  - `pkgs/` — 自定义/外部包定义（如 `dsh.nix`、`jj-bond.nix`、`orca.nix`），由 `modules/home/packages/` 或 `modules/nixos/` 通过 `pkgs.callPackage` 引用
   - `vars/default.nix` — 共享变量（`git` 身份）与按 host 组织的变量（`hosts.<hostname>.hardware`、`hosts.<hostname>.wireguard` 等）
-- 新增 program 时：在 `home/packages/<category>.nix` 中声明 `zine.programs.<name>.enable` option 并门控安装（自定义包定义放根 `pkgs/`；纯裸包直接加入对应 opt-in 捆绑），并按用途在对应类别下创建 `home/programs/<category>/<name>/default.nix` 存放纯配置；目录创建后各层 `default.nix` 会自动扫描导入，无需手动注册。最后在需要它的机器的 `home/<hostname>.nix` 中启用。若现有类别都不合适，可新增类别目录并配一个调用 `extraLibs.scanPaths` 的 `default.nix`。
+- 新增 program 时：在 `modules/home/packages/<category>.nix` 中声明 `zine.programs.<name>.enable` option 并门控安装（自定义包定义放根 `pkgs/`；纯裸包直接加入对应 opt-in 捆绑），并按用途在对应类别下创建 `modules/home/programs/<category>/<name>/default.nix` 存放纯配置；目录创建后各层 `default.nix` 会自动扫描导入，无需手动注册。最后在需要它的机器的 `home/<hostname>.nix` 中启用。若现有类别都不合适，可新增类别目录并配一个调用 `extraLibs.scanPaths` 的 `default.nix`。
 - 新增 host 时，在 `hosts/default.nix` 添加条目（`system`/`kind`/可选 `homeStateVersion`/可选 `deploy`），创建 `hosts/<hostname>/default.nix` 和 `hosts/<hostname>/configuration.nix`（导入 `modules/nixos` 以获得 common 基础配置；服务器额外导入 `modules/nixos/server`）。需要用户环境时再创建 `home/<hostname>.nix`。
-- `hosts/<hostname>/default.nix` 只放**该具体机器**的系统级覆盖（如显示器缩放、外设、特定硬件开关、greeter 配置等）；用户级差异放 `home/<hostname>.nix`；通用桌面配置放入 `home/desktop/`
+- `hosts/<hostname>/default.nix` 只放**该具体机器**的系统级覆盖（如显示器缩放、外设、特定硬件开关、greeter 配置等）；用户级差异放 `home/<hostname>.nix`；通用桌面配置放入 `modules/home/desktop/`
 - 只有系统路径（如 `/usr/share/fontconfig/...`）或频繁修改的原生 dotfiles（如 Neovim、Kitty 配置）使用 `mkOutOfStore`，其余默认 in-store
 
 ## Testing
@@ -61,10 +61,10 @@
 
 - `hosts/default.nix` 是结构化 host inventory（`system`/`kind`/可选 `homeStateVersion`/`deploy`），`flake.nix` 通过它生成 `nixosConfigurations`、`darwinConfigurations` 与 deploy-rs nodes（见 ADR-0006）
 - Home Manager 作为系统模块（NixOS / nix-darwin）集成：`lib/mkSystem.nix` 在 `home/<hostname>.nix` 存在时自动接入 `home-manager.users.zine`，不再经过 `users/<username>/` 层，也不在 `hosts/` 中接线（见 ADR-0007）
-- `home/<hostname>.nix` 是每台机器的组织文件：显式导入共享定义层（`home/packages`、`home/programs`、裸包捆绑等）并通过 `zine.programs.<name>.enable` 启用软件；共享模块只定义、不默认启用
-- 每个 `home/programs/<category>/<name>/default.nix` 只管理该程序的配置文件（安装与开关统一由 `home/packages/<category>.nix` 声明）；`home/programs/default.nix` 与 `programs/<category>/default.nix` 通过 `lib/scanPaths.nix` 逐层自动导入。
-- `lib/niri-config.nix` 自动扫描 `home/desktop/niri/dms/*.kdl`，新增 include 无需改 Nix 代码。
-- `lib/nixpaks-qq.nix` 与 `lib/nixpaks-wechat.nix` 在 `modules/nixos/desktop/nixpak.nix` 中构建为 overlay，供 `home/packages/gui-extras.nix` 使用。
+- `home/<hostname>.nix` 是每台机器的组织文件：显式导入共享定义层（`modules/home/packages`、`modules/home/programs`、裸包捆绑等）并通过 `zine.programs.<name>.enable` 启用软件；共享模块只定义、不默认启用
+- 每个 `modules/home/programs/<category>/<name>/default.nix` 只管理该程序的配置文件（安装与开关统一由 `modules/home/packages/<category>.nix` 声明）；`modules/home/programs/default.nix` 与 `programs/<category>/default.nix` 通过 `lib/scanPaths.nix` 逐层自动导入。
+- `lib/niri-config.nix` 自动扫描 `modules/home/desktop/niri/dms/*.kdl`，新增 include 无需改 Nix 代码。
+- `lib/nixpaks-qq.nix` 与 `lib/nixpaks-wechat.nix` 在 `modules/nixos/desktop/nixpak.nix` 中构建为 overlay，供 `modules/home/packages/gui-extras.nix` 使用。
 
 ## References
 

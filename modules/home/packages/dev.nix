@@ -1,8 +1,8 @@
 # 有配置的开发程序（编辑器、版本控制、运行时管理等）：逐个 option 门控。
-# 配置见 home/programs/dev/；裸工具链与编码 Agent 见 dev-tools.nix（opt-in）。
+# 配置见 modules/home/programs/dev/；裸工具链与编码 Agent 见 dev-tools.nix（opt-in）。
 #
-# 注意：nixvim 的 Home Manager 模块由 home/programs/dev/nixvim 导入，
-# 机器文件需同时导入 home/programs 才能使用 zine.programs.nixvim。
+# 注意：nixvim 的 Home Manager 模块由 modules/home/programs/dev/nixvim 导入，
+# 机器文件需同时导入 modules/home/programs 才能使用 zine.programs.nixvim。
 {
   config,
   lib,

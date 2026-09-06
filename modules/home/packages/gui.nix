@@ -1,5 +1,5 @@
 # 有配置的图形界面程序（仅 Linux 桌面机器导入，见 home/tianxuan.nix）：
-# 逐个 option 门控。配置见 home/programs/gui/；裸 GUI 包见 gui-extras.nix（opt-in）。
+# 逐个 option 门控。配置见 modules/home/programs/gui/；裸 GUI 包见 gui-extras.nix（opt-in）。
 {
   config,
   lib,

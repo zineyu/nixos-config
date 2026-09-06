@@ -1,4 +1,4 @@
-# 终端与终端增强工具。配置见 home/programs/terminal/。
+# 终端与终端增强工具。配置见 modules/home/programs/terminal/。
 { config, lib, ... }:
 
 let

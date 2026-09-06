@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 let
-  storeLinks = import ../../../lib/storeLinks.nix { inherit config; };
+  storeLinks = import ../../../../lib/storeLinks.nix { inherit config; };
 in
 {
   fonts.fontconfig = {

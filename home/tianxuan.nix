@@ -1,20 +1,20 @@
 # tianxuan 的 Home Manager 组织文件（全显式）：
 # - imports 选择共享定义层与裸包捆绑；
-# - zine.programs.* 逐个启用有配置的软件（options 声明见 home/packages/）。
+# - zine.programs.* 逐个启用有配置的软件（options 声明见 modules/home/packages/）。
 { ... }:
 
 {
   imports = [
     ./common.nix
-    ./packages/tools.nix # CLI 裸包捆绑
-    ./packages/dev-tools.nix # 开发工具链/Agent 裸包捆绑
-    ./packages # options 定义层（默认不启用）
-    ./packages/gui.nix # GUI 程序 options（Linux 桌面）
-    ./packages/gui-extras.nix # GUI 裸包捆绑（Linux 桌面）
-    ./packages/desktop.nix # 桌面环境包捆绑（Linux 桌面）
-    ./shell
-    ./desktop
-    ./programs
+    ../modules/home/packages/tools.nix # CLI 裸包捆绑
+    ../modules/home/packages/dev-tools.nix # 开发工具链/Agent 裸包捆绑
+    ../modules/home/packages # options 定义层（默认不启用）
+    ../modules/home/packages/gui.nix # GUI 程序 options（Linux 桌面）
+    ../modules/home/packages/gui-extras.nix # GUI 裸包捆绑（Linux 桌面）
+    ../modules/home/packages/desktop.nix # 桌面环境包捆绑（Linux 桌面）
+    ../modules/home/shell
+    ../modules/home/desktop
+    ../modules/home/programs
     ./ssh.nix
   ];
 

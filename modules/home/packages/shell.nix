@@ -1,4 +1,4 @@
-# Shell 与提示符。配置见 home/shell/。
+# Shell 与提示符。配置见 modules/home/shell/。
 { config, lib, ... }:
 
 let

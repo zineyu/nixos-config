@@ -18,7 +18,7 @@
   - `secrets/aliyun-01.yaml`：本机桌面与 `aliyun-01` 均可解密，保存服务 secret 和 `wireguard_private_key`。
   - `secrets/ssh-hosts.yaml`：仅本机桌面可解密。
   - `secrets/cachix.yaml`：仅本机桌面可解密，保存 `auth_token`（cachix 推送凭证），由 `just push-cachix` 在本地推送系统 closure 时使用。
-- `secrets/gnupg.yaml` 保存 GnuPG 私钥，由 `home/programs/misc/gnupg` 导入。
+- `secrets/gnupg.yaml` 保存 GnuPG 私钥，由 `modules/home/programs/misc/gnupg` 导入。
 - `secrets/aliyun-01.yaml` 保存 `luogo_checkin` 环境变量、Vaultwarden `ADMIN_TOKEN`、Gotify 初始管理员密码和 WireGuard 私钥。
 - `secrets/ssh-hosts.yaml` 保存 `aliyun-01` 的真实 SSH 地址，由 `home/ssh.nix` 解密并渲染 SSH alias。
 - `modules/nixos/common/wireguard.nix` 将各 NixOS host 的 `wireguard_private_key` 解密到 `/run/secrets/wireguard_private_key`，并通过 `privateKeyFile` 交给 WireGuard；私钥不会进入 Nix store。

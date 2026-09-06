@@ -1,18 +1,18 @@
 # macbook-air-01 的 Home Manager 组织文件（全显式）。
-# 与 tianxuan 的差异：不导入 Linux 桌面相关捆绑、home/desktop、
+# 与 tianxuan 的差异：不导入 Linux 桌面相关捆绑、modules/home/desktop、
 # packages/gui.nix 与 programs/gui（平台差异完全由此文件的导入列表表达）。
 { ... }:
 
 {
   imports = [
     ./common.nix
-    ./packages/tools.nix # CLI 裸包捆绑
-    ./packages/dev-tools.nix # 开发工具链/Agent 裸包捆绑
-    ./packages # options 定义层（默认不启用）
-    ./shell
-    ./programs/dev
-    ./programs/terminal
-    ./programs/misc
+    ../modules/home/packages/tools.nix # CLI 裸包捆绑
+    ../modules/home/packages/dev-tools.nix # 开发工具链/Agent 裸包捆绑
+    ../modules/home/packages # options 定义层（默认不启用）
+    ../modules/home/shell
+    ../modules/home/programs/dev
+    ../modules/home/programs/terminal
+    ../modules/home/programs/misc
     ./ssh.nix
   ];
 

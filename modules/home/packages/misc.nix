@@ -1,4 +1,4 @@
-# 其他工具（下载、加密/密钥管理）。配置见 home/programs/misc/ 与 home/ssh.nix。
+# 其他工具（下载、加密/密钥管理）。配置见 modules/home/programs/misc/ 与 home/ssh.nix。
 {
   config,
   lib,
