@@ -18,7 +18,7 @@ in
       cursor_trail = 1;
       window_margin_width = 5;
       confirm_os_window_close = 0;
-      shell = "fish";
+      shell = "${config.programs.fish.package}/bin/fish";
       term = "xterm-256color";
     };
 

@@ -20,13 +20,6 @@
       commit = "jj desc -m $(jj diff | fabric -p my_conventional_commit )";
     };
 
-    shellInit = ''
-      # Nix daemon environment (not provided by Home Manager).
-      if test -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish
-        source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish
-      end
-    '';
-
     interactiveShellInit = ''
       # fzf.fish
       set fzf_preview_dir_cmd eza --all -lh --group-directories-first --icons=auto
@@ -36,7 +29,6 @@
       fish_vi_key_bindings
 
       contains "$N_PREFIX/bin" $PATH; or set -a PATH "$N_PREFIX/bin"
-      devenv hook fish | source
     '';
 
     functions = {

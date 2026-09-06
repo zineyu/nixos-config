@@ -161,6 +161,21 @@ in
     };
   };
 
+  # The bundle copied by Home Manager can fail LaunchServices validation on
+  # Darwin with kLSNoExecutableErr even though Contents/MacOS/zen runs. Always
+  # replace the upstream signature after the application has been copied:
+  # checking it immediately after rsync can incorrectly report it as valid.
+  home.activation.resignZenBrowser = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
+    lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      zen_app="$HOME/Applications/Home Manager Apps/Zen Browser.app"
+      if [[ -d "$zen_app" ]]; then
+        run /usr/bin/codesign --force --deep --sign - "$zen_app"
+        run /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+          -f "$zen_app"
+      fi
+    ''
+  );
+
   xdg.mimeApps = {
     associations.added = lib.genAttrs browserMimeTypes (_: lib.mkDefault defaultBrowser);
     defaultApplications = lib.genAttrs browserMimeTypes (_: lib.mkDefault defaultBrowser);

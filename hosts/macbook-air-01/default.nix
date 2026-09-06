@@ -19,6 +19,10 @@ in
 
   nixpkgs.config.allowUnfree = true;
 
+  # Let nix-darwin initialise its full environment before fish loads user
+  # configuration. This includes the Home Manager per-user profile in PATH.
+  programs.fish.enable = true;
+
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
   system.stateVersion = 6;

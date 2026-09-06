@@ -14,7 +14,7 @@ let
     if pkgs.stdenv.hostPlatform.isLinux then
       lib.escapeShellArgs config.systemd.user.services.sops-nix.Service.ExecStart
     else
-      null;
+      lib.escapeShellArg config.launchd.agents.sops-nix.config.Program;
 
   importGnuPGPrivateKey = pkgs.writeShellScript "import-gnupg-private-key" ''
       set -eu
@@ -50,25 +50,32 @@ in
     };
   };
 
-  # sops-nix tries to restart sops-nix.service during activation. On the first
-  # generation that introduces sops-nix, the old Home Manager generation has not
-  # installed that user unit yet, so restarting it fails. Run the generated
-  # sops-nix script directly in that bootstrap case.
-  home.activation.sops-nix = lib.mkIf pkgs.stdenv.hostPlatform.isLinux (
-    lib.mkForce (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-        systemdStatus=$(${systemctl} --user is-system-running 2>&1 || true)
+  # sops-nix tries to reload its service during activation before Home Manager
+  # has installed the service definition on a first generation. Run the generated
+  # script directly when the service is unavailable. On Darwin, setupLaunchAgents
+  # always runs later in the activation DAG, so the plist cannot be bootstrapped
+  # here yet.
+  home.activation.sops-nix = lib.mkForce (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] (
+      if pkgs.stdenv.hostPlatform.isLinux then
+        ''
+          export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+          systemdStatus=$(${systemctl} --user is-system-running 2>&1 || true)
 
-        if [[ $systemdStatus == 'running' || $systemdStatus == 'degraded' ]] \
-          && ${systemctl} --user cat sops-nix.service >/dev/null 2>&1; then
-          ${systemctl} restart --user sops-nix
-        else
+          if [[ $systemdStatus == 'running' || $systemdStatus == 'degraded' ]] \
+            && ${systemctl} --user cat sops-nix.service >/dev/null 2>&1; then
+            ${systemctl} restart --user sops-nix
+          else
+            run ${sopsNixExecStart}
+          fi
+
+          unset systemdStatus
+        ''
+      else
+        ''
+          export PATH="/usr/bin:/bin:/usr/sbin:/sbin''${PATH:+:$PATH}"
           run ${sopsNixExecStart}
-        fi
-
-        unset systemdStatus
-      ''
+        ''
     )
   );
 
