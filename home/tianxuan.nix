@@ -9,8 +9,8 @@
     ../modules/home/packages/tools.nix # CLI 裸包捆绑
     ../modules/home/packages/dev-tools.nix # 开发工具链/Agent 裸包捆绑
     ../modules/home/packages # options 定义层（默认不启用）
-    ../modules/home/packages/gui.nix # GUI 程序 options（Linux 桌面）
-    ../modules/home/packages/gui-extras.nix # GUI 裸包捆绑（Linux 桌面）
+    ../modules/home/packages/gui.nix # GUI 程序
+    ../modules/home/packages/gui-extras.nix # GUI 裸包捆绑
     ../modules/home/packages/desktop.nix # 桌面环境包捆绑（Linux 桌面）
     ../modules/home/shell
     ../modules/home/desktop

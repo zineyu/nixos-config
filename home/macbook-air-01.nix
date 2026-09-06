@@ -13,6 +13,8 @@
     ../modules/home/programs/dev
     ../modules/home/programs/terminal
     ../modules/home/programs/misc
+    ../modules/home/packages/gui.nix # GUI 程序
+    ../modules/home/packages/gui-extras.nix # GUI 裸包捆绑
     ./ssh.nix
   ];
 
@@ -46,5 +48,9 @@
     gpg.enable = true;
     ssh.enable = true;
     sops.enable = true;
+
+    # gui
+    zen-browser.enable = true;
+    dbx-desktop.enable = true;
   };
 }
