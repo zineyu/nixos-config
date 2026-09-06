@@ -2,7 +2,6 @@
 
 {
   programs.aria2 = {
-    enable = true;
     settings = {
       continue = true;
       dir = "${config.home.homeDirectory}/Downloads";

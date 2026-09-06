@@ -14,7 +14,6 @@ in
   ];
 
   programs.dank-material-shell = {
-    enable = true;
     enableSystemMonitoring = true;
     enableDynamicTheming = true;
     enableAudioWavelength = true;

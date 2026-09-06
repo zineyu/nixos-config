@@ -22,8 +22,6 @@ in
     force = true;
   };
 
-  home.packages = [ pkgs.xwayland-satellite ];
-
   systemd.user.services.xwayland-satellite = {
     Unit = {
       Description = "Xwayland outside your Wayland compositor";

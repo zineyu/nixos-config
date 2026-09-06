@@ -2,7 +2,6 @@
 
 {
   programs.steam = {
-    enable = true;
     gamescopeSession.enable = true;
     # 桌面防火墙已在 desktop/networking.nix 中整体禁用，
     # 因此 remotePlay/dedicatedServer/localNetworkGameTransfers 的

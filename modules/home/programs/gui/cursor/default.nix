@@ -4,11 +4,9 @@
 }:
 
 let
-  breezex-cursor = pkgs.callPackage ./breezex-cursor.nix { };
+  breezex-cursor = pkgs.callPackage ../../../../../pkgs/breezex-cursor.nix { };
 in
 {
-  home.packages = [ breezex-cursor ];
-
   home.pointerCursor = {
     enable = true;
     name = "BreezeX-Light";

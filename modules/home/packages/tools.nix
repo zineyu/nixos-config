@@ -1,4 +1,4 @@
-# 日常通用 CLI 工具（与具体开发活动无关）；语言/编译器/构建工具见 programs/devtools。
+# 日常通用 CLI 工具（与具体开发活动无关）；语言/编译器/构建工具见 packages/dev.nix。
 { pkgs, lib, ... }:
 
 {

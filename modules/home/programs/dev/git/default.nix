@@ -1,6 +1,5 @@
 {
   programs.git = {
-    enable = true;
     settings = {
       user = {
         email = "zine.xlws@gmail.com";

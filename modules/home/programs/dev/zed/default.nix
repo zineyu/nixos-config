@@ -2,7 +2,6 @@
 
 {
   programs.zed-editor = {
-    enable = true;
     mutableUserSettings = false;
     mutableUserKeymaps = false;
     mutableUserTasks = false;

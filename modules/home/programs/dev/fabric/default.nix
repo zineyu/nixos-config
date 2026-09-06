@@ -12,7 +12,6 @@
 #   echo "给登录页加上验证码" | fabric -p my_branch_name
 #   jj diff --git | fabric -p my_pr_bundle   # 一次输出分支名 + commit + PR 描述
 {
-  home.packages = with pkgs; [ fabric-ai ];
 
   xdg.configFile = {
     "fabric/patterns/my_conventional_commit/system.md".source =

@@ -7,7 +7,6 @@ let
 in
 {
   programs.kitty = {
-    enable = true;
 
     font = {
       name = "Maple Mono NF CN";

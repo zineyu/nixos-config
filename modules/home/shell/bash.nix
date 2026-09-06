@@ -2,7 +2,6 @@
 
 {
   programs.bash = {
-    enable = true;
 
     shellAliases = {
       ls = "ls --color=auto";

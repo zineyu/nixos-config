@@ -5,7 +5,6 @@
 
 {
   programs.fish = {
-    enable = true;
 
     shellAliases = {
       cl = "clear";

@@ -7,7 +7,7 @@
 {
   imports = [
     ./common.nix
-    ./tools.nix
+    ./packages
     ./shell
     ./desktop
     ./programs

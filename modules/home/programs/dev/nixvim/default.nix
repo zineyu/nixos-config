@@ -11,5 +11,4 @@
     ./core.nix
     ./plugins
   ];
-  programs.nixvim.enable = true;
 }

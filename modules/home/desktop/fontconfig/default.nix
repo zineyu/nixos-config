@@ -27,15 +27,6 @@ in
     };
   };
 
-  home.packages = with pkgs; [
-    noto-fonts
-    noto-fonts-cjk-sans
-    noto-fonts-cjk-serif
-    noto-fonts-color-emoji
-    fira-code
-    maple-mono.NF-CN
-  ];
-
   xdg.configFile = {
     # Static dotfiles are linked from the Nix store.
     "fontconfig" = {

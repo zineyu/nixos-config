@@ -59,7 +59,6 @@ in
   imports = [ inputs.zen-browser.homeModules.default ];
 
   programs.zen-browser = {
-    enable = true;
     setAsDefaultBrowser = false;
     unwrappedPackage = stableZenUnwrapped;
     policies = zenPolicies;

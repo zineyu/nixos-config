@@ -11,7 +11,6 @@ let
 in
 {
   programs.yazi = {
-    enable = true;
     # Converted from the previous TOML files; each file is verified
     # deep-equal to its TOML source (builtins.fromTOML == import).
     settings = import ./settings.nix;

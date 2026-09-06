@@ -40,11 +40,6 @@ let
 in
 {
 
-  home.packages = with pkgs; [
-    age
-    sops
-  ];
-
   sops = {
     age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
     defaultSopsFile = ../../../../../secrets/gnupg.yaml;
@@ -78,7 +73,6 @@ in
   );
 
   programs.gpg = {
-    enable = true;
     settings = {
       default-key = signingKey;
       keyid-format = "0xlong";
@@ -108,7 +102,6 @@ in
   };
 
   programs.ssh = {
-    enable = true;
     enableDefaultConfig = false;
   };
 
