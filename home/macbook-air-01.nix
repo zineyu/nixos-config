@@ -1,7 +1,7 @@
 # macbook-air-01 的 Home Manager 组织文件（全显式）。
 # macbook-air-01 按需选择 Home Manager 模块与软件。
 # 平台兼容性由具体软件包定义。
-{ ... }:
+{ pkgs, ... }:
 
 {
   imports = [
@@ -52,4 +52,7 @@
     # gui
     zen-browser.enable = true;
   };
+
+  # macbook-air-01 专属的代理内核；配置由用户放在 ~/.config/mihomo/。
+  home.packages = [ pkgs.mihomo ];
 }

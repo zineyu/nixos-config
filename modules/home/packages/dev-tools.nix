@@ -53,6 +53,5 @@ in
     llmAgents.omp
     llmAgents.spec-kit
     piWithNode
-    inputs.nomic.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }
