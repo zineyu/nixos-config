@@ -42,7 +42,7 @@ in
 
   sops = {
     age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-    defaultSopsFile = ../../../../../secrets/gnupg.yaml;
+    defaultSopsFile = ../../../../secrets/gnupg.yaml;
     defaultSopsFormat = "yaml";
 
     secrets.gnupg_private_key = {

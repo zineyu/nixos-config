@@ -1,5 +1,4 @@
-# 桌面环境组件（仅 Linux 桌面，由 packages/default.nix 通过 linuxOnly 引入）。
-# 配置见 desktop/。
+# 桌面环境组件（仅 Linux 桌面机器导入，见 home/tianxuan.nix）。配置见 desktop/。
 { pkgs, ... }:
 
 {

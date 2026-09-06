@@ -1,4 +1,6 @@
-# 开发工具链：语言/编译器/构建工具、编辑器与编码 Agent。配置见 programs/dev/。
+# 开发工具链裸包（语言/编译器/构建工具、开发辅助、编码 Agent 与自定义包）。
+# 无配置的叶子包集合，作为 opt-in 捆绑由 home/<hostname>.nix 显式导入。
+# 有配置的开发程序（git、编辑器等）见 dev.nix 的 options。
 {
   pkgs,
   lib,
@@ -13,18 +15,6 @@ let
   piWithNode = llmAgents.pi.override { useBun = false; };
 in
 {
-  programs = {
-    git.enable = true;
-    jujutsu.enable = true;
-    mise.enable = true;
-    devenv.enable = true;
-    npm.enable = true;
-    vscode.enable = true;
-    dbeaver.enable = true;
-    nixvim.enable = true;
-    zed-editor.enable = true;
-  };
-
   home.packages = with pkgs; [
     # 语言、编译器与构建工具
     buf
@@ -54,11 +44,10 @@ in
     stylua
 
     # 自定义/外部包（定义见仓库根 pkgs/）
-    (pkgs.callPackage ../../../pkgs/dsh.nix { })
-    (pkgs.callPackage ../../../pkgs/jj-bond.nix { })
+    (pkgs.callPackage ../../pkgs/dsh.nix { })
+    (pkgs.callPackage ../../pkgs/jj-bond.nix { })
 
     # 编码 Agent
-    fabric-ai
     llmAgents.codex
     llmAgents.cc-switch-cli
     llmAgents.omp

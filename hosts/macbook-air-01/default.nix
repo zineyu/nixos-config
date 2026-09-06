@@ -13,8 +13,6 @@ in
     home = "/Users/zine";
   };
 
-  home-manager.users.zine = import ../../modules/home;
-
   nix.settings = sharedNixSettings // {
     trusted-users = [ "zine" ];
   };

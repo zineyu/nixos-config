@@ -28,6 +28,4 @@
       };
     };
   };
-
-  home-manager.users.zine = import ../../modules/home;
 }

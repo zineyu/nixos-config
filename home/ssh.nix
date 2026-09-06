@@ -8,7 +8,7 @@
   # secrets/ssh-hosts.yaml 里只放 host -> 真实 IP/域名的映射，
   # 仓库里 deploy-rs 仍然只保留非敏感别名。
   sops.secrets.aliyun-01 = {
-    sopsFile = ../../secrets/ssh-hosts.yaml;
+    sopsFile = ../secrets/ssh-hosts.yaml;
   };
 
   sops.templates.ssh-hosts = {
