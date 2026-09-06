@@ -88,3 +88,39 @@ jobs:
               --print-build-logs \
               --out-link "result-$host"
           done
+
+  build-darwin:
+    name: Build Darwin systems
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          nix_path: "nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixpkgs-unstable.tar.gz"
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply shared Nix settings
+        shell: bash
+        run: |
+          nix build ".#nix-conf"
+          cat ./result | sudo tee -a /etc/nix/nix.conf
+
+      - name: Restart Nix Daemon
+        shell: bash
+        run: |
+          sudo launchctl kickstart -k system/org.nixos.nix-daemon
+
+      - name: Build system closures
+        shell: bash
+        run: |
+          mapfile -t hosts < <(nix eval --json ".#darwinConfigurations" --apply "builtins.attrNames" | jq --raw-output '.[]')
+          for host in "${hosts[@]}"; do
+            nix build ".#darwinConfigurations.$host.system" \
+              --fallback \
+              --print-build-logs \
+              --out-link "result-$host"
+          done
