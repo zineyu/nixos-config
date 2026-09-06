@@ -16,6 +16,13 @@ build host:
 switch host:
     sudo nixos-rebuild switch --flake .#{{host}}
 
+# Build a Darwin host configuration without activating it
+build-darwin host:
+    nix build .#darwinConfigurations.{{host}}.system
+
+# Switch a Darwin host configuration (requires confirmation in real use)
+switch-darwin host:
+    darwin-rebuild switch --flake .#{{host}}
 # Run flake checks (formatting, deadnix, statix, eval)
 check:
     nix flake check --print-build-logs
