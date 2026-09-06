@@ -26,7 +26,7 @@
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `default.nix` | 导入桌面模块，并引入 `dms` greeter、`niri` 与 `aagl` flake 模块。 | `inputs.dms.nixosModules.greeter`、`inputs.niri.nixosModules.niri`、`inputs.aagl.nixosModules.default` |
+| `default.nix` | 导入桌面模块，并引入 dank-greeter、`niri` 与 `aagl` flake 模块。 | `inputs.dank-greeter.nixosModules.default`、`inputs.niri.nixosModules.niri`、`inputs.aagl.nixosModules.default` |
 | `an-anime-game-launcher.nix` | 安装 An Anime Game Launcher（AAGL）。 | `programs.anime-game-launcher`；按上游默认屏蔽米哈游遥测 |
 | `audio.nix` | 启用 PipeWire 音频。 | `services.pipewire` |
 | `desktop.nix` | 配置 greetd、niri、libinput 与 xdg-portal。 | `programs.niri`、`services.greetd`、`xdg.portal` |
@@ -61,9 +61,9 @@
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `default.nix` | 按顺序 orchestrate home 模块：`common` → `tools` → `shell` → `desktop` → `programs` → `ssh`。 | `home.username = "zine"`、`home.homeDirectory = "/home/zine"` |
-| `common.nix` | Home Manager 基础状态与自启用。 | `programs.home-manager.enable` |
-| `tools.nix` | 日常通用 CLI 工具（与具体开发活动无关）。 | `fzf`、`ripgrep`、`eza`、`btop`、`just`、`wl-clipboard`；开发工具链见 `programs/dev/devtools/` |
+| `default.nix` | 按顺序 orchestrate home 模块：`common` → `packages` → `shell` → `desktop` → `programs` → `ssh`。 | `home.username` / `home.homeDirectory` 由 home-manager OS 模块自动从 `users.users.zine` 派生 |
+| `common.nix` | Home Manager 基础状态与自启用。 | `programs.home-manager.enable`、`home.stateVersion` |
+| `packages/` | 集中包清单（安装侧），按 tools/shell/dev/terminal/misc/gui/desktop 分类；gui 与 desktop 通过 `extraLibs.linuxOnly` 仅 Linux 生效。 | 配置统一放 `programs/`、`desktop/` 等 |
 | `ssh.nix` | 基于 sops-nix 的 SSH alias 配置（如 `aliyun-01`）。 | `sops.secrets.aliyun-01`、`sops.templates.ssh-hosts` |
 
 ### `modules/home/shell/`
@@ -109,7 +109,7 @@ Shell 配置。
 | `git/` | Git 配置，含 GPG 签名与 LFS。 | `programs.git` |
 | `jj/` | Jujutsu 版本控制，含 GPG 签名。 | `programs.jujutsu` |
 | `mise/` | mise 运行时管理器，集成 fish。 | `programs.mise` |
-| `neovim/` | Neovim 编辑器，使用 out-of-store 配置软链接。 | 使用 `lib/storeLinks.nix`（`mkOutOfStoreDotfiles`） |
+| `nixvim/` | Neovim 编辑器（nixvim），核心与插件配置拆分。 | `programs.nixvim`；`core.nix`、`plugins/` |
 | `npm/` | npm prefix 配置。 | `programs.npm` |
 | `python/` | Python 基础包。 | `python3`、`pip` |
 | `rustup/` | Rust 工具链（via rustup）。 | `pkgs.rustup`、cargo bin 加入 PATH |
@@ -155,15 +155,14 @@ Shell 配置。
 | File | Purpose | Consumers |
 |------|---------|-----------|
 | `lib/default.nix` | 暴露 `scanPaths` 辅助函数。 | 各模块的 `default.nix` |
-| `lib/mkSystem.nix` | 为所有 host 构建 `nixosSystem`，并接入 home-manager、sops-nix 与当前 `hostname` 模块参数。 | `flake.nix` |
+| `lib/mkSystem.nix` | 为所有 host 构建 `nixosSystem` / `darwinSystem`，并接入 home-manager、sops-nix 与当前 `hostname` 模块参数。 | `flake.nix` |
 | `lib/niri-config.nix` | 构建并校验 niri 配置 derivation，包含 `dms/` 片段。 | `modules/home/desktop/niri.nix` |
 | `lib/nix-settings.nix` | 共享 Nix substituters、trusted public keys 与 experimental features。 | `modules/nixos/common/nix.nix`、`flake.nix` |
 | `lib/nixpaks-common.nix` | 通用 nixpak 沙盒策略（GPU、DBus、bubblewrap、字体、portals）。 | `lib/nixpaks-qq.nix`、`lib/nixpaks-wechat.nix` |
 | `lib/nixpaks-qq.nix` | 腾讯 QQ 的 nixpak 包装器。 | `modules/home/programs/gui/qq` |
 | `lib/nixpaks-wechat.nix` | 微信的 nixpak 包装器。 | `modules/home/programs/gui/wechat` |
 | `lib/scanPaths.nix` | 返回路径下所有 `.nix` 文件与子目录（排除 `default.nix`）。 | 所有 `default.nix` 模块聚合器 |
-| `lib/storeLinks.nix` | 显式 in-store / out-of-store 软链接辅助函数（`mkInStore`、`mkOutOfStore`、`mkOutOfStoreDotfiles`）。 | `fontconfig`、`kitty`、`neovim` |
-
+| `lib/storeLinks.nix` | 显式 in-store / out-of-store 软链接辅助函数（`mkInStore`、`mkOutOfStore`、`mkOutOfStoreDotfiles`）。 | `fontconfig`、`kitty` |
 ---
 
 ## Registry & Entry Points
@@ -171,8 +170,8 @@ Shell 配置。
 | File | Purpose | Notable |
 |------|---------|---------|
 | `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、WireGuard overlay/外部 peer 设置、`hosts.<hostname>.wireguard.*`、硬件参数 |
-| `hosts/default.nix` | host 到系统架构的注册表。 | `tianxuan = x86_64-linux`、`aliyun-01 = x86_64-linux` |
-| `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、`nixosConfigurations`、deploy-rs 配置。 | `nixosConfigurations` 通过 `mkSystem` 从 `hosts` 构建 |
+| `hosts/default.nix` | host 到系统架构的注册表。 | `tianxuan = x86_64-linux`、`aliyun-01 = x86_64-linux`、`macbook-air-01 = aarch64-darwin` |
+| `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `hosts/default.nix` 注册表构建 |
 
 ---
 
@@ -180,6 +179,6 @@ Shell 配置。
 
 - **`extraLibs.scanPaths`** — 用于 `modules/nixos/{common,desktop,server}/default.nix`、`modules/home/programs/default.nix` 与各 `modules/home/programs/<category>/default.nix`，自动扫描并导入同级模块。
 - **`lib/niri-config.nix`** — 被 `modules/home/desktop/niri.nix` 使用，构建并校验 niri 配置 derivation。
-- **`lib/storeLinks.nix`** — 被 `modules/home/desktop/fontconfig`、`modules/home/programs/terminal/kitty`、`modules/home/programs/dev/neovim` 使用，显式选择 in-store 或 out-of-store 软链接策略。
+- **`lib/storeLinks.nix`** — 被 `modules/home/desktop/fontconfig`、`modules/home/programs/terminal/kitty` 使用，显式选择 in-store 或 out-of-store 软链接策略。
 - **`lib/nixpaks-*.nix`** — 被 `modules/home/programs/gui/qq` 与 `modules/home/programs/gui/wechat` 使用，通过 nixpak 沙盒运行 QQ 与微信。
 - **`lib/nix-settings.nix`** — 被 `modules/nixos/common/nix.nix` 与 `flake.nix` 使用，统一 Nix 缓存与实验特性配置。
