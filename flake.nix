@@ -132,7 +132,15 @@
               '';
             };
 
-            checks.lint =
+            # deploy-rs 的 deploy output 不是标准 flake output，nix flake check 无法
+            # 识别；将其 deployChecks 合并进 checks，让 deploy profile 在 CI 中得到验证。
+            # activation path 固定为 x86_64-linux，因此仅在该系统上生成 checks。
+            checks =
+              pkgs.lib.optionalAttrs (system == "x86_64-linux") (
+                inputs.deploy-rs.lib.${system}.deployChecks inputs.self.deploy
+              )
+              // {
+                lint =
               pkgs.runCommand "lint"
                 {
                   nativeBuildInputs = [
@@ -151,6 +159,7 @@
                   statix check .
                   touch $out
                 '';
+              };
 
             packages.nix-conf =
               let
