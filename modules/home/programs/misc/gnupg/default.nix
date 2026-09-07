@@ -73,7 +73,7 @@ in
         ''
       else
         ''
-          export PATH="/usr/bin:/bin:/usr/sbin:/sbin''${PATH:+:$PATH}"
+          export PATH="''${PATH:+$PATH:}/usr/bin:/bin:/usr/sbin:/sbin"
           run ${sopsNixExecStart}
         ''
     )

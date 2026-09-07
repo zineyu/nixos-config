@@ -13,6 +13,8 @@ in
       size = 12.0;
     };
 
+    themeFile = "Catppuccin-Macchiato";
+
     settings = {
       cursor_shape = "beam";
       cursor_trail = 1;
@@ -42,21 +44,12 @@ in
       "ctrl+0" = "change_font_size all 0";
       "ctrl+kp_0" = "change_font_size all 0";
     };
-
-    extraConfig = ''
-      # BEGIN_KITTY_THEME
-      # Catppuccin-Frappe
-      include current-theme.conf
-      # END_KITTY_THEME
-    '';
   };
 
   xdg.configFile = {
-    "kitty/current-theme.conf".source = kittyConfig "current-theme.conf";
     "kitty/dank-tabs.conf".source = kittyConfig "dank-tabs.conf";
     "kitty/dank-theme.conf".source = kittyConfig "dank-theme.conf";
     "kitty/search.py".source = kittyConfig "search.py";
     "kitty/scroll_mark.py".source = kittyConfig "scroll_mark.py";
-    "kitty/themes".source = kittyConfig "themes";
   };
 }
