@@ -46,7 +46,6 @@
     # misc
     aria2.enable = true;
     gpg.enable = true;
-    rime-ice.enable = true;
     ssh.enable = true;
     sops.enable = true;
 

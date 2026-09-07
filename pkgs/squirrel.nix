@@ -37,11 +37,24 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     mkdir -p "$out/Library/Input Methods"
     cp -R Squirrel.app "$out/Library/Input Methods/"
 
+    # The signature shipped in the 1.1.2 pkg is invalid after extraction, so
+    # macOS refuses to register Squirrel as an input source. Re-sign the whole
+    # bundle locally and fail the build if the resulting bundle is not valid.
+    /usr/bin/codesign \
+      --force \
+      --deep \
+      --sign - \
+      "$out/Library/Input Methods/Squirrel.app"
+    /usr/bin/codesign \
+      --verify \
+      --deep \
+      --strict \
+      "$out/Library/Input Methods/Squirrel.app"
+
     runHook postInstall
   '';
 
-  # Modifying the bundle after extraction would invalidate the upstream
-  # Developer ID signature.
+  # Preserve the valid ad-hoc signature produced above.
   dontFixup = true;
 
   meta = {

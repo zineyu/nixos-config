@@ -32,15 +32,15 @@ let
       };
       "{bd311a81-4530-4fcc-9178-74006155461b}" = {
         install_url = "https://addons.mozilla.org/firefox/downloads/latest/read-frog-open-ai-translator/latest.xpi";
-        installation_model = "force_installed";
+        installation_mode = "force_installed";
       };
       "firefox@tampermonkey.net" = {
         install_url = "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey/latest.xpi";
-        installation_model = "force_installed";
+        installation_mode = "force_installed";
       };
       "xifangczy@gmail.com" = {
         install_url = "https://addons.mozilla.org/firefox/downloads/latest/cat-catch/latest.xpi";
-        installation_model = "force_installed";
+        installation_mode = "force_installed";
       };
     };
   };
