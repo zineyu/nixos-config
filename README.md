@@ -62,6 +62,8 @@ direnv allow
 | `modules/home/shell/` | 用户 shell 与启动文件（`fish.nix`、`bash.nix`、`starship.nix` 及原生 `fish/` 配置树） |
 | `modules/home/desktop/` | 用户级桌面环境组件（niri、DankMaterialShell、环境变量、fontconfig、图标主题、XDG 用户目录等） |
 | `modules/home/programs/<category>/<name>/` | 每个用户程序一个目录，原生配置文件与模块共置，按 dev/terminal/gui/misc 分类 |
+| `modules/home/agent-skills/` | 自动发现并安装仓库管理的 agent skills |
+| `skills/<name>/` | Agent skill 源目录；每个目录经 Home Manager 安装到 `~/.agents/skills/<name>` |
 | `modules/nixos/` | 系统级 NixOS 模块，按 `common/`（所有 host 共享，含 Docker）、`desktop/`、`server/` 分组 |
 | `lib/` | 可复用 Nix 函数（如 `mkSystem.nix`、`niri-config.nix`、`storeLinks.nix`、`nixpaks-*.nix`） |
 | `vars/default.nix` | 共享变量（`git` 身份）与按 host 组织的变量（`hosts.<hostname>.*`） |
@@ -74,6 +76,7 @@ direnv allow
 ## 新增内容
 
 - **新增 program**：在 `modules/home/packages/<category>.nix` 声明 `zine.programs.<name>.enable` option 并门控安装，在 `modules/home/programs/<category>/<name>/default.nix` 创建配置模块（各层 `default.nix` 通过 `scanPaths` 自动导入），最后在 `home/<hostname>.nix` 中启用。
+- **新增 agent skill**：创建 `skills/<name>/SKILL.md` 及所需资源；已导入 `modules/home/agent-skills` 的机器会自动安装，无需注册。
 - **新增 host**：在 `hosts/default.nix` 添加 `hostname = "system";` 映射，并创建 `hosts/<hostname>/default.nix` 和 `hosts/<hostname>/configuration.nix`（导入 `modules/nixos` 以获得 common 基础配置）。如为服务器，额外导入 `modules/nixos/server`。
 - **新增 NixOS 模块**：在 `modules/nixos/` 下按类型放入 `common/`、`desktop/` 或 `server/`，并由对应 `default.nix` 自动扫描，或显式导入到主机的 `configuration.nix` 中。
 

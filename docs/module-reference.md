@@ -73,6 +73,7 @@
 | `shell/` | fish、bash、starship 配置。 | 原生 `fish/` 配置树共置 |
 | `desktop/` | 用户级桌面环境组件（niri、DMS、字体、图标等）。 | 由需要的机器组织文件显式导入；具体包声明平台支持 |
 | `programs/` | 每个用户程序一个配置模块，按 dev/terminal/gui/misc 分类。 | 各层 `default.nix` 通过 `extraLibs.scanPaths` 自动扫描 |
+| `agent-skills/` | 自动发现仓库根目录 `skills/<name>/` 并逐项安装 agent skills。 | 每个目录必须包含 `SKILL.md`；目标为 `~/.agents/skills/<name>` |
 
 ### `modules/home/packages/`
 

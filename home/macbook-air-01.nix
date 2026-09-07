@@ -14,6 +14,7 @@
     ../modules/home/programs/terminal
     ../modules/home/programs/misc
     ../modules/home/programs/gui/zen-browser
+    ../modules/home/agent-skills
     ../modules/home/packages/gui.nix # GUI 程序
     ./ssh.nix
   ];

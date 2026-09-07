@@ -15,6 +15,7 @@
     ../modules/home/shell
     ../modules/home/desktop
     ../modules/home/programs
+    ../modules/home/agent-skills
     ./ssh.nix
   ];
 
