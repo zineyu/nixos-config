@@ -11,6 +11,11 @@
 let
   cfg = config.zine.programs;
   system = pkgs.stdenv.hostPlatform.system;
+  dbx-desktop =
+    if pkgs.stdenv.hostPlatform.isDarwin then
+      pkgs.callPackage ../../../pkgs/dbx-desktop-darwin.nix { }
+    else
+      inputs.dbx.packages.${system}.dbx-desktop;
 in
 {
   options.zine.programs = {
@@ -32,7 +37,7 @@ in
 
     home.packages =
       lib.optionals cfg.dbx-desktop.enable [
-        inputs.dbx.packages.${system}.dbx-desktop
+        dbx-desktop
       ]
       ++ lib.optionals cfg.dolphin.enable [ pkgs.kdePackages.dolphin ];
   };

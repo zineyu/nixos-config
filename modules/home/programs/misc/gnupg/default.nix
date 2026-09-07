@@ -105,7 +105,7 @@ in
     maxCacheTtlSsh = 7200;
     sshKeys = [ authKeygrip ];
     pinentry.package =
-      if pkgs.stdenv.hostPlatform.isDarwin then pkgs.pinentry-curses else pkgs.pinentry-gnome3;
+      if pkgs.stdenv.hostPlatform.isDarwin then pkgs.pinentry_mac else pkgs.pinentry-gnome3;
   };
 
   programs.ssh = {

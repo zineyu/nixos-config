@@ -1,4 +1,9 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   storeLinks = import ../../../../../lib/storeLinks.nix { inherit config; };
@@ -10,7 +15,7 @@ in
 
     font = {
       name = "Maple Mono NF CN";
-      size = 12.0;
+      size = 14.0;
     };
 
     themeFile = "Catppuccin-Macchiato";
@@ -22,6 +27,10 @@ in
       confirm_os_window_close = 0;
       shell = "${config.programs.fish.package}/bin/fish";
       term = "xterm-256color";
+    }
+    // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+      # Send both Option keys as Alt so Zellij's Alt-based bindings work on macOS.
+      macos_option_as_alt = "both";
     };
 
     keybindings = {

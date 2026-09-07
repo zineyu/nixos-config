@@ -46,23 +46,13 @@
     # misc
     aria2.enable = true;
     gpg.enable = true;
+    rime-ice.enable = true;
     ssh.enable = true;
     sops.enable = true;
 
     # gui
+    dbx-desktop.enable = true;
     zen-browser.enable = true;
-  };
-
-  # 在现有的 Zen profile 中强制安装浏览器扩展。
-  programs.zen-browser.policies.ExtensionSettings = {
-    "{446900e4-71c2-419f-a6a7-df9c091e268b}" = {
-      install_url = "https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager/latest.xpi";
-      installation_mode = "force_installed";
-    };
-    "adguardadblocker@adguard.com" = {
-      install_url = "https://addons.mozilla.org/firefox/downloads/latest/adguard-adblocker/latest.xpi";
-      installation_mode = "force_installed";
-    };
   };
 
   # macbook-air-01 专属的代理内核；配置由用户放在 ~/.config/mihomo/。

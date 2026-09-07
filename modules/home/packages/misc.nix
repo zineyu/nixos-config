@@ -8,11 +8,13 @@
 
 let
   cfg = config.zine.programs;
+  squirrel = pkgs.callPackage ../../../pkgs/squirrel.nix { };
 in
 {
   options.zine.programs = {
     aria2.enable = lib.mkEnableOption "aria2 下载管理器";
     gpg.enable = lib.mkEnableOption "GnuPG";
+    rime-ice.enable = lib.mkEnableOption "Rime Ice 雾凇拼音输入法";
     ssh.enable = lib.mkEnableOption "SSH 客户端配置";
     sops.enable = lib.mkEnableOption "sops/age 秘密管理工具";
   };
@@ -29,6 +31,8 @@ in
       lib.optionals cfg.sops.enable [
         age
         sops
-      ];
+      ]
+      ++ lib.optionals cfg.rime-ice.enable [ rime-ice ]
+      ++ lib.optionals (cfg.rime-ice.enable && pkgs.stdenv.hostPlatform.isDarwin) [ squirrel ];
   };
 }

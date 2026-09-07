@@ -21,6 +21,28 @@ let
       Cryptomining = true;
       Fingerprinting = true;
     };
+    ExtensionSettings = {
+      "{446900e4-71c2-419f-a6a7-df9c091e268b}" = {
+        install_url = "https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager/latest.xpi";
+        installation_mode = "force_installed";
+      };
+      "adguardadblocker@adguard.com" = {
+        install_url = "https://addons.mozilla.org/firefox/downloads/latest/adguard-adblocker/latest.xpi";
+        installation_mode = "force_installed";
+      };
+      "{bd311a81-4530-4fcc-9178-74006155461b}" = {
+        install_url = "https://addons.mozilla.org/firefox/downloads/latest/read-frog-open-ai-translator/latest.xpi";
+        installation_model = "force_installed";
+      };
+      "firefox@tampermonkey.net" = {
+        install_url = "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey/latest.xpi";
+        installation_model = "force_installed";
+      };
+      "xifangczy@gmail.com" = {
+        install_url = "https://addons.mozilla.org/firefox/downloads/latest/cat-catch/latest.xpi";
+        installation_model = "force_installed";
+      };
+    };
   };
 
   stableZenUnwrapped =

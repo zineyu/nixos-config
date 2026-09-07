@@ -6,15 +6,38 @@
 
 let
   sharedNixSettings = import ../../lib/nix-settings.nix;
+  mihomoConfigDir = "/Users/zine/.config/mihomo";
+  mihomoConfigFile = "${mihomoConfigDir}/config.yaml";
+  mihomoLauncher = pkgs.writeShellScript "mihomo-launcher" ''
+    set -eu
+
+    # launchd may start system daemons before Wi-Fi and the default route are
+    # ready. Wait here so Mihomo does not fail while downloading geodata.
+    while ! {
+      [ -r "${mihomoConfigFile}" ]
+      /sbin/route -n get default >/dev/null 2>&1
+      /usr/bin/nc -z -G 3 223.5.5.5 53 >/dev/null 2>&1
+    }; do
+      /bin/sleep 5
+    done
+
+    exec ${pkgs.mihomo}/bin/mihomo \
+      -d "${mihomoConfigDir}" \
+      -f "${mihomoConfigFile}"
+  '';
 in
 {
   # nix-darwin host entry for macbook-air-01.
 
   networking.hostName = hostname;
 
+  users.knownUsers = [ "zine" ];
+
   users.users.zine = {
     name = "zine";
+    uid = 501;
     home = "/Users/zine";
+    shell = pkgs.fish;
   };
 
   nix.settings = sharedNixSettings // {
@@ -22,6 +45,8 @@ in
   };
 
   nixpkgs.config.allowUnfree = true;
+
+  fonts.packages = [ pkgs.maple-mono.NF-CN ];
 
   # Let nix-darwin initialise its full environment before fish loads user
   # configuration. This includes the Home Manager per-user profile in PATH.
@@ -31,14 +56,11 @@ in
   # create the network interface. The configuration itself remains user-owned.
   launchd.daemons.mihomo.serviceConfig = {
     ProgramArguments = [
-      "${pkgs.mihomo}/bin/mihomo"
-      "-d"
-      "/Users/zine/.config/mihomo"
-      "-f"
-      "/Users/zine/.config/mihomo/config.yaml"
+      "${mihomoLauncher}"
     ];
     KeepAlive = true;
     RunAtLoad = true;
+    ThrottleInterval = 30;
     ProcessType = "Background";
     StandardOutPath = "/var/log/mihomo.log";
     StandardErrorPath = "/var/log/mihomo.log";
