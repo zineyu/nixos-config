@@ -68,6 +68,7 @@ in
       };
       modules = [
         inputs.nix-homebrew.darwinModules.nix-homebrew
+        inputs.sops-nix.darwinModules.sops
         inputs.home-manager.darwinModules.home-manager
         (mkHomeManagerModule hostname host.system (host.homeStateVersion or "26.05"))
         ../hosts/${hostname}

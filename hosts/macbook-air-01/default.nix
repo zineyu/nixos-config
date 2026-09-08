@@ -29,6 +29,10 @@ in
 {
   # nix-darwin host entry for macbook-air-01.
 
+  imports = [
+    ../../modules/darwin/wireguard.nix
+  ];
+
   networking.hostName = hostname;
 
   system.primaryUser = "zine";
