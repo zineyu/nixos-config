@@ -46,9 +46,9 @@ push-cachix host=`hostname`:
       echo "Create it with 'just cachix-token' and add: auth_token: <your cachix auth token>" >&2
       exit 1
     fi
+    out=$(nix build ".#$1" --print-out-paths)
     export CACHIX_AUTH_TOKEN
     CACHIX_AUTH_TOKEN=$(sops decrypt --extract '["auth_token"]' secrets/cachix.yaml)
-    out=$(nix build ".#nixosConfigurations.$1.config.system.build.toplevel" --print-out-paths)
     cachix push zineyu "$out"
 
 # Edit the encrypted cachix auth token used by push-cachix

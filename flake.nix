@@ -93,6 +93,18 @@
         nixosHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.kind == "nixos") hosts;
         darwinHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.kind == "darwin") hosts;
         deployHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.deploy.enable or false) hosts;
+
+        nixosConfigurations = inputs.nixpkgs.lib.mapAttrs mkSystem nixosHosts;
+        darwinConfigurations = inputs.nixpkgs.lib.mapAttrs mkDarwinSystem darwinHosts;
+        hostSystems = inputs.nixpkgs.lib.mapAttrs (
+          hostname: host:
+          if host.kind == "nixos" then
+            nixosConfigurations.${hostname}.config.system.build.toplevel
+          else if host.kind == "darwin" then
+            darwinConfigurations.${hostname}.system
+          else
+            throw "Unsupported host kind '${host.kind}' for '${hostname}'"
+        ) hosts;
       in
       {
         systems = [
@@ -161,29 +173,29 @@
                     '';
               };
 
-            packages.nix-conf =
-              let
-                shared = import ./lib/nix-settings.nix;
-              in
-              (pkgs.formats.nixConf {
-                package = pkgs.nix;
-                version = pkgs.nix.version;
-                checkConfig = false;
-              }).generate
-                "nix.custom.conf"
-                {
-                  extra-substituters = shared.substituters;
-                  extra-trusted-public-keys = shared.trusted-public-keys;
-                  extra-experimental-features = shared.experimental-features;
-                };
+            packages = pkgs.lib.filterAttrs (hostname: _: hosts.${hostname}.system == system) hostSystems // {
+              nix-conf =
+                let
+                  shared = import ./lib/nix-settings.nix;
+                in
+                (pkgs.formats.nixConf {
+                  package = pkgs.nix;
+                  version = pkgs.nix.version;
+                  checkConfig = false;
+                }).generate
+                  "nix.custom.conf"
+                  {
+                    extra-substituters = shared.substituters;
+                    extra-trusted-public-keys = shared.trusted-public-keys;
+                    extra-experimental-features = shared.experimental-features;
+                  };
+            };
           };
 
         # NOTE: 开发环境的唯一来源是 devenv.nix（见根 AGENTS.md）；此处不提供 devShells。
 
         flake = {
-          nixosConfigurations = inputs.nixpkgs.lib.mapAttrs mkSystem nixosHosts;
-
-          darwinConfigurations = inputs.nixpkgs.lib.mapAttrs mkDarwinSystem darwinHosts;
+          inherit nixosConfigurations darwinConfigurations;
 
           # 由 host inventory 中 deploy.enable = true 的条目生成 deploy-rs nodes，
           # 新增远程主机只需在 hosts/default.nix 中补充 deploy 元数据。
