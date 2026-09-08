@@ -14,6 +14,8 @@ in
   options.zine.programs = {
     aria2.enable = lib.mkEnableOption "aria2 下载管理器";
     gpg.enable = lib.mkEnableOption "GnuPG";
+    # The application is installed as a Homebrew cask by the Darwin host.
+    karabiner-elements.enable = lib.mkEnableOption "Karabiner-Elements 用户配置";
     rime-ice.enable = lib.mkEnableOption "Rime Ice 雾凇拼音输入法";
     ssh.enable = lib.mkEnableOption "SSH 客户端配置";
     sops.enable = lib.mkEnableOption "sops/age 秘密管理工具";

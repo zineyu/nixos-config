@@ -31,6 +31,8 @@ in
 
   networking.hostName = hostname;
 
+  system.primaryUser = "zine";
+
   users.knownUsers = [ "zine" ];
 
   users.users.zine = {
@@ -51,6 +53,21 @@ in
   # Let nix-darwin initialise its full environment before fish loads user
   # configuration. This includes the Home Manager per-user profile in PATH.
   programs.fish.enable = true;
+
+  # nix-homebrew bootstraps Homebrew itself. nix-darwin then installs
+  # Karabiner through its official cask so the signed installer can register
+  # the background services required by Karabiner 15.7 and later.
+  nix-homebrew = {
+    enable = true;
+    user = "zine";
+  };
+
+  homebrew = {
+    enable = true;
+    user = "zine";
+    casks = [ "karabiner-elements" ];
+    onActivation.cleanup = "none";
+  };
 
   # Run Mihomo as a root LaunchDaemon so configurations with TUN enabled can
   # create the network interface. The configuration itself remains user-owned.

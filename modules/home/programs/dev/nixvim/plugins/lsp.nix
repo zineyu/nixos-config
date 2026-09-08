@@ -20,6 +20,10 @@
         enable = true;
         package = null;
       };
+      rust_analyzer = {
+        enable = true;
+        package = null;
+      };
     };
   };
 
