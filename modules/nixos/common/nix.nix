@@ -15,9 +15,9 @@ in
   };
 
   # 限制 systemd journal 日志体积
-  services.journald.extraConfig = ''
-    SystemMaxUse=1G
-  '';
+  services.journald.settings.Journal = {
+    SystemMaxUse = "1G";
+  };
 
   nixpkgs.config.allowUnfree = true;
 }
