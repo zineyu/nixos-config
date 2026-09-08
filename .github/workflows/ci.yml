@@ -17,6 +17,9 @@ on:
       - "docs/**"
       - "scripts/**"
       - "Justfile"
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   check:
