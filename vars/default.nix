@@ -16,6 +16,12 @@
       address = "10.77.0.3";
       publicKey = "XMV7aLiGXWVEyC8yUXL2+Ehqi16AD7bgBIzYQkvDVjs=";
     };
+
+    externalPeers.macbook-air-01 = {
+      hostname = "macbook-air-01";
+      address = "10.77.0.4";
+      publicKey = "obLVOxSZFeTyz/TB+BQdnZL2j6sgViJs7QtnKPzJ6wk=";
+    };
   };
 
   # Per-host values, keyed by hostname.

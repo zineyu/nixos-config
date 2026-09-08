@@ -16,6 +16,10 @@ creation_rules:
       - age:
           - *zine_desktop
           - *aliyun-01
+  - path_regex: ^secrets/macbook-air-01\.yaml$
+    key_groups:
+      - age:
+          - *zine_desktop
   - path_regex: ^secrets/tianxuan\.yaml$
     key_groups:
       - age:
