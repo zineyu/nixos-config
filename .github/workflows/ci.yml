@@ -81,8 +81,7 @@ jobs:
       - name: Build system closures
         shell: bash
         run: |
-          mapfile -t hosts < <(nix eval --json ".#nixosConfigurations" --apply "builtins.attrNames" | jq --raw-output '.[]')
-          for host in "${hosts[@]}"; do
+          for host in $(nix eval --json ".#nixosConfigurations" --apply "builtins.attrNames" | jq --raw-output '.[]'); do
             nix build ".#nixosConfigurations.$host.config.system.build.toplevel" \
               --fallback \
               --print-build-logs \
@@ -117,8 +116,7 @@ jobs:
       - name: Build system closures
         shell: bash
         run: |
-          mapfile -t hosts < <(nix eval --json ".#darwinConfigurations" --apply "builtins.attrNames" | jq --raw-output '.[]')
-          for host in "${hosts[@]}"; do
+          for host in $(nix eval --json ".#darwinConfigurations" --apply "builtins.attrNames" | jq --raw-output '.[]'); do
             nix build ".#darwinConfigurations.$host.system" \
               --fallback \
               --print-build-logs \
