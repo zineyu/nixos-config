@@ -91,7 +91,7 @@ jobs:
 
   build-darwin:
     name: Build Darwin systems
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@main
 
