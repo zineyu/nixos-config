@@ -26,6 +26,13 @@
 - `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
 - `tianxuan` 的系统级 sops-nix 使用 `/var/lib/sops-nix/key.txt`。这是管理员 age identity 的 rootfs 副本，recipient 仍是 `zine_desktop`；系统激活早于 `/home` 挂载，因此不能依赖用户 home 中的 key。`/home/zine/.config/sops/age/keys.txt` 继续用于管理员操作和 Home Manager secret。
 
+## GitHub Actions secrets
+
+CI 使用的 secret 不经过 sops，直接在 GitHub 仓库 Settings → Secrets and variables → Actions 中配置：
+
+- `CACHIX_AUTH_TOKEN`：cachix 推送凭证（与 `secrets/cachix.yaml` 中的 `auth_token` 相同），`.github/workflows/build.yml` 用它将每日构建的 host closure 推送到 `zineyu` cache。
+- `GOTIFY_TOKEN`：Gotify 应用 token（在 `gotify.zineyu.cn` 上创建的 app token），`.github/workflows/update.yml` 在 flake.lock 有更新时用它推送通知。
+
 ## tianxuan 系统 age key 初始化
 
 首次迁移或重建 rootfs 后，把现有管理员 age identity 复制到系统路径。两个路径保存同一把私钥，因此不需要修改 `.sops.yaml` recipient 或重新加密 secret：

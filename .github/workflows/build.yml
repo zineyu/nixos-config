@@ -1,0 +1,41 @@
+name: Build hosts
+
+on:
+  schedule:
+    # 每天 04:00 UTC（北京时间 12:00），在 update.yml 之后运行以缓存最新 lock
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - host: tianxuan
+            os: ubuntu-latest
+          - host: aliyun-01
+            os: ubuntu-latest
+          - host: macbook-air-01
+            os: macos-14
+    name: build ${{ matrix.host }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      - uses: cachix/cachix-action@v17
+        with:
+          name: zineyu
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Build ${{ matrix.host }}
+        run: nix build ".#${{ matrix.host }}" -L

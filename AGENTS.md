@@ -8,8 +8,8 @@
 - 应用：**需用户确认后方可执行** `nixos-rebuild switch --flake .#<hostname>`
 - 远程部署：`nix run .#deploy -- .#<hostname>`（或 `just deploy <hostname>`），当前仅配置 `aliyun-01`
 - 格式化：`nix fmt`（或 `just fmt`）
-- 类型检查：`nix flake check`（或 `just check`；CI 在 push/PR 时自动运行，包含 nixfmt、deadnix、statix 检查）
-- CI 在 push/PR 时自动构建所有 `nixosConfigurations`（当前为 `.#tianxuan` 和 `.#aliyun-01`），并在每日定时尝试更新 `flake.lock`，详见 `.github/workflows/ci.yml` 和 `.github/workflows/update.yml`。
+- 类型检查：`nix flake check`（或 `just check`，包含 nixfmt、deadnix、statix 检查；`update.yml` 每日更新 flake.lock 前也会运行）
+- CI 为两个定时 workflow（均支持 `workflow_dispatch` 手动触发）：`.github/workflows/update.yml` 每日更新 `flake.lock`，通过 `nix flake check` 验证后推送，并通过 Gotify 通知结果；`.github/workflows/build.yml` 每日构建所有 host（NixOS 用 ubuntu runner，Darwin 用 macos-14 runner），产物推送到 `zineyu` cachix cache。
 
 ## Code Style
 
@@ -42,7 +42,7 @@
 
 ## Testing
 
-- 已配置 GitHub Actions：`.github/workflows/ci.yml` 运行 `nix flake check` 与 NixOS 系统构建验证；`.github/workflows/update.yml` 每日自动更新 `flake.lock` 并在验证通过后推送。
+- 已配置 GitHub Actions：`.github/workflows/update.yml` 每日自动更新 `flake.lock`，`nix flake check` 验证通过后推送，并通过 Gotify 通知（成功与失败均通知）；`.github/workflows/build.yml` 每日构建所有 host（`tianxuan`、`aliyun-01`、`macbook-air-01`），通过官方 `cachix/cachix-action` 推送到 `zineyu` cache。所需 secrets（`CACHIX_AUTH_TOKEN`、`GOTIFY_TOKEN`）见 `docs/secrets.md`。
 - 修改后必须运行：`nixos-rebuild build --flake .#<hostname>`
 - 验证重点：
   - 构建无 evaluation error
