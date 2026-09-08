@@ -19,7 +19,6 @@
 | `system.nix` | 内核、最小系统包（引导加载器由各 host 自行配置）。 | `linuxPackages_latest`、fish、vim、wget |
 | `users.nix` | 定义单用户 `zine` 及其用户组。 | `wheel`、`video`、`render`、`docker`；shell = fish |
 | `wireguard.nix` | 为所有注册 host 和外部客户端建立中心辐射式 WireGuard 虚拟局域网，并校验完整元数据。 | `wg0`、`10.77.0.0/24`、SOPS 私钥、固定主机名映射、hub IPv4 forwarding |
-
 ### `modules/nixos/desktop/`
 
 桌面环境相关的系统服务与硬件配置。
@@ -50,6 +49,18 @@
 | `postgresql.nix` | 独立管理的 PostgreSQL 17 实例，供本机服务复用。 | `services.postgresql`；仅 unix socket；大版本升级需手动迁移 |
 | `ssh.nix` | 启用 OpenSSH 并限制 root 仅密钥登录。 | `services.openssh` |
 | `vaultwarden.nix` | Vaultwarden 密码管理服务（pgsql 后端 + Nginx + ACME）。 | `services.vaultwarden`；`sops.secrets.vaultwarden`（ADMIN_TOKEN） |
+
+---
+
+## nix-darwin System Modules
+
+### `modules/darwin/`
+
+Darwin host 的系统级模块，由各 `hosts/<hostname>/default.nix` 显式导入。
+
+| File | Purpose | Notable |
+|------|---------|---------|
+| `wireguard.nix` | 将 Darwin host 以 external peer 身份接入 WireGuard overlay：sops-nix 解密私钥并渲染 wg0.conf，wg-quick LaunchDaemon 常驻拉起隧道。 | `sops.templates`、`wireguard-go`、age key rootfs 副本 `/var/lib/sops-nix/key.txt`、`KeepAlive.NetworkState` |
 
 ---
 

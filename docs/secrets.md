@@ -15,6 +15,7 @@
   - `secrets/gnupg.yaml`：仅本机桌面可解密。
   - `secrets/tianxuan.yaml`：仅本机桌面可解密，保存 `wireguard_private_key`。
   - `secrets/wireguard-clients.yaml`：仅本机桌面可解密，保存 Android 等外部客户端私钥。
+  - `secrets/macbook-air-01.yaml`：仅 `zine_desktop` 身份可解密（`tianxuan` 与 `macbook-air-01` 均持有该身份副本），保存 `wireguard_private_key`。
   - `secrets/aliyun-01.yaml`：本机桌面与 `aliyun-01` 均可解密，保存服务 secret 和 `wireguard_private_key`。
   - `secrets/ssh-hosts.yaml`：仅本机桌面可解密。
   - `secrets/cachix.yaml`：仅本机桌面可解密，保存 `auth_token`（cachix 推送凭证），由 `just push-cachix` 在本地推送系统 closure 时使用。
@@ -22,9 +23,10 @@
 - `secrets/aliyun-01.yaml` 保存 `luogo_checkin` 环境变量、Vaultwarden `ADMIN_TOKEN`、Gotify 初始管理员密码和 WireGuard 私钥。
 - `secrets/ssh-hosts.yaml` 保存 `aliyun-01` 的真实 SSH 地址，由 `home/ssh.nix` 解密并渲染 SSH alias。
 - `modules/nixos/common/wireguard.nix` 将各 NixOS host 的 `wireguard_private_key` 解密到 `/run/secrets/wireguard_private_key`，并通过 `privateKeyFile` 交给 WireGuard；私钥不会进入 Nix store。
-- 外部客户端私钥不部署到任何 NixOS host，只用于在管理员机器生成本地导入配置。
+- `modules/darwin/wireguard.nix` 在 Darwin host 上通过 sops-nix（`darwinModules.sops`）解密 `wireguard_private_key`，由 `sops.templates` 渲染 `/run/secrets/rendered/wireguard/wg0.conf` 交给 wg-quick LaunchDaemon；`macbook-air-01` 使用 `/var/lib/sops-nix/key.txt`（管理员 age identity 的 rootfs 副本，与 `tianxuan` 相同机制）解密。
+- 外部客户端私钥不部署到任何 NixOS host，只用于在管理员机器生成本地导入配置（`macbook-air-01` 除外：其私钥由 sops-nix 在该 Darwin host 本机解密）。
 - `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
-- `tianxuan` 的系统级 sops-nix 使用 `/var/lib/sops-nix/key.txt`。这是管理员 age identity 的 rootfs 副本，recipient 仍是 `zine_desktop`；系统激活早于 `/home` 挂载，因此不能依赖用户 home 中的 key。`/home/zine/.config/sops/age/keys.txt` 继续用于管理员操作和 Home Manager secret。
+- `tianxuan` 与 `macbook-air-01` 的系统级 sops-nix 使用 `/var/lib/sops-nix/key.txt`。这是管理员 age identity 的 rootfs 副本，recipient 仍是 `zine_desktop`；系统激活早于用户 home 可用，因此不能依赖用户 home 中的 key。`/home/zine/.config/sops/age/keys.txt`（Mac 上为 `/Users/zine/.config/sops/age/keys.txt`）继续用于管理员操作和 Home Manager secret。
 
 ## GitHub Actions secrets
 
@@ -125,6 +127,30 @@ rm -rf .local/wireguard/xiaomi15
 
 应先部署新的 `aliyun-01` 配置，使 hub 接受手机公钥，再在手机上启用隧道。
 
+### macbook-air-01（Darwin）接入
+
+`macbook-air-01` 是 nix-darwin host，以 `externalPeers` 身份加入 overlay（地址 `10.77.0.4`）。与手机不同，配置不由人工导入 App，而是由 `modules/darwin/wireguard.nix` 声明：sops-nix 解密私钥并渲染 `wg0.conf`，wg-quick LaunchDaemon 常驻拉起隧道。
+
+首次接入步骤：
+
+1. 在管理员机器生成密钥对，公钥写入 `vars.wireguard.externalPeers.macbook-air-01`，私钥写入 `secrets/macbook-air-01.yaml` 的 `wireguard_private_key`。
+2. 在 Mac 上预置管理员 age identity 的 rootfs 副本（首次 `darwin-rebuild switch` 之前必须完成，否则 sops 解密失败导致激活中断）。Mac 的管理员 key 与 Linux 位于相同路径 `~/.config/sops/age/keys.txt`，与「tianxuan 系统 age key 初始化」相同机制：
+
+   ```bash
+   sudo install -d -m 0700 /var/lib/sops-nix
+   sudo install -m 0600 \
+     /Users/zine/.config/sops/age/keys.txt \
+     /var/lib/sops-nix/key.txt
+   ```
+
+3. 先部署 hub（`just deploy aliyun-01`）使其接受新 peer，再在 Mac 上 `just switch-darwin macbook-air-01`。
+4. 验证：`/var/log/wireguard-wg0.log` 无报错、`sudo wg show` 有握手、`ping 10.77.0.1`（或 `ping aliyun-01`）通。
+
+已知限制：
+
+- macOS 无内核 WireGuard，wg-quick 使用用户态 `wireguard-go`（utun 接口）。
+- 睡眠/唤醒可能静默丢失 utun 接口而 launchd 不感知；执行 `sudo launchctl kickstart -k system/org.nixos.wireguard-wg0` 或切换网络（KeepAlive NetworkState）恢复。
+- 轮换 `wireguard_private_key` 后，在 Mac 上重新 `switch-darwin` 并 kickstart 该 daemon 以加载新配置。
 ## 新增一台 host
 
 1. 在 `hosts/default.nix` 注册 host 并创建对应的 host 模块。
