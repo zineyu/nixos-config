@@ -69,7 +69,19 @@ in
   homebrew = {
     enable = true;
     user = "zine";
-    casks = [ "karabiner-elements" ];
+    brews = [
+      # mas is required by homebrew.masApps to install Mac App Store apps.
+      "mas"
+    ];
+    casks = [
+      "karabiner-elements"
+      "orbstack"
+    ];
+    # Xcode is only distributed through the Mac App Store. Requires zine to
+    # be signed in to the App Store app before activation.
+    masApps = {
+      Xcode = 497799835;
+    };
     onActivation.cleanup = "none";
   };
 
