@@ -11,6 +11,10 @@ creation_rules:
     key_groups:
       - age:
           - *zine_desktop
+  - path_regex: ^secrets/atuin\.yaml$
+    key_groups:
+      - age:
+          - *zine_desktop
   - path_regex: ^secrets/aliyun-01\.yaml$
     key_groups:
       - age:

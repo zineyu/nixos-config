@@ -43,6 +43,7 @@
 | File | Purpose | Notable |
 |------|---------|---------|
 | `default.nix` | 通过 `scanPaths` 自动导入同级 `.nix` 文件。 | `extraLibs.scanPaths` |
+| `atuin.nix` | 自托管 atuin shell 历史同步服务器（pgsql 后端 + Nginx + ACME）。 | `services.atuin`（127.0.0.1:8888，反代 `atuin.zineyu.cn`）；`openRegistration` 注册后需关闭 |
 | `fail2ban.nix` | 启用 fail2ban 入侵防护。 | `services.fail2ban` |
 | `luogo_checkin.nix` | 自定义 NixOS 模块与 systemd timer，用于 Luogu 每日签到。 | 从 GitHub 构建 Go 包；`systemd.services.luogo_checkin` |
 | `networking.nix` | 服务器防火墙，允许 SSH 与 HTTP/HTTPS 端口。 | `allowedTCPPorts = [ 22 80 443 ]` |
@@ -152,7 +153,7 @@ Shell 配置。
 
 | Directory | Purpose | Notable |
 |-----------|---------|---------|
-| `atuin/` | Shell 历史同步，集成 fish。 | `programs.atuin` |
+| `atuin/` | Shell 历史同步（自托管 `atuin.zineyu.cn`），集成 fish；加密密钥经 sops-nix 软链到数据目录。 | `programs.atuin`；`sops.secrets.atuin_key`（`secrets/atuin.yaml`） |
 | `kitty/` | Kitty 终端，含主题与自定义配置。 | 使用 `lib/storeLinks.nix`（`mkOutOfStoreDotfiles`） |
 | `yazi/` | 终端文件管理器，配置拆分为 settings/keymap/theme。 | `programs.yazi`；`settings.nix`、`keymap.nix`、`theme.nix` |
 | `zellij/` | 终端复用器，生成 KDL 设置。 | `programs.zellij`；`settings.nix` |
