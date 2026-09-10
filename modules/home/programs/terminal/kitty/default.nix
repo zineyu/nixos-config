@@ -15,7 +15,7 @@ in
 
     font = {
       name = "Maple Mono NF CN";
-      size = 14.0;
+      size = lib.mkDefault 14.0;
     };
 
     themeFile = "Catppuccin-Macchiato";
