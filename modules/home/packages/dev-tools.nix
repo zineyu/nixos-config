@@ -44,14 +44,12 @@ in
     stylua
 
     # 自定义/外部包（定义见仓库根 pkgs/）
-    (pkgs.callPackage ../../../pkgs/dsh.nix { })
     (pkgs.callPackage ../../../pkgs/jj-bond.nix { })
 
     # 编码 Agent
     llmAgents.codex
-    llmAgents.cc-switch-cli
     llmAgents.omp
-    llmAgents.spec-kit
+    llmAgents.dsh
     piWithNode
   ];
 }
