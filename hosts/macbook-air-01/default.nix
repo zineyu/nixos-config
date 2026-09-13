@@ -76,6 +76,7 @@ in
     casks = [
       "karabiner-elements"
       "orbstack"
+      "jordanbaird-ice"
     ];
     # Xcode is only distributed through the Mac App Store. Requires zine to
     # be signed in to the App Store app before activation.

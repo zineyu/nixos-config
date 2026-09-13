@@ -44,8 +44,9 @@ in
     stylua
 
     # 自定义/外部包（定义见仓库根 pkgs/）
+    # 自定义/外部包（定义见仓库根 pkgs/）
     (pkgs.callPackage ../../../pkgs/jj-bond.nix { })
-
+    (pkgs.callPackage ../../../pkgs/codegraph.nix { })
     # 编码 Agent
     llmAgents.codex
     llmAgents.omp

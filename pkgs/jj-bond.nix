@@ -2,12 +2,12 @@
 
 pkgs.rustPlatform.buildRustPackage {
   pname = "jj-bond";
-  version = "0.1.1-unstable-2026-08-11";
+  version = "0.1.6";
 
   src = pkgs.fetchFromGitHub {
     owner = "TD-Sky";
     repo = "jj-bond";
-    rev = "ce9077d4cf786432c092e3ec3914165f9e15ec9e";
+    rev = "b91e072fa765b45df2375634ccb2945b71b63c47";
     hash = "sha256-DKqez7Z6ilUrIklYN9L7Tl6romiMezid2nUPs4mv5/A=";
   };
 

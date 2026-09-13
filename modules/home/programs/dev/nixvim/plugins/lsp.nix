@@ -23,6 +23,8 @@
       rust_analyzer = {
         enable = true;
         package = null;
+        installRustc = false;
+        installCargo = false;
       };
     };
   };
