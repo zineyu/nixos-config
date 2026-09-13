@@ -8,10 +8,10 @@ pkgs.rustPlatform.buildRustPackage {
     owner = "TD-Sky";
     repo = "jj-bond";
     rev = "b91e072fa765b45df2375634ccb2945b71b63c47";
-    hash = "sha256-DKqez7Z6ilUrIklYN9L7Tl6romiMezid2nUPs4mv5/A=";
+    hash = "sha256-1uCmSuNkLvOjgkYbzhfDmvbb9Xusx+wUaFC8KQ3ikhM=";
   };
 
-  cargoHash = "sha256-xKNXGpXzEJS1UmMIlCD8vB2RMJ/5Yhtk/bwe/PsUZQA=";
+  cargoHash = "sha256-UjJCbfew6WBsaPYKmj8C8C6aO7mdaF3oNrymEWC+Wsg=";
 
   meta = {
     description = "Jujutsu TUI";

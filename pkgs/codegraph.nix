@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   stdenvNoCC,
   fetchurl,
   autoPatchelfHook,
@@ -38,6 +39,11 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   # The bundled Node.js binary and kernel addon are prebuilt ELF on Linux.
   nativeBuildInputs = lib.optionals stdenvNoCC.hostPlatform.isLinux [ autoPatchelfHook ];
+
+  buildInputs = [
+    pkgs.stdenv.cc.cc.lib
+    pkgs.gccForLibs.libgcc
+  ];
 
   # Stripping would invalidate the code signature of the bundled runtime.
   dontStrip = true;
