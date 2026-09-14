@@ -8,7 +8,7 @@ let
 
   # NixOS 与 nix-darwin 共享的 Home Manager 集成配置。
   mkHomeManagerModule =
-    hostname: hostSystem: homeStateVersion:
+    hostname: _hostSystem: homeStateVersion:
     let
       # 每台机器的 Home Manager 组织文件：home/<hostname>.nix。
       # 文件存在才接入 home-manager.users.zine（如 aliyun-01 无用户环境）。

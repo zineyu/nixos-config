@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 
 # 自定义 fabric patterns：从 diff / 变更描述生成 Conventional Commit 信息、
 # PR 描述与分支名。
