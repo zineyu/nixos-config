@@ -5,7 +5,6 @@
 {
   hostname,
   vars,
-  pkgs,
   ...
 }:
 {
