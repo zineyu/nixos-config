@@ -80,7 +80,7 @@ let
 
   hostAliases =
     mapAttrs' (name: host: nameValuePair host.wireguard.address [ name ]) wireguardHosts
-    // mapAttrs' (name: peer: nameValuePair peer.address [ peer.hostname ]) externalPeers;
+    // mapAttrs' (name: peer: nameValuePair peer.address [ name ]) externalPeers;
 
   hubPeers =
     map (
