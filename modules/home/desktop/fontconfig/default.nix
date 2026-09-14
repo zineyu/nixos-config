@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 
 let
   storeLinks = import ../../../../lib/storeLinks.nix { inherit config; };
