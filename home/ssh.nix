@@ -10,11 +10,28 @@
     sopsFile = ../secrets/ssh-hosts.yaml;
   };
 
+  # jumpserver 登录私钥，解密后直接落到 ~/.ssh/ 下（SSH 要求 0600）。
+  sops.secrets."yzyang-jumpserver.pem" = {
+    sopsFile = ../secrets/ssh-hosts.yaml;
+    key = "yzyang-jumpserver-pem";
+    path = "${config.home.homeDirectory}/.ssh/yzyang-jumpserver.pem";
+    mode = "0600";
+  };
+
   sops.templates.ssh-hosts = {
     content = ''
       Host aliyun-01
         HostName ${config.sops.placeholder.aliyun-01}
         User root
+
+      Host jumpserver.alaxiaoyou.com
+        HostName jumpserver.alaxiaoyou.com
+        User yzyang
+        Port 2222
+        IdentityFile ${config.sops.secrets."yzyang-jumpserver.pem".path}
+        IdentitiesOnly yes
+        HostKeyAlgorithms +ssh-rsa
+        PubkeyAcceptedKeyTypes +ssh-rsa
     '';
   };
 
