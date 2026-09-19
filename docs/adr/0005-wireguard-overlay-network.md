@@ -1,8 +1,7 @@
 # Use a hub-and-spoke WireGuard overlay network
 
 ## Status
-
-Accepted
+Superseded by ADR-0008 (Headscale tailnet). The hub-and-spoke native WireGuard overlay remains in production during migration phases P0-P2 and is removed in P3.
 
 ## Date
 
