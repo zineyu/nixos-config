@@ -30,11 +30,11 @@
   - `home/ssh.nix` — sops-nix 解密的 SSH alias 配置（如 `aliyun-01`）
   - `modules/nixos/` — 系统级 NixOS 模块目录，按用途分为 `common/`（所有 host 共享，含 Docker）、`desktop/`、`server/`；各目录下的 `packages.nix` 是系统级软件清单（`programs.<name>.enable` / `environment.systemPackages`），同目录其他模块只放服务与配置
   - `modules/nixos/common/users.nix` — 单用户账户 `zine` 的声明
-  - `modules/darwin/` — 系统级 nix-darwin 模块目录（如 `wireguard.nix`），由各 `hosts/<hostname>/default.nix` 按需显式导入
+  - `modules/darwin/` — 系统级 nix-darwin 模块目录（如 `sops.nix`、`tailscale.nix`），由各 `hosts/<hostname>/default.nix` 按需显式导入
   - `lib/` — 可复用 Nix 函数（`mkSystem.nix`、`niri-config.nix`、`storeLinks.nix`、`nix-settings.nix`、`nixpaks-*.nix`、`scanPaths.nix`）
   - `lib/storeLinks.nix` — 统一封装 in-store / out-of-store 链接策略，供 `xdg.configFile` 使用
   - `pkgs/` — 自定义/外部包定义（如 `dsh.nix`、`jj-bond.nix`、`orca.nix`），由 `modules/home/packages/` 或 `modules/nixos/` 通过 `pkgs.callPackage` 引用
-  - `vars/default.nix` — 共享变量（`git` 身份）与按 host 组织的变量（`hosts.<hostname>.hardware`、`hosts.<hostname>.wireguard` 等）
+  - `vars/default.nix` — 共享变量（`git` 身份）与按 host 组织的变量（`hosts.<hostname>.hardware` 等）
 - 新增 program 时：在 `modules/home/packages/<category>.nix` 中声明 `zine.programs.<name>.enable` option 并门控安装（自定义包定义放根 `pkgs/`；纯裸包直接加入对应 opt-in 捆绑），并按用途在对应类别下创建 `modules/home/programs/<category>/<name>/default.nix` 存放纯配置；目录创建后各层 `default.nix` 会自动扫描导入，无需手动注册。最后在需要它的机器的 `home/<hostname>.nix` 中启用。若现有类别都不合适，可新增类别目录并配一个调用 `extraLibs.scanPaths` 的 `default.nix`。
 - 新增 agent skill 时：创建 `skills/<name>/SKILL.md` 及其资源文件；导入 `modules/home/agent-skills` 的机器会自动将其安装到 `~/.agents/skills/<name>`，无需手动注册。
 - 新增 host 时，在 `hosts/default.nix` 添加条目（`system`/`kind`/可选 `homeStateVersion`/可选 `deploy`），创建 `hosts/<hostname>/default.nix` 和 `hosts/<hostname>/configuration.nix`（导入 `modules/nixos` 以获得 common 基础配置；服务器额外导入 `modules/nixos/server`）。需要用户环境时再创建 `home/<hostname>.nix`。

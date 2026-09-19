@@ -25,8 +25,6 @@
     statix
     sops
     ssh-to-age
-    qrencode
-    wireguard-tools
     just
     inputs.deploy-rs.packages.${stdenv.hostPlatform.system}.deploy-rs
   ];

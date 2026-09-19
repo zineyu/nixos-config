@@ -1,7 +1,7 @@
 # tianxuan 的 Home Manager 组织文件（全显式）：
 # - imports 选择共享定义层与裸包捆绑；
 # - zine.programs.* 逐个启用有配置的软件（options 声明见 modules/home/packages/）。
-{ ... }:
+{ pkgs, ... }:
 
 {
   imports = [
@@ -61,5 +61,31 @@
     gpg.enable = true;
     ssh.enable = true;
     sops.enable = true;
+  };
+
+  # Headscale 状态备份：每日从 aliyun-01 拉取快照目录（快照由服务器侧
+  # headscale-backup timer 生成，见 modules/nixos/server/headscale.nix）。
+  # SSH 走 ./ssh.nix 的 aliyun-01 alias（root@aliyun-01，复用 deploy 的密钥）。
+  systemd.user.services.headscale-backup-pull = {
+    Unit.Description = "Pull headscale state snapshot from aliyun-01";
+    Service = {
+      Type = "oneshot";
+      ExecStart = toString (
+        pkgs.writeShellScript "headscale-backup-pull" ''
+          set -eu
+          dest="$HOME/backups/headscale"
+          mkdir -p "$dest"
+          ${pkgs.rsync}/bin/rsync -a --delete -e ssh aliyun-01:/var/lib/headscale-backup/ "$dest/"
+        ''
+      );
+    };
+  };
+  systemd.user.timers.headscale-backup-pull = {
+    Unit.Description = "Daily headscale state backup pull";
+    Timer = {
+      OnCalendar = "daily";
+      Persistent = true;
+    };
+    Install.WantedBy = [ "timers.target" ];
   };
 }

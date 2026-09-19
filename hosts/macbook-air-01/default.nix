@@ -30,7 +30,8 @@ in
   # nix-darwin host entry for macbook-air-01.
 
   imports = [
-    ../../modules/darwin/wireguard.nix
+    ../../modules/darwin/sops.nix
+    ../../modules/darwin/tailscale.nix
   ];
 
   networking.hostName = hostname;

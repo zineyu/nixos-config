@@ -18,7 +18,7 @@
 | `nix.nix` | 共享 Nix daemon 设置，并声明 `trusted-users`。 | 导入 `lib/nix-settings.nix`；允许 unfree |
 | `system.nix` | 内核、最小系统包（引导加载器由各 host 自行配置）。 | `linuxPackages_latest`、fish、vim、wget |
 | `users.nix` | 定义单用户 `zine` 及其用户组。 | `wheel`、`video`、`render`、`docker`；shell = fish |
-| `wireguard.nix` | 为所有注册 host 和外部客户端建立中心辐射式 WireGuard 虚拟局域网，并校验完整元数据。 | `wg0`、`10.77.0.0/24`、SOPS 私钥、固定主机名映射、hub IPv4 forwarding |
+| `tailscale.nix` | 所有 NixOS host 加入 Headscale tailnet（`hs.zineyu.cn`）。 | `services.tailscale`、`openFirewall`（UDP 41641）、`tailscale0` 为 trusted interface |
 ### `modules/nixos/desktop/`
 
 桌面环境相关的系统服务与硬件配置。
@@ -45,8 +45,10 @@
 | `default.nix` | 通过 `scanPaths` 自动导入同级 `.nix` 文件。 | `extraLibs.scanPaths` |
 | `atuin.nix` | 自托管 atuin shell 历史同步服务器（pgsql 后端 + Nginx + ACME）。 | `services.atuin`（127.0.0.1:8888，反代 `atuin.zineyu.cn`）；`openRegistration` 注册后需关闭 |
 | `fail2ban.nix` | 启用 fail2ban 入侵防护。 | `services.fail2ban` |
+| `headscale.nix` | 自托管 Headscale 控制面 + 内嵌 DERP/STUN + 每日状态快照（ADR-0008）。 | `services.headscale`（127.0.0.1:8085，反代 `hs.zineyu.cn`）、MagicDNS `ts.zineyu.cn`、STUN UDP 3478、`/var/lib/headscale-backup` 快照 |
+| `headplane.nix` | headscale 的 Web 管理界面（Headplane），仅 tailnet 内可达。 | `services.headplane`（0.0.0.0:3000，防火墙不放行公网）；API key 登录；`sops.secrets.headplane_cookie_secret` |
 | `luogo_checkin.nix` | 自定义 NixOS 模块与 systemd timer，用于 Luogu 每日签到。 | 从 GitHub 构建 Go 包；`systemd.services.luogo_checkin` |
-| `networking.nix` | 服务器防火墙，允许 SSH 与 HTTP/HTTPS 端口。 | `allowedTCPPorts = [ 22 80 443 ]` |
+| `networking.nix` | 服务器防火墙，允许 SSH 与 HTTP/HTTPS 端口及 Headscale STUN。 | `allowedTCPPorts = [ 22 80 443 ]`、`allowedUDPPorts = [ 3478 ]` |
 | `postgresql.nix` | 独立管理的 PostgreSQL 17 实例，供本机服务复用。 | `services.postgresql`；仅 unix socket；大版本升级需手动迁移 |
 | `ssh.nix` | 启用 OpenSSH 并限制 root 仅密钥登录。 | `services.openssh` |
 | `vaultwarden.nix` | Vaultwarden 密码管理服务（pgsql 后端 + Nginx + ACME）。 | `services.vaultwarden`；`sops.secrets.vaultwarden`（ADMIN_TOKEN） |
@@ -61,7 +63,8 @@ Darwin host 的系统级模块，由各 `hosts/<hostname>/default.nix` 显式导
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `wireguard.nix` | 将 Darwin host 以 external peer 身份接入 WireGuard overlay：sops-nix 解密私钥并渲染 wg0.conf，wg-quick LaunchDaemon 常驻拉起隧道。 | `sops.templates`、`wireguard-go`、age key rootfs 副本 `/var/lib/sops-nix/key.txt`、`KeepAlive.NetworkState` |
+| `sops.nix` | Darwin host 的 sops-nix 基础配置（age identity rootfs 副本）。 | `/var/lib/sops-nix/key.txt` |
+| `tailscale.nix` | Darwin host 的 tailnet 接入：tailscaled LaunchDaemon + 自定义 MagicDNS 域 resolver。 | `services.tailscale`、`/etc/resolver/ts.zineyu.cn` |
 
 ---
 
@@ -196,7 +199,7 @@ Shell 配置。
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、WireGuard overlay/外部 peer 设置、`hosts.<hostname>.wireguard.*`、硬件参数 |
+| `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、`hosts.<hostname>.hardware` 等硬件参数 |
 | `hosts/default.nix` | 结构化 host inventory：attr key 为 hostname，声明 `system` / `kind`（nixos 或 darwin）/ 可选 `homeStateVersion` / 可选 `deploy` 元数据。 | `flake.nix` 按 `kind` 生成 `nixosConfigurations` / `darwinConfigurations`，按 `deploy.enable` 生成 deploy-rs nodes |
 | `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `hosts/default.nix` 注册表构建 |
 

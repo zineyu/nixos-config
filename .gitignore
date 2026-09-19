@@ -7,4 +7,3 @@ __pycache__/
 devenv.local.nix
 devenv.local.yaml
 .pre-commit-config.yaml
-.local/wireguard/

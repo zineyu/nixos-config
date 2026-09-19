@@ -7,26 +7,24 @@
 - **仓库里只放加密后的 secret**：密钥、token、密码等敏感信息全部通过 `sops` 加密后提交。
 - **机器优先用 SSH host key 解密**：服务器的 sops-nix 在激活时把 SSH host 私钥转换为 age 私钥，不需要单独保存服务器 age 私钥。
 - **不暴露真实 IP/域名**：部署配置里只写非敏感别名（如 `aliyun-01`），真实地址写在 `secrets/ssh-hosts.yaml`。
-- **非敏感事实可直接放进 host 配置**：如 SSH/WireGuard 公钥、固定虚拟地址和简单 state 配置可以公开。
+- **非敏感事实可直接放进 host 配置**：如 SSH 公钥、固定地址和简单 state 配置可以公开。
 
 ## 当前状态
 
 - `.sops.yaml` 定义用户 `zine_desktop` 和 `aliyun-01` 的 age recipient：
   - `secrets/gnupg.yaml`：仅本机桌面可解密。
   - `secrets/atuin.yaml`：仅 `zine_desktop` 身份可解密，保存 `atuin_key`（tianxuan 与 macbook-air-01 共用）。
-  - `secrets/tianxuan.yaml`：仅本机桌面可解密，保存 `wireguard_private_key`。
-  - `secrets/wireguard-clients.yaml`：仅本机桌面可解密，保存 Android 等外部客户端私钥。
-  - `secrets/macbook-air-01.yaml`：仅 `zine_desktop` 身份可解密（`tianxuan` 与 `macbook-air-01` 均持有该身份副本），保存 `wireguard_private_key`。
-  - `secrets/aliyun-01.yaml`：本机桌面与 `aliyun-01` 均可解密，保存服务 secret 和 `wireguard_private_key`。
+  - `secrets/tianxuan.yaml`：仅本机桌面可解密（当前为空占位，预留给本机未来的 secret）。
+  - `secrets/macbook-air-01.yaml`：仅 `zine_desktop` 身份可解密（`tianxuan` 与 `macbook-air-01` 均持有该身份副本；当前为空占位）。
+  - `secrets/aliyun-01.yaml`：本机桌面与 `aliyun-01` 均可解密，保存服务 secret。
   - `secrets/ssh-hosts.yaml`：仅本机桌面可解密。
+  - `secrets/tailscale.yaml`：本机桌面与 `aliyun-01` 均可解密，保存 tailnet 可复用 preauth key（`preauth_key`，repo 管理的 host 自动入网共用）。
   - `secrets/cachix.yaml`：仅本机桌面可解密，保存 `auth_token`（cachix 推送凭证），由 `just push-cachix` 在本地推送系统 closure 时使用。
 - `secrets/gnupg.yaml` 保存 GnuPG 私钥，由 `modules/home/programs/misc/gnupg` 导入。
 - `secrets/atuin.yaml` 保存 atuin 加密密钥（`atuin_key`，XSalsa20Poly1305 密钥的 msgpack+base64 编码），仅 `zine_desktop` 身份可解密；由 `modules/home/programs/terminal/atuin` 解密并软链到 `~/.local/share/atuin/key`（tianxuan 与 macbook-air-01 共用同一把密钥，同步历史互通）。
-- `secrets/aliyun-01.yaml` 保存 `luogo_checkin` 环境变量、Vaultwarden `ADMIN_TOKEN`、Gotify 初始管理员密码和 WireGuard 私钥。
+- `secrets/aliyun-01.yaml` 保存 `luogo_checkin` 环境变量、Vaultwarden `ADMIN_TOKEN`、Gotify 初始管理员密码和 Headplane cookie 签名密钥（`headplane_cookie_secret`）。
 - `secrets/ssh-hosts.yaml` 保存 `aliyun-01` 的真实 SSH 地址，由 `home/ssh.nix` 解密并渲染 SSH alias。
-- `modules/nixos/common/wireguard.nix` 将各 NixOS host 的 `wireguard_private_key` 解密到 `/run/secrets/wireguard_private_key`，并通过 `privateKeyFile` 交给 WireGuard；私钥不会进入 Nix store。
-- `modules/darwin/wireguard.nix` 在 Darwin host 上通过 sops-nix（`darwinModules.sops`）解密 `wireguard_private_key`，由 `sops.templates` 渲染 `/run/secrets/rendered/wireguard/wg0.conf` 交给 wg-quick LaunchDaemon；`macbook-air-01` 使用 `/var/lib/sops-nix/key.txt`（管理员 age identity 的 rootfs 副本，与 `tianxuan` 相同机制）解密。
-- 外部客户端私钥不部署到任何 NixOS host，只用于在管理员机器生成本地导入配置（`macbook-air-01` 除外：其私钥由 sops-nix 在该 Darwin host 本机解密）。
+- `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
 - `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
 - `tianxuan` 与 `macbook-air-01` 的系统级 sops-nix 使用 `/var/lib/sops-nix/key.txt`。这是管理员 age identity 的 rootfs 副本，recipient 仍是 `zine_desktop`；系统激活早于用户 home 可用，因此不能依赖用户 home 中的 key。`/home/zine/.config/sops/age/keys.txt`（Mac 上为 `/Users/zine/.config/sops/age/keys.txt`）继续用于管理员操作和 Home Manager secret。
 
@@ -75,90 +73,41 @@ just ssh-hosts
 sops secrets/ssh-hosts.yaml
 ```
 
-## WireGuard 私钥
+## Tailnet（Headscale）
 
-WireGuard 私钥使用每台 host secret 中的 `wireguard_private_key` 字段。公钥、固定地址与角色位于 `vars/default.nix`，属于非敏感元数据。
+Overlay 网络已由 WireGuard 切换为自托管 Headscale tailnet（见 `docs/adr/0008-headscale-tailnet.md`）。tailnet 的节点密钥由 Tailscale 客户端自行生成并保存在各节点的本地 state（Linux 为 `/var/lib/tailscale`），**不经过 sops，仓库不保存任何节点私钥**。
 
-生成或轮换密钥时，避免把私钥放入 shell 参数、终端输出、Nix 表达式或未加密模板。可使用权限为 `0700` 的临时目录，并通过 `sops set --value-stdin` 写入：
+节点接入采用**双重授权模型**：
 
-```bash
-umask 077
-tmpdir=$(mktemp -d)
-nix shell nixpkgs#wireguard-tools -c sh -c '
-  wg genkey > "$1/private"
-  wg pubkey < "$1/private" > "$1/public"
-' sh "$tmpdir"
+- **repo 管理的 host（tianxuan / aliyun-01 / macbook-air-01）**：使用可复用 preauth key 自动注册。key 在控制面部署后一次性生成并写入**共享 sops 文件** `secrets/tailscale.yaml`（recipient 为 `zine_desktop` + `aliyun-01` host key，三台机器均可解密），之后部署即自动入网、状态丢失可自愈：
 
-# sops set 需要 JSON 编码的字符串；私钥通过 stdin 传递，不进入进程参数。
-jq -Rs . "$tmpdir/private" \
-  | sops set --value-stdin secrets/<hostname>.yaml '["wireguard_private_key"]'
+  ```bash
+  # 在 aliyun-01 上生成（用户 zine 由 headscale-user-zine.service 幂等创建）
+  headscale preauthkeys create --user zine --reusable --expiration 8760h
 
-cat "$tmpdir/public" # 仅公钥可以写入 vars/default.nix
-rm -rf "$tmpdir"
-```
+  # 写入共享 secret（key 经 stdin，不进入进程参数）
+  echo '<preauth key>' | jq -Rs . | sops set --value-stdin secrets/tailscale.yaml '["preauth_key"]'
+  ```
 
-轮换现有 peer 时应保留公网 SSH 等备用管理路径：更新加密私钥和对应公钥元数据，先部署 hub 的 peer 配置，再部署 spoke。避免同时切断两端。
+  preauth key 可代替节点注册，属于敏感凭证：不要提交进仓库、不要写入 Nix 表达式；到期（`--expiration`）不影响已注册节点，但状态丢失的节点重新注册时需换新 key 并更新 sops（`restartUnits` 会自动重触发注册）。轮换只需更新这一个文件。注意 sops-nix 在**构建期**校验 secret 存在，因此文件中已预置占位 key（`tskey-auth-placeholder-...`）；控制面 bootstrap 后必须按上面命令替换为真实 key，否则自动注册会一直失败。新增 repo 管理的 host 若要自动入网：把其 age recipient 加入 `.sops.yaml` 中 `secrets/tailscale.yaml` 的规则，然后 `sops updatekeys secrets/tailscale.yaml`。
 
-### Xiaomi 15 导入配置
+- **其余设备（手机等）**：客户端生成密钥对 + 服务端手动授权，**零常驻凭证**：
 
-`xiaomi15` 是外部客户端，不属于 `hosts/default.nix` 中的可构建 NixOS host：
+  ```bash
+  # 客户端（输出 mkey:xxx；也可访问打印的 /register/ URL 查看）
+  sudo tailscale up --login-server=https://hs.zineyu.cn
 
-- 地址：`10.77.0.3/32`
-- 只路由 `10.77.0.0/24`
-- 手机日常 Internet 流量仍使用 Wi-Fi 或移动网络
-- 私钥保存在 `secrets/wireguard-clients.yaml` 的 `xiaomi15_private_key` 字段
+  # 服务端（aliyun-01 上批准该节点）
+  headscale nodes register --user zine --key mkey:xxx
+  ```
 
-在 devenv 中生成未跟踪的配置和二维码：
-
-```bash
-just wireguard-client xiaomi15
-```
-
-输出位于：
-
-```text
-.local/wireguard/xiaomi15/xiaomi15.conf
-.local/wireguard/xiaomi15/xiaomi15.png
-```
-
-`.local/wireguard/` 已加入 `.gitignore`。配置文件和二维码都包含手机私钥，应只在可信屏幕/文件系统中使用。导入 Android WireGuard App 后删除整个输出目录：
-
-```bash
-rm -rf .local/wireguard/xiaomi15
-```
-
-应先部署新的 `aliyun-01` 配置，使 hub 接受手机公钥，再在手机上启用隧道。
-
-### macbook-air-01（Darwin）接入
-
-`macbook-air-01` 是 nix-darwin host，以 `externalPeers` 身份加入 overlay（地址 `10.77.0.4`）。与手机不同，配置不由人工导入 App，而是由 `modules/darwin/wireguard.nix` 声明：sops-nix 解密私钥并渲染 `wg0.conf`，wg-quick LaunchDaemon 常驻拉起隧道。
-
-首次接入步骤：
-
-1. 在管理员机器生成密钥对，公钥写入 `vars.wireguard.externalPeers.macbook-air-01`，私钥写入 `secrets/macbook-air-01.yaml` 的 `wireguard_private_key`。
-2. 在 Mac 上预置管理员 age identity 的 rootfs 副本（首次 `darwin-rebuild switch` 之前必须完成，否则 sops 解密失败导致激活中断）。Mac 的管理员 key 与 Linux 位于相同路径 `~/.config/sops/age/keys.txt`，与「tianxuan 系统 age key 初始化」相同机制：
-
-   ```bash
-   sudo install -d -m 0700 /var/lib/sops-nix
-   sudo install -m 0600 \
-     /Users/zine/.config/sops/age/keys.txt \
-     /var/lib/sops-nix/key.txt
-   ```
-
-3. 先部署 hub（`just deploy aliyun-01`）使其接受新 peer，再在 Mac 上 `just switch-darwin macbook-air-01`。
-4. 验证：`/var/log/wireguard-wg0.log` 无报错、`sudo wg show` 有握手、`ping 10.77.0.1`（或 `ping aliyun-01`）通。
-
-已知限制：
-
-- macOS 无内核 WireGuard，wg-quick 使用用户态 `wireguard-go`（utun 接口）。
-- 睡眠/唤醒可能静默丢失 utun 接口而 launchd 不感知；执行 `sudo launchctl kickstart -k system/org.nixos.wireguard-wg0` 或切换网络（KeepAlive NetworkState）恢复。
-- 轮换 `wireguard_private_key` 后，在 Mac 上重新 `switch-darwin` 并 kickstart 该 daemon 以加载新配置。
+  手机在 Tailscale App 中将 control server 设为 `https://hs.zineyu.cn`，登录后同样在服务器上 `headscale nodes register` 批准。
+Headscale 自身的状态（`/var/lib/headscale` 的 SQLite 与 noise 私钥）**丢失会导致全网节点需要重新注册**，因此有每日快照 + `tianxuan` 拉取的备份链路（见 `modules/nixos/server/headscale.nix` 与 `home/tianxuan.nix`），恢复步骤见 `headscale.nix` 头部注释的 runbook。
 ## 新增一台 host
 
 1. 在 `hosts/default.nix` 注册 host 并创建对应的 host 模块。
-2. 在 `vars/default.nix` 创建同名 `hosts.<hostname>` 项，分配未使用的 `10.77.0.x` 地址、`spoke` 角色和 WireGuard 公钥。共享断言会拒绝遗漏或重复地址。
-3. 生成 WireGuard 密钥对，只把公钥写入 `vars/default.nix`。
-4. 获取目标机器的 age recipient。服务器通常使用 SSH host key：
+2. 在 `vars/default.nix` 创建同名 `hosts.<hostname>` 项（无条目时可先留空）。
+3. 获取目标机器的 age recipient。服务器通常使用 SSH host key：
 
    ```bash
    ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub
@@ -166,17 +115,16 @@ rm -rf .local/wireguard/xiaomi15
    just age-key <hostname>
    ```
 
-5. 在 `.sops.yaml` 添加 `secrets/<hostname>.yaml` creation rule，至少包含管理员 recipient，并为目标机器加入能够在激活时解密的 recipient。
-6. 创建并加密 `secrets/<hostname>.yaml`，写入 `wireguard_private_key`。不要提交明文文件。
-7. 在 host 配置中声明正确的系统级 sops-nix age key 来源（例如 `age.sshKeyPaths` 或受控的 `age.keyFile`）。
-8. 构建 hub 与新 host：
+4. 在 `.sops.yaml` 添加 `secrets/<hostname>.yaml` creation rule，至少包含管理员 recipient，并为目标机器加入能够在激活时解密的 recipient。
+5. 创建并加密 `secrets/<hostname>.yaml`（无 secret 时可跳过）。不要提交明文文件。
+6. 在 host 配置中声明正确的系统级 sops-nix age key 来源（例如 `age.sshKeyPaths` 或受控的 `age.keyFile`）。
+7. 构建并部署新 host：
 
    ```bash
-   just build aliyun-01
    just build <hostname>
    ```
 
-9. 先部署 hub，让它接受新 peer，再部署新 spoke。最后使用 `wg show`、虚拟主机名 ping 和 SSH 验证握手与双向流量。
+8. 部署后用 preauth key 把新 host 登录进 tailnet（见「Tailnet（Headscale）」一节），用 `tailscale status`、`tailscale ping <peer>` 和 MagicDNS 主机名验证连通性。
 
 ## 修改或轮换 SOPS recipient
 
@@ -200,16 +148,15 @@ sops updatekeys secrets/*.yaml
 
 ## 外部网络前置条件
 
-WireGuard 配置使用 `wg.zineyu.cn:51820`。仓库构建只能验证配置，不能证明公网连通：
+Headscale 控制面使用 `hs.zineyu.cn`（TCP 443，复用 nginx）。仓库构建只能验证配置，不能证明公网连通：
 
-- `wg.zineyu.cn` 的 A/AAAA 记录必须指向 `aliyun-01` 的可达公网地址。
-- 云厂商安全组或网络 ACL 必须允许入站 `51820/UDP`。
+- `hs.zineyu.cn` 的 A/AAAA 记录必须指向 `aliyun-01` 的可达公网地址。
+- 云厂商安全组或网络 ACL 必须允许入站 `443/TCP`（已开）与 `3478/UDP`（STUN，NAT 打洞用）。
 - 本机启用 Mihomo fake-IP 时，`getent`/`dig` 可能返回保留地址，不能据此判断真实公网 DNS 是否正确。
 
 ## 参考
 
 - [sops-nix 文档](https://github.com/Mic92/sops-nix)
-- [NixOS WireGuard 文档](https://wiki.nixos.org/wiki/WireGuard)
-- [WireGuard 官方 Quick Start](https://www.wireguard.com/quickstart/)
-- `docs/adr/0005-wireguard-overlay-network.md`
+- [Headscale 文档](https://headscale.net/stable/)
+- `docs/adr/0008-headscale-tailnet.md`
 - `docs/mic92-dotfiles-analysis.md`
