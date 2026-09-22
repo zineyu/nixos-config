@@ -1,4 +1,4 @@
-{ config, hostname, ... }:
+{ config, ... }:
 {
   # 所有 NixOS host 加入 Headscale tailnet（hs.zineyu.cn），
   # 替代原 hub-and-spoke WireGuard overlay（见 docs/adr/0008-headscale-tailnet.md）。
