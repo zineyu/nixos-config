@@ -13,11 +13,16 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    home.file = builtins.listToAttrs (
-      map (name: {
-        name = ".pi/agent/extensions/${name}";
-        value.source = extensionsDir + "/${name}";
-      }) (builtins.attrNames (builtins.readDir extensionsDir))
-    );
+    home.file =
+      builtins.listToAttrs (
+        map (name: {
+          name = ".pi/agent/extensions/${name}";
+          value.source = extensionsDir + "/${name}";
+        }) (builtins.attrNames (builtins.readDir extensionsDir))
+      )
+      // {
+        # virtual-model 扩展的虚拟模型配置
+        ".pi/agent/virtual-models.json".source = ./virtual-models.json;
+      };
   };
 }

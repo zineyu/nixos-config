@@ -1,0 +1,11 @@
+{
+  "models": {
+    "auto": {
+      "name": "work",
+      "candidates": ["novix/deepseek-flash", "novix/kimi-k3"],
+      "contextWindow": 1000000,
+      "reasoning": true,
+      "input": ["text", "image"]
+    }
+  }
+}
