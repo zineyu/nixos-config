@@ -43,6 +43,7 @@
     nixvim.enable = true;
     zed-editor.enable = true;
     fabric.enable = true;
+    pi.enable = true;
 
     # misc
     aria2.enable = true;

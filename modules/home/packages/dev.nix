@@ -25,6 +25,7 @@ in
     nixvim.enable = lib.mkEnableOption "Neovim (nixvim)";
     zed-editor.enable = lib.mkEnableOption "Zed 编辑器";
     fabric.enable = lib.mkEnableOption "fabric AI";
+    pi.enable = lib.mkEnableOption "pi 编码 Agent 配置";
   };
 
   config = {
