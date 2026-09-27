@@ -1682,24 +1682,27 @@ export default function subagentsExtension(pi: ExtensionAPI) {
   // by which extensions are loaded into the child (default-deny --no-extensions
   // + explicit -e). See launchSubagent().
 
+  // subagent 工具说明：description 与 promptSnippet 共用，
+  // 向主 agent 传达外科手术团队委派模型与异步交付机制
+  const SUBAGENT_TOOL_DESCRIPTION =
+    "Spawn a sub-agent in a dedicated terminal multiplexer pane. " +
+    "Delegation model (surgical team): you are the chief programmer — keep architecture decisions, cross-module design, and core edits in your own context and NEVER delegate them. " +
+    "Delegate only work you can (a) fully specify up front and (b) independently verify afterwards: codebase recon (scout), web research (researcher), well-specified implementation chunks (worker), spec-based verification (verifier). " +
+    "Give each sub-agent the MINIMUM context it needs in the task brief; its final message is a distilled report — act on it directly instead of re-reading everything yourself. " +
+    "Sub-agents never coordinate with each other; you are the hub that merges their reports. " +
+    "When a worker implements from a spec, spawn a verifier afterwards with that same spec (without the worker's reasoning) so generation and verification stay independent. " +
+    "This is a fire-and-forget async tool: the call returns immediately with only an acknowledgement. " +
+    "When the sub-agent finishes, the harness AUTOMATICALLY delivers its result as a steer message that wakes you up and starts a new turn — you do not need to do anything to receive it. " +
+    "DO NOT write polling loops, sleep/wait commands, tail/watch scripts, or repeatedly read session/log files to detect completion. DO NOT call subagents_list or any other tool to 'check' status. All of that is wasted work — the harness handles delivery for you. " +
+    "DO NOT fabricate, assume, or summarize results after calling this tool. " +
+    "After spawning, either end your turn immediately, or work on other independent tasks (including spawning more subagents in parallel). The harness will wake you with the result when it is ready.";
+
   // ── subagent tool ──
   pi.registerTool({
       name: "subagent",
       label: "Subagent",
-      description:
-        "Spawn a sub-agent in a dedicated terminal multiplexer pane. " +
-        "This is a fire-and-forget async tool: the call returns immediately with only an acknowledgement. " +
-        "When the sub-agent finishes, the harness AUTOMATICALLY delivers its result as a steer message that wakes you up and starts a new turn — you do not need to do anything to receive it. " +
-        "DO NOT write polling loops, sleep/wait commands, tail/watch scripts, or repeatedly read session/log files to detect completion. DO NOT call subagents_list or any other tool to 'check' status. All of that is wasted work — the harness handles delivery for you. " +
-        "DO NOT fabricate, assume, or summarize results after calling this tool. " +
-        "After spawning, either end your turn immediately, or work on other independent tasks (including spawning more subagents in parallel). The harness will wake you with the result when it is ready.",
-      promptSnippet:
-        "Spawn a sub-agent in a dedicated terminal multiplexer pane. " +
-        "This is a fire-and-forget async tool: the call returns immediately with only an acknowledgement. " +
-        "When the sub-agent finishes, the harness AUTOMATICALLY delivers its result as a steer message that wakes you up and starts a new turn — you do not need to do anything to receive it. " +
-        "DO NOT write polling loops, sleep/wait commands, tail/watch scripts, or repeatedly read session/log files to detect completion. DO NOT call subagents_list or any other tool to 'check' status. All of that is wasted work — the harness handles delivery for you. " +
-        "DO NOT fabricate, assume, or summarize results after calling this tool. " +
-        "After spawning, either end your turn immediately, or work on other independent tasks (including spawning more subagents in parallel). The harness will wake you with the result when it is ready.",
+      description: SUBAGENT_TOOL_DESCRIPTION,
+      promptSnippet: SUBAGENT_TOOL_DESCRIPTION,
       parameters: SubagentParams,
 
       async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
