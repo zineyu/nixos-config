@@ -70,11 +70,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    dbx = {
-      url = "github:t8y2/dbx";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nomic.url = "github:zineyu/nomic";
 
     nixvim = {

@@ -4,18 +4,12 @@
   config,
   lib,
   pkgs,
-  inputs,
   ...
 }:
 
 let
   cfg = config.zine.programs;
-  system = pkgs.stdenv.hostPlatform.system;
-  dbx-desktop =
-    if pkgs.stdenv.hostPlatform.isDarwin then
-      pkgs.callPackage ../../../pkgs/dbx-desktop-darwin.nix { }
-    else
-      inputs.dbx.packages.${system}.dbx-desktop;
+  dbx-desktop = pkgs.callPackage ../../../pkgs/dbx-desktop.nix { };
 in
 {
   options.zine.programs = {
