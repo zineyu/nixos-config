@@ -108,6 +108,18 @@
         ];
         perSystem =
           { pkgs, system, ... }:
+          let
+            # 仓库根 pkgs/ 下的自定义包，暴露为 flake packages，供
+            # nix-update（update-pkgs.yml）、pkgs/update-*.sh 与 `nix build .#<name>` 使用
+            customPkgs = {
+              breezex-cursor = pkgs.callPackage ./pkgs/breezex-cursor.nix { };
+              codegraph = pkgs.callPackage ./pkgs/codegraph.nix { };
+              dbx-desktop = pkgs.callPackage ./pkgs/dbx-desktop.nix { };
+              jj-bond = pkgs.callPackage ./pkgs/jj-bond.nix { };
+              rime-flypy = pkgs.callPackage ./pkgs/rime-flypy.nix { };
+              squirrel = pkgs.callPackage ./pkgs/squirrel.nix { };
+            };
+          in
           {
             # `nix run .#deploy -- .#<hostname>` 调用 deploy-rs CLI，
             # 读取顶层 `deploy` 输出中的节点定义进行远程部署
@@ -168,23 +180,26 @@
                     '';
               };
 
-            packages = pkgs.lib.filterAttrs (hostname: _: hosts.${hostname}.system == system) hostSystems // {
-              nix-conf =
-                let
-                  shared = import ./lib/nix-settings.nix;
-                in
-                (pkgs.formats.nixConf {
-                  package = pkgs.nix;
-                  version = pkgs.nix.version;
-                  checkConfig = false;
-                }).generate
-                  "nix.custom.conf"
-                  {
-                    extra-substituters = shared.substituters;
-                    extra-trusted-public-keys = shared.trusted-public-keys;
-                    extra-experimental-features = shared.experimental-features;
-                  };
-            };
+            packages =
+              pkgs.lib.filterAttrs (hostname: _: hosts.${hostname}.system == system) hostSystems
+              // {
+                nix-conf =
+                  let
+                    shared = import ./lib/nix-settings.nix;
+                  in
+                  (pkgs.formats.nixConf {
+                    package = pkgs.nix;
+                    version = pkgs.nix.version;
+                    checkConfig = false;
+                  }).generate
+                    "nix.custom.conf"
+                    {
+                      extra-substituters = shared.substituters;
+                      extra-trusted-public-keys = shared.trusted-public-keys;
+                      extra-experimental-features = shared.experimental-features;
+                    };
+              }
+              // customPkgs;
           };
 
         # NOTE: 开发环境的唯一来源是 devenv.nix（见根 AGENTS.md）；此处不提供 devShells。
