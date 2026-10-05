@@ -1,0 +1,106 @@
+name: Update custom packages
+
+on:
+  schedule:
+    # 每天 01:00 UTC（北京时间 09:00），先于 update.yml(02:00) / build.yml(04:00)
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      # 更新后的包会重新构建，顺带推入 cache，加速当天 build.yml 与本地 rebuild
+      - uses: cachix/cachix-action@v17
+        with:
+          name: zineyu
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      # 各包的更新逻辑内嵌在 passthru.updateScript 中：
+      # - 简单包（breezex-cursor / jj-bond / rime-flypy / squirrel）：薄封装 nix-update
+      # - codegraph：多平台 hash 表，自定义脚本（pkgs/update-codegraph.sh）
+      # - dbx-desktop：多源 + FOD hash 重建，自定义脚本（pkgs/update-dbx-desktop.sh，
+      #   模式参考上游 .github/workflows/update-nix-pnpm-hash.yml）
+      - name: Run passthru.updateScript for each custom package
+        run: |
+          for pkg in breezex-cursor codegraph dbx-desktop jj-bond rime-flypy squirrel; do
+            echo "=== $pkg ==="
+            nix run ".#$pkg.updateScript" || echo "::warning::$pkg 更新失败，已跳过"
+          done
+
+      # 构建验证有变更的包；失败的包回退其更新（由 Gotify 通知人工处理）。
+      # squirrel 为 darwin-only（构建需 /usr/bin/codesign），无法在 Linux runner 验证，
+      # 其 src hash 已由 nix-update 通过 FOD 重建校验，可靠性足够。
+      - name: Build updated packages (x86_64-linux)
+        id: verify
+        run: |
+          set -euo pipefail
+          failed=""
+          changed=$(git diff --name-only -- pkgs/ || true)
+          for pkg in breezex-cursor codegraph dbx-desktop jj-bond rime-flypy; do
+            if grep -q "^pkgs/${pkg}.nix$" <<<"$changed"; then
+              echo "=== build $pkg ==="
+              if ! nix build ".#$pkg" -L --no-link; then
+                echo "::warning::$pkg 更新后构建失败，回退该包的更新"
+                git checkout -- "pkgs/$pkg.nix"
+                failed="$failed $pkg"
+              fi
+            fi
+          done
+          echo "failed=${failed# }" >> "$GITHUB_OUTPUT"
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if git diff --quiet -- pkgs/; then
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+            git diff --stat -- pkgs/
+          fi
+
+      - name: Commit and push
+        if: steps.changes.outputs.updated == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pkgs/
+          git commit -m "chore(pkgs): auto-update custom packages" \
+            -m "$(git diff --cached --stat | tail -1)"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+      - name: Notify via Gotify
+        if: steps.changes.outputs.updated == 'true'
+        env:
+          GOTIFY_TOKEN: ${{ secrets.GOTIFY_TOKEN }}
+          FAILED: ${{ steps.verify.outputs.failed }}
+        run: |
+          msg="pkgs/ 自定义包已更新并通过构建验证，详见 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [ -n "$FAILED" ]; then
+            msg="$msg；以下包构建失败已回退，需人工处理:$FAILED"
+          fi
+          curl -sf -X POST "https://gotify.zineyu.cn/message?token=$GOTIFY_TOKEN" \
+            -F "title=pkgs/ 自定义包已更新" \
+            -F "message=$msg" \
+            -F "priority=5"
+
+      - name: Notify failure via Gotify
+        if: failure()
+        env:
+          GOTIFY_TOKEN: ${{ secrets.GOTIFY_TOKEN }}
+        run: |
+          curl -sf -X POST "https://gotify.zineyu.cn/message?token=$GOTIFY_TOKEN" \
+            -F "title=pkgs/ 自定义包更新失败" \
+            -F "message=updateScript 或构建验证未通过，详见 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -F "priority=8"

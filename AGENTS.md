@@ -9,7 +9,7 @@
 - 远程部署：`nix run .#deploy -- .#<hostname>`（或 `just deploy <hostname>`），当前仅配置 `aliyun-01`
 - 格式化：`nix fmt`（或 `just fmt`）
 - 类型检查：`nix flake check`（或 `just check`，包含 nixfmt、deadnix、statix 检查；`update.yml` 每日更新 flake.lock 前也会运行）
-- CI 为两个定时 workflow（均支持 `workflow_dispatch` 手动触发）：`.github/workflows/update.yml` 每日更新 `flake.lock`，通过 `nix flake check` 验证后推送，并通过 Gotify 通知结果；`.github/workflows/build.yml` 每日构建所有 host（NixOS 用 ubuntu runner，Darwin 用 macos-14 runner），产物推送到 `zineyu` cachix cache。
+- CI 为三个定时 workflow（均支持 `workflow_dispatch` 手动触发）：`.github/workflows/update-pkgs.yml` 每日运行各自定义包的 `passthru.updateScript` 更新 `pkgs/`，构建验证通过后推送；`.github/workflows/update.yml` 每日更新 `flake.lock`，通过 `nix flake check` 验证后推送；`.github/workflows/build.yml` 每日构建所有 host（NixOS 用 ubuntu runner，Darwin 用 macos-14 runner），产物推送到 `zineyu` cachix cache。结果均通过 Gotify 通知。
 
 ## Code Style
 
@@ -33,7 +33,7 @@
   - `modules/darwin/` — 系统级 nix-darwin 模块目录（如 `sops.nix`、`tailscale.nix`），由各 `hosts/<hostname>/default.nix` 按需显式导入
   - `lib/` — 可复用 Nix 函数（`mkSystem.nix`、`niri-config.nix`、`storeLinks.nix`、`nix-settings.nix`、`nixpaks-*.nix`、`scanPaths.nix`）
   - `lib/storeLinks.nix` — 统一封装 in-store / out-of-store 链接策略，供 `xdg.configFile` 使用
-  - `pkgs/` — 自定义/外部包定义（如 `dsh.nix`、`jj-bond.nix`、`orca.nix`），由 `modules/home/packages/` 或 `modules/nixos/` 通过 `pkgs.callPackage` 引用
+  - `pkgs/` — 自定义/外部包定义（如 `dsh.nix`、`jj-bond.nix`、`orca.nix`），由 `modules/home/packages/` 或 `modules/nixos/` 通过 `pkgs.callPackage` 引用；同时在 flake `packages` 输出中暴露，每个包须带 `passthru.updateScript`（简单包薄封装 nix-update，复杂包用 `writeShellApplication` 自定义脚本共置于 `pkgs/update-<name>.sh`），供 `update-pkgs.yml` 统一 `nix run .#<name>.updateScript` 调用
   - `vars/default.nix` — 共享变量（`git` 身份）与按 host 组织的变量（`hosts.<hostname>.hardware` 等）
 - 新增 program 时：在 `modules/home/packages/<category>.nix` 中声明 `zine.programs.<name>.enable` option 并门控安装（自定义包定义放根 `pkgs/`；纯裸包直接加入对应 opt-in 捆绑），并按用途在对应类别下创建 `modules/home/programs/<category>/<name>/default.nix` 存放纯配置；目录创建后各层 `default.nix` 会自动扫描导入，无需手动注册。最后在需要它的机器的 `home/<hostname>.nix` 中启用。若现有类别都不合适，可新增类别目录并配一个调用 `extraLibs.scanPaths` 的 `default.nix`。
 - 新增 agent skill 时：创建 `skills/<name>/SKILL.md` 及其资源文件；导入 `modules/home/agent-skills` 的机器会自动将其安装到 `~/.agents/skills/<name>`，无需手动注册。
@@ -43,7 +43,7 @@
 
 ## Testing
 
-- 已配置 GitHub Actions：`.github/workflows/update.yml` 每日自动更新 `flake.lock`，`nix flake check` 验证通过后推送，并通过 Gotify 通知（成功与失败均通知）；`.github/workflows/build.yml` 每日构建所有 host（`tianxuan`、`aliyun-01`、`macbook-air-01`），通过官方 `cachix/cachix-action` 推送到 `zineyu` cache。所需 secrets（`CACHIX_AUTH_TOKEN`、`GOTIFY_TOKEN`）见 `docs/secrets.md`。
+- 已配置 GitHub Actions：`.github/workflows/update-pkgs.yml` 每日更新 `pkgs/` 下自定义包（逐个运行 `passthru.updateScript`，x86_64-linux 可构建的包会构建验证，失败回退该包更新）；`.github/workflows/update.yml` 每日自动更新 `flake.lock`，`nix flake check` 验证通过后推送；`.github/workflows/build.yml` 每日构建所有 host（`tianxuan`、`aliyun-01`、`macbook-air-01`），通过官方 `cachix/cachix-action` 推送到 `zineyu` cache。均通过 Gotify 通知（成功与失败均通知）。所需 secrets（`CACHIX_AUTH_TOKEN`、`GOTIFY_TOKEN`）见 `docs/secrets.md`。
 - 修改后必须运行：`nixos-rebuild build --flake .#<hostname>`
 - 验证重点：
   - 构建无 evaluation error
