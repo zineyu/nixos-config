@@ -1,22 +1,38 @@
-{ pkgs }:
+{
+  lib,
+  rustPlatform,
+  fetchFromGitHub,
+  writeShellApplication,
+  nix-update,
+  git,
+}:
 
-pkgs.rustPlatform.buildRustPackage {
+rustPlatform.buildRustPackage (finalAttrs: {
   pname = "jj-bond";
   version = "0.1.6";
 
-  src = pkgs.fetchFromGitHub {
+  src = fetchFromGitHub {
     owner = "TD-Sky";
     repo = "jj-bond";
-    rev = "b91e072fa765b45df2375634ccb2945b71b63c47";
+    rev = "v${finalAttrs.version}";
     hash = "sha256-1uCmSuNkLvOjgkYbzhfDmvbb9Xusx+wUaFC8KQ3ikhM=";
   };
 
   cargoHash = "sha256-UjJCbfew6WBsaPYKmj8C8C6aO7mdaF3oNrymEWC+Wsg=";
 
+  passthru.updateScript = writeShellApplication {
+    name = "update-jj-bond";
+    runtimeInputs = [
+      nix-update
+      git
+    ];
+    text = ''exec nix-update --flake jj-bond "$@"'';
+  };
+
   meta = {
     description = "Jujutsu TUI";
     homepage = "https://github.com/TD-Sky/jj-bond";
-    license = pkgs.lib.licenses.mit;
+    license = lib.licenses.mit;
     mainProgram = "jb";
   };
-}
+})

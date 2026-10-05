@@ -5,6 +5,9 @@
   xar,
   cpio,
   gzip,
+  writeShellApplication,
+  nix-update,
+  git,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -57,11 +60,21 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   # Preserve the valid ad-hoc signature produced above.
   dontFixup = true;
 
+  passthru.updateScript = writeShellApplication {
+    name = "update-squirrel";
+    runtimeInputs = [
+      nix-update
+      git
+    ];
+    text = ''exec nix-update --flake squirrel "$@"'';
+  };
+
   meta = {
     description = "Rime input method for macOS";
     homepage = "https://github.com/rime/squirrel";
     license = lib.licenses.gpl3Only;
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
-    platforms = lib.platforms.darwin;
+    # 不声明 platforms：installPhase 依赖 /usr/bin/codesign，实际只能 darwin 构建；
+    # 但需保证 Linux 上可求值，nix-update（CI runner 为 ubuntu）才能更新 src hash
   };
 })

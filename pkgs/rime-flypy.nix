@@ -2,6 +2,9 @@
   lib,
   stdenvNoCC,
   fetchFromGitHub,
+  writeShellApplication,
+  nix-update,
+  git,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -26,6 +29,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     runHook postInstall
   '';
+
+  passthru.updateScript = writeShellApplication {
+    name = "update-rime-flypy";
+    runtimeInputs = [
+      nix-update
+      git
+    ];
+    text = ''exec nix-update --flake rime-flypy "$@"'';
+  };
 
   meta = {
     description = "小鹤音形 Rime 挂接 (flypy schema for Rime)";

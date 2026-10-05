@@ -4,6 +4,11 @@
 {
   lib,
   stdenv,
+  # ── 更新脚本依赖（passthru.updateScript）──
+  writeShellApplication,
+  curl,
+  git,
+  nix,
   stdenvNoCC,
   fetchurl,
   fetchFromGitHub,
@@ -81,7 +86,7 @@ else
     pname = "dbx-desktop";
     version = "0.6.34";
 
-    # 上游 main HEAD（v0.6.34）；升级时同步更新 version、pnpmDeps 与 cargoLock.outputHashes
+    # 上游 release tag 对应的 commit；version/rev/hash 由 pkgs/update-dbx-desktop.sh 自动更新
     src = fetchFromGitHub {
       owner = "t8y2";
       repo = "dbx";
@@ -278,6 +283,20 @@ else
     '';
 
     doCheck = false;
+
+    # 多源 + FOD hash 重建逻辑超出 nix-update 能力，参考上游
+    # .github/workflows/update-nix-pnpm-hash.yml 的模式由脚本维护。
+    # 运行：nix run .#dbx-desktop.updateScript
+    passthru.updateScript = writeShellApplication {
+      name = "update-dbx-desktop";
+      runtimeInputs = [
+        curl
+        jq
+        git
+        nix
+      ];
+      text = builtins.readFile ./update-dbx-desktop.sh;
+    };
 
     meta = {
       description = "Open-source database management tool (Tauri 2)";

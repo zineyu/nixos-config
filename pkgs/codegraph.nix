@@ -4,6 +4,11 @@
   stdenvNoCC,
   fetchurl,
   autoPatchelfHook,
+  writeShellApplication,
+  curl,
+  jq,
+  git,
+  nix,
 }:
 
 let
@@ -59,6 +64,18 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     runHook postInstall
   '';
+
+  passthru.updateScript = writeShellApplication {
+    name = "update-codegraph";
+    runtimeInputs = [
+      curl
+      jq
+      git
+      nix
+    ];
+    # 多平台 hash 表无法由 nix-update 处理，脚本与包定义共置于 pkgs/
+    text = builtins.readFile ./update-codegraph.sh;
+  };
 
   meta = {
     description = "Pre-indexed code knowledge graph with surgical context for coding agents, 100% local";
