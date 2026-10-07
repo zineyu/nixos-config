@@ -48,7 +48,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   buildInputs = [
     pkgs.stdenv.cc.cc.lib
   ]
-  ++ lib.optional pkgs.stdenv.isLinux pkgs.gccForLibs.libgcc;
+  ++ lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.gccForLibs.libgcc;
 
   # Stripping would invalidate the code signature of the bundled runtime.
   dontStrip = true;
