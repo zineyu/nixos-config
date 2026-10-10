@@ -170,13 +170,16 @@ async function readExecute(args: Record<string, unknown>, cwd: string): Promise<
 		// G6b: sniff the first bytes to bail on binary files early — reading a
 		// large binary as utf8 and splitting it wastes work (grep is guarded by
 		// GREP_FILE_MAX_BYTES / ripgrep, but read wasn't).
-		const { fd, close } = await open(abs, "r").then((h) => ({ fd: h, close: () => h.close() })).catch(() => ({ fd: null, close: () => {} }));
-		if (fd) {
-			const buf = Buffer.alloc(8000);
-			const { bytesRead } = await fd.read(buf, 0, 8000, 0);
-			await close();
-			if (looksBinary(buf.subarray(0, bytesRead))) {
-				return { content: `read failed: file appears to be binary (${abs})`, isError: true };
+		const handle = await open(abs, "r").catch(() => null);
+		if (handle) {
+			try {
+				const buf = Buffer.alloc(8000);
+				const { bytesRead } = await handle.read(buf, 0, 8000, 0);
+				if (looksBinary(buf.subarray(0, bytesRead))) {
+					return { content: `read failed: file appears to be binary (${abs})`, isError: true };
+				}
+			} finally {
+				await handle.close();
 			}
 		}
 		const content = await readFile(abs, "utf8");
