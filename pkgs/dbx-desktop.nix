@@ -51,11 +51,11 @@
 if stdenv.hostPlatform.isDarwin then
   stdenvNoCC.mkDerivation (finalAttrs: {
     pname = "dbx-desktop";
-    version = "0.6.40";
+    version = "0.6.41";
 
     src = fetchurl {
       url = "https://github.com/t8y2/dbx/releases/download/v${finalAttrs.version}/DBX_${finalAttrs.version}_arm64.app.tar.gz";
-      hash = "sha256-KZ4DAQXIYFQQI3vyQQPmF+Ek+KlMeQcy1IgEdWbOiFk=";
+      hash = "sha256-EuWk1AB4pEmkqEYh4eqsNGHVuzslLD1x7r0cSE2384s=";
     };
 
     sourceRoot = ".";
@@ -84,14 +84,14 @@ if stdenv.hostPlatform.isDarwin then
 else
   rustPlatform.buildRustPackage (finalAttrs: {
     pname = "dbx-desktop";
-    version = "0.6.40";
+    version = "0.6.41";
 
     # 上游 release tag 对应的 commit；version/rev/hash 由 pkgs/update-dbx-desktop.sh 自动更新
     src = fetchFromGitHub {
       owner = "t8y2";
       repo = "dbx";
-      rev = "f39cd023f63d988595ca65a8caa5d513795fe678";
-      hash = "sha256-f2vseixb5CkVI8XDJuPJWbGE4yGq56mh4nSvHa76Z4s=";
+      rev = "7cbef302eae1e25bbe8a99333cda9e104b22f77a";
+      hash = "sha256-Gvk/C2ij43jTT/5T1NrTdBAkj+4KpRf07ehjrNUkogg=";
     };
 
     # fetcherVersion = 4 的 FOD 产物随 pnpm 大版本变化；本 hash 基于当前
