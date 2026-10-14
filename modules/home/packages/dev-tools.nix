@@ -37,7 +37,6 @@ in
     github-cli
     lazyjj
     lazygit
-    opencode
     stylua
 
     # 自定义/外部包（定义见仓库根 pkgs/）
