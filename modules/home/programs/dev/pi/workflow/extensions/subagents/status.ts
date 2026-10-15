@@ -1,19 +1,29 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const SNAPSHOT_STALLED_AFTER_MS = 60_000;
 export const DEFAULT_STATUS_LINE_LIMIT = 4;
 export const MAX_STATUS_NAME_LENGTH = 72;
 export const MAX_STATUS_LINE_LENGTH = 120;
 
-// Nix 部署下扩展目录是 store 中的只读路径，import.meta.url 会被解析为
-// realpath，向上遍历会离开扩展目录。config 改为从 agent 配置目录解析：
-// ~/.pi/agent/extensions/subagents/config.json（经符号链接进入 store）。
-const AGENT_CONFIG_DIR = process.env.PI_CODING_AGENT_DIR ?? join(homedir(), ".pi", "agent");
-const EXTENSION_DIR = join(AGENT_CONFIG_DIR, "extensions", "subagents");
-const DEFAULT_STATUS_CONFIG_PATH = join(EXTENSION_DIR, "config.json");
-const STATUS_CONFIG_EXAMPLE_PATH = join(EXTENSION_DIR, "config.json.example");
+// config.json 随扩展源码同目录分发（Nix 部署下经符号链接进入 store，只读）。
+// 优先从扩展自身目录解析（import.meta.url），兼容两种安装方式：
+// 松散扩展（~/.pi/agent/extensions/subagents）与 pi package（~/.pi/agent/packages/<pkg>/extensions/subagents）。
+// 保留 agentDir 下的旧路径作为 fallback，兼容部署期间的旧世代链接。
+const EXTENSION_DIR = dirname(fileURLToPath(import.meta.url));
+const LEGACY_EXTENSION_DIR = join(
+  process.env.PI_CODING_AGENT_DIR ?? join(homedir(), ".pi", "agent"),
+  "extensions",
+  "subagents",
+);
+const DEFAULT_STATUS_CONFIG_PATH = existsSync(join(EXTENSION_DIR, "config.json"))
+  ? join(EXTENSION_DIR, "config.json")
+  : join(LEGACY_EXTENSION_DIR, "config.json");
+const STATUS_CONFIG_EXAMPLE_PATH = existsSync(join(EXTENSION_DIR, "config.json.example"))
+  ? join(EXTENSION_DIR, "config.json.example")
+  : join(LEGACY_EXTENSION_DIR, "config.json.example");
 
 export type SubagentStatusKind = "starting" | "active" | "waiting" | "stalled" | "running";
 export type SubagentStatusSource = "pi" | "claude";

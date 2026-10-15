@@ -1,0 +1,11 @@
+{
+  "name": "zine-pi-workflow",
+  "version": "0.1.0",
+  "description": "Spec-driven development workflow for pi: prompts + skills + subagents extension.",
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./extensions/subagents"],
+    "skills": ["./skills"],
+    "prompts": ["./prompts/*.md"]
+  }
+}
