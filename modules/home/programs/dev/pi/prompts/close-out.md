@@ -26,6 +26,6 @@ argument-hint: "[PR 编号或者 URL]"
 
 报告 PR 终态、sub issue 状态、可以立即开始的切片、需要用户决定的事项。
 
-用 handoff 工具把下一片的编号与规格位置交给新的上下文。全部 sub issue 关闭之后，主 issue 的处理由用户决定。
+用 handoff 工具把下一片的编号与规格位置交给新的上下文。随后运行 `/retro` 完成知识沉淀与环境复盘。全部 sub issue 关闭之后，主 issue 的处理由用户决定。
 
 本流程禁止合并 PR，禁止修改或者关闭主 issue。
