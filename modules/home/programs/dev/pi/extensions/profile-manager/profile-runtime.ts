@@ -11,6 +11,9 @@ import {
 } from "./profile-config.js";
 import { getActiveProfile } from "./profile-store.js";
 
+// Bun 编译产物的入口位于虚拟文件系统，不能作为脚本路径传给子进程。
+const BUN_VIRTUAL_ENTRY_PREFIX = "/$bunfs/root/";
+
 async function runPiInProfile(name: string, args: string[]): Promise<number> {
   const invocation = getPiInvocation(getProfileLaunchArguments(args));
   const child = spawn(invocation.command, invocation.args, {
@@ -54,15 +57,21 @@ export async function routeActiveProfile(): Promise<void> {
 }
 
 function getPiInvocation(args: string[]): { command: string; args: string[] } {
-  if (process.versions.bun) return { command: process.execPath, args };
-  const entrypoint = process.argv[1];
-  if (!entrypoint)
-    throw new Error("Could not determine the current Pi entrypoint.");
+  const entrypoint = getEntrypoint();
+  if (!entrypoint) return { command: process.execPath, args };
   return { command: process.execPath, args: [entrypoint, ...args] };
 }
 
+function getEntrypoint(): string | undefined {
+  const entrypoint = process.argv[1];
+  if (!entrypoint || entrypoint.startsWith(BUN_VIRTUAL_ENTRY_PREFIX))
+    return undefined;
+  return entrypoint;
+}
+
+// Node 与 Bun 均把运行时放在 argv[0]，入口脚本放在 argv[1]。
 function getCliArgs(): string[] {
-  return process.versions.bun ? process.argv.slice(1) : process.argv.slice(2);
+  return process.argv.slice(2);
 }
 
 function hasCliFlag(name: string): boolean {
