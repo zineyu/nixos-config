@@ -65,5 +65,8 @@
 
     Host tianxuan macbook-air-01 aliyun-01-ts
       StrictHostKeyChecking accept-new
+      # 弱网/休眠环境下及时探测连接死亡，避免终端挂死在假死连接上。
+      ServerAliveInterval 30
+      ServerAliveCountMax 3
   '';
 }
