@@ -41,6 +41,7 @@
       pi.enable = true;
 
       # gui
+      rustdesk.enable = true;
       firefox.enable = true;
       chromium.enable = true;
       thunderbird.enable = true;
