@@ -29,6 +29,13 @@
       fish_vi_key_bindings
 
       contains "$N_PREFIX/bin" $PATH; or set -a PATH "$N_PREFIX/bin"
+
+      # SSH 登录自动接入常驻 zellij 会话：任何设备 ssh 进来即恢复现场，
+      # 断线重连无缝续接。非交互 SSH（rsync/git/scp）不执行本段天然安全；
+      # 已处于 zellij 内或需要普通 shell 时，用 ZELLIJ_NO_AUTO_ATTACH=1 ssh <host> 跳过。
+      if set -q SSH_CONNECTION; and not set -q ZELLIJ; and not set -q ZELLIJ_NO_AUTO_ATTACH; and command -q zellij
+        exec zellij attach --create main
+      end
     '';
 
     functions = {
