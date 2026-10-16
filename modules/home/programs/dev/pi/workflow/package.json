@@ -5,7 +5,6 @@
   "keywords": ["pi-package"],
   "pi": {
     "extensions": ["./extensions/subagents"],
-    "skills": ["./skills"],
     "prompts": ["./prompts/*.md"]
   }
 }
