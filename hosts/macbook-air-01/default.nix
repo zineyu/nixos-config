@@ -79,6 +79,10 @@ in
       "karabiner-elements"
       "orbstack"
       "jordanbaird-ice"
+      # RustDesk 客户端（双向互控，被控端由 App 自带的 LaunchDaemon 常驻；
+      # nixpkgs 的 rustdesk-flutter 仅支持 linux）。
+      # 首次打开需在本机授权：屏幕录制 + 辅助功能，并安装其服务。
+      "rustdesk"
     ];
     # Xcode is only distributed through the Mac App Store. Requires zine to
     # be signed in to the App Store app before activation.
