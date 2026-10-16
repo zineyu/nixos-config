@@ -19,6 +19,7 @@
 | `system.nix` | 内核、最小系统包（引导加载器由各 host 自行配置）。 | `linuxPackages_latest`、fish、vim、wget |
 | `users.nix` | 定义单用户 `zine` 及其用户组。 | `wheel`、`video`、`render`、`docker`；shell = fish |
 | `tailscale.nix` | 所有 NixOS host 加入 Headscale tailnet（`hs.zineyu.cn`）。 | `services.tailscale`、`openFirewall`（UDP 41641）、`tailscale0` 为 trusted interface |
+| `ssh.nix` | 所有 NixOS host 开启 sshd，供 tailnet 成员密钥直连。 | 仅密钥登录（`PasswordAuthentication` off）；授权 zine 的 OpenPGP auth 子钥（`vars.ssh.zinePublicKey`） |
 ### `modules/nixos/desktop/`
 
 桌面环境相关的系统服务与硬件配置。
@@ -65,6 +66,7 @@ Darwin host 的系统级模块，由各 `hosts/<hostname>/default.nix` 显式导
 |------|---------|---------|
 | `sops.nix` | Darwin host 的 sops-nix 基础配置（age identity rootfs 副本）。 | `/var/lib/sops-nix/key.txt` |
 | `tailscale.nix` | Darwin host 的 tailnet 接入：tailscaled LaunchDaemon + 自定义 MagicDNS 域 resolver。 | `services.tailscale`、`/etc/resolver/ts.zineyu.cn` |
+| `remote-login.nix` | 开启 macOS 自带 SSH（Remote Login），供 tailnet 成员直连。 | `launchctl` 操作 `com.openssh.sshd`；公钥授权经 `home/ssh.nix` 写入 |
 
 ---
 
@@ -78,7 +80,7 @@ Darwin host 的系统级模块，由各 `hosts/<hostname>/default.nix` 显式导
 |------|---------|---------|
 | `<hostname>.nix` | 每台机器的 Home Manager 组织文件（全显式 imports + 启用列表）。 | `lib/mkSystem.nix` 在文件存在时自动接入 `home-manager.users.zine` |
 | `common.nix` | Home Manager 基础状态与自启用。 | `programs.home-manager.enable`；`home.stateVersion` 由 host inventory 注入 |
-| `ssh.nix` | 基于 sops-nix 的 SSH alias 配置（如 `aliyun-01`）。 | `sops.secrets.aliyun-01`、`sops.templates.ssh-hosts` |
+| `ssh.nix` | SSH alias 配置：sops 渲染的公网主机（如 `aliyun-01`）+ tailnet 成员别名 + 公钥授权。 | `sops.templates.ssh-hosts`、`~/.ssh/authorized_keys`（`vars.ssh.zinePublicKey`）、`tianxuan`/`macbook-air-01`/`aliyun-01-ts` 走 MagicDNS 直连 |
 
 ### `modules/home/` — 共享定义层
 

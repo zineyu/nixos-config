@@ -32,6 +32,7 @@ in
   imports = [
     ../../modules/darwin/sops.nix
     ../../modules/darwin/tailscale.nix
+    ../../modules/darwin/remote-login.nix
   ];
 
   networking.hostName = hostname;

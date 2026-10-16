@@ -1,11 +1,17 @@
 {
   config,
+  vars,
   ...
 }:
 {
   # 本机（桌面）解密并生成 SSH alias 配置。
   # secrets/ssh-hosts.yaml 里只放 host -> 真实 IP/域名的映射，
   # 仓库里 deploy-rs 仍然只保留非敏感别名。
+  #
+  # 各 host 的公钥授权：写入 ~/.ssh/authorized_keys（0644 非他人可写，
+  # 满足 sshd StrictModes），私钥侧由 gpg-agent SSH 套接字提供。
+  home.file.".ssh/authorized_keys".text = "${vars.ssh.zinePublicKey}\n";
+
   sops.secrets.aliyun-01 = {
     sopsFile = ../secrets/ssh-hosts.yaml;
   };
@@ -39,5 +45,25 @@
   # 这里通过 Include 引入 sops-nix 渲染后的真实主机配置，
   # 避免直接对只读 store symlink 写入。
   programs.ssh.settings."*" = { };
-  programs.ssh.extraConfig = "Include ${config.sops.templates.ssh-hosts.path}";
+  # tailnet 成员别名：走 MagicDNS 名称直连（+.ts.zineyu.cn 的解析
+  # 见 docs/adr/0008-headscale-tailnet.md）。StrictHostKeyChecking=accept-new
+  # 使脚本化场景（备份 rsync 等）首次连接不交互。
+  programs.ssh.extraConfig = ''
+    Include ${config.sops.templates.ssh-hosts.path}
+
+    Host tianxuan
+      HostName tianxuan.ts.zineyu.cn
+      User zine
+
+    Host macbook-air-01
+      HostName macbook-air-01.ts.zineyu.cn
+      User zine
+
+    Host aliyun-01-ts
+      HostName aliyun-01.ts.zineyu.cn
+      User root
+
+    Host tianxuan macbook-air-01 aliyun-01-ts
+      StrictHostKeyChecking accept-new
+  '';
 }
