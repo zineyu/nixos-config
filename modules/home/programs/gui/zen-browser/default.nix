@@ -85,6 +85,16 @@ in
     unwrappedPackage = stableZenUnwrapped;
     policies = zenPolicies;
 
+    # Workaround for upstream breakage (0xc000022070/zen-browser-flake#403):
+    # the module's signed-Darwin assertion reads
+    # programs.zen-browser.enableGnomeExtensions, which recent home-manager
+    # removed (now a throwing stub), so any Darwin evaluation fails.
+    # "wrapped" makes isSignedDarwin = false, short-circuiting the assertion
+    # before its `used` value (the removed option) is forced. The wrapped
+    # bundle loses the upstream signature, which the resignZenBrowser
+    # activation below re-signs ad-hoc anyway.
+    darwin.packageMode = "wrapped";
+
     profiles."f03mub95.Default (release)" = {
       id = 0;
       name = "Default (release)";
