@@ -87,7 +87,7 @@ in
   };
 
   # 状态快照：sqlite 在线备份 + noise 私钥。tianxuan 每日拉取本目录
-  # （见 home/tianxuan.nix 的 headscale-backup-pull 用户 timer）。
+  # （见 modules/home/services/headscale-backup-pull.nix 的用户 timer）。
   systemd.services.headscale-backup = {
     description = "Snapshot headscale state (sqlite online backup + noise key)";
     after = [ "headscale.service" ];

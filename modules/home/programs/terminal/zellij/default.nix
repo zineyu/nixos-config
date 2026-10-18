@@ -1,9 +1,19 @@
-{ ... }:
-
 {
-  programs.zellij = {
-    # Converted from the previous hand-maintained config.kdl; verified to
-    # produce a semantically identical KDL tree via lib.hm.generators.toKDL.
-    settings = import ./settings.nix;
+  config,
+  lib,
+  ...
+}:
+
+let
+  cfg = config.zine.programs.zellij;
+in
+{
+  options.zine.programs.zellij.enable = lib.mkEnableOption "zellij 终端复用器";
+
+  config = lib.mkIf cfg.enable {
+    programs.zellij = {
+      enable = true;
+      settings = import ./settings.nix;
+    };
   };
 }

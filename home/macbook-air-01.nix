@@ -1,60 +1,54 @@
-# macbook-air-01 的 Home Manager 组织文件（全显式）。
-# macbook-air-01 按需选择 Home Manager 模块与软件。
-# 平台兼容性由具体软件包定义。
+# macbook-air-01 的 Home Manager 组织文件：导入共享层，再逐个打开开关。
 { pkgs, ... }:
 
 {
   imports = [
-    ./common.nix
-    ../modules/home/packages/tools.nix # CLI 裸包捆绑
-    ../modules/home/packages/dev-tools.nix # 开发工具链/Agent 裸包捆绑
-    ../modules/home/packages # options 定义层（默认不启用）
-    ../modules/home/shell
-    ../modules/home/programs/dev
-    ../modules/home/programs/terminal
-    ../modules/home/programs/misc
-    ../modules/home/programs/gui/zen-browser
-    ../modules/home/agent-skills
-    ../modules/home/packages/gui.nix # GUI 程序
-    ./ssh.nix
+    ../modules/home # 用户环境共享层（programs、bundles、ssh、agent-skills 等）
   ];
 
-  zine.programs = {
-    # shell
-    fish.enable = true;
-    bash.enable = true;
-    starship.enable = true;
+  zine = {
+    bundles = {
+      cli.enable = true;
+      dev.enable = true;
+    };
 
-    # terminal
-    kitty.enable = true;
-    atuin.enable = true;
-    yazi.enable = true;
-    zellij.enable = true;
-    zoxide.enable = true;
+    programs = {
+      # shell
+      fish.enable = true;
+      bash.enable = true;
+      starship.enable = true;
 
-    # dev
-    git.enable = true;
-    jujutsu.enable = true;
-    mise.enable = true;
-    devenv.enable = true;
-    npm.enable = true;
-    vscode.enable = true;
-    dbeaver.enable = true;
-    nixvim.enable = true;
-    zed-editor.enable = true;
-    fabric.enable = true;
-    pi.enable = true;
+      # terminal
+      kitty.enable = true;
+      atuin.enable = true;
+      yazi.enable = true;
+      zellij.enable = true;
+      zoxide.enable = true;
 
-    # misc
-    aria2.enable = true;
-    gpg.enable = true;
-    karabiner-elements.enable = true;
-    ssh.enable = true;
-    sops.enable = true;
+      # dev
+      git.enable = true;
+      jujutsu.enable = true;
+      mise.enable = true;
+      devenv.enable = true;
+      npm.enable = true;
+      vscode.enable = true;
+      dbeaver.enable = true;
+      nixvim.enable = true;
+      zed-editor.enable = true;
+      fabric.enable = true;
+      pi.enable = true;
 
-    # gui
-    dbx-desktop.enable = true;
-    zen-browser.enable = true;
+      # gui
+      dbx-desktop.enable = true;
+      zen-browser.enable = true;
+
+      # misc
+      aria2.enable = true;
+      gpg.enable = true;
+      karabiner-elements.enable = true;
+      ssh.enable = true;
+      sops.enable = true;
+    };
   };
 
   # macbook-air-01 专属的代理内核；配置由用户放在 ~/.config/mihomo/。

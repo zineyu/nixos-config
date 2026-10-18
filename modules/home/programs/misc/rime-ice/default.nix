@@ -7,12 +7,17 @@
 
 let
   cfg = config.zine.programs.rime-ice;
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   squirrel = pkgs.callPackage ../../../../../pkgs/squirrel.nix { };
   squirrelApp = "${squirrel}/Library/Input Methods/Squirrel.app";
 in
 {
-  config = lib.mkIf (cfg.enable && pkgs.stdenv.hostPlatform.isDarwin) {
-    home.file = {
+  options.zine.programs.rime-ice.enable = lib.mkEnableOption "Rime Ice 雾凇拼音输入法";
+
+  config = lib.mkIf cfg.enable {
+    home.packages = [ pkgs.rime-ice ] ++ lib.optionals isDarwin [ squirrel ];
+
+    home.file = lib.mkIf isDarwin {
       "Library/Input Methods/Squirrel.app".source = squirrelApp;
 
       # Keep Rime's generated build products and user dictionaries writable
@@ -28,13 +33,15 @@ in
       '';
     };
 
-    home.activation.registerSquirrel = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      squirrel="$HOME/Library/Input Methods/Squirrel.app/Contents/MacOS/Squirrel"
-      if [[ -x "$squirrel" ]]; then
-        run "$squirrel" --register-input-source
-        run "$squirrel" --enable-input-source
-        run "$squirrel" --reload
-      fi
-    '';
+    home.activation.registerSquirrel = lib.mkIf isDarwin (
+      lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+        squirrel="$HOME/Library/Input Methods/Squirrel.app/Contents/MacOS/Squirrel"
+        if [[ -x "$squirrel" ]]; then
+          run "$squirrel" --register-input-source
+          run "$squirrel" --enable-input-source
+          run "$squirrel" --reload
+        fi
+      ''
+    );
   };
 }

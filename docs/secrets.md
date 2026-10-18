@@ -23,7 +23,7 @@
 - `secrets/gnupg.yaml` 保存 GnuPG 私钥，由 `modules/home/programs/misc/gnupg` 导入。
 - `secrets/atuin.yaml` 保存 atuin 加密密钥（`atuin_key`，XSalsa20Poly1305 密钥的 msgpack+base64 编码），仅 `zine_desktop` 身份可解密；由 `modules/home/programs/terminal/atuin` 解密并软链到 `~/.local/share/atuin/key`（tianxuan 与 macbook-air-01 共用同一把密钥，同步历史互通）。
 - `secrets/aliyun-01.yaml` 保存 `luogo_checkin` 环境变量、Vaultwarden `ADMIN_TOKEN`、Gotify 初始管理员密码和 Headplane cookie 签名密钥（`headplane_cookie_secret`）。
-- `secrets/ssh-hosts.yaml` 保存 `aliyun-01` 的真实 SSH 地址，由 `home/ssh.nix` 解密并渲染 SSH alias。
+- `secrets/ssh-hosts.yaml` 保存 `aliyun-01` 的真实 SSH 地址，由 `modules/home/ssh` 解密并渲染 SSH alias。
 - `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
 - `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
 - `tianxuan` 与 `macbook-air-01` 的系统级 sops-nix 使用 `/var/lib/sops-nix/key.txt`。这是管理员 age identity 的 rootfs 副本，recipient 仍是 `zine_desktop`；系统激活早于用户 home 可用，因此不能依赖用户 home 中的 key。`/home/zine/.config/sops/age/keys.txt`（Mac 上为 `/Users/zine/.config/sops/age/keys.txt`）继续用于管理员操作和 Home Manager secret。
@@ -57,7 +57,7 @@ nodes.aliyun-01 = {
 };
 ```
 
-真实地址保存在 `secrets/ssh-hosts.yaml`，由 `home/ssh.nix` 解密后生成 SSH alias 配置：
+真实地址保存在 `secrets/ssh-hosts.yaml`，由 `modules/home/ssh` 解密后生成 SSH alias 配置：
 
 ```ssh
 Host aliyun-01
@@ -102,7 +102,7 @@ Overlay 网络已由 WireGuard 切换为自托管 Headscale tailnet（见 `docs/
   ```
 
   手机在 Tailscale App 中将 control server 设为 `https://hs.zineyu.cn`，登录后同样在服务器上 `headscale nodes register` 批准。
-Headscale 自身的状态（`/var/lib/headscale` 的 SQLite 与 noise 私钥）**丢失会导致全网节点需要重新注册**，因此有每日快照 + `tianxuan` 拉取的备份链路（见 `modules/nixos/server/headscale.nix` 与 `home/tianxuan.nix`），恢复步骤见 `headscale.nix` 头部注释的 runbook。
+Headscale 自身的状态（`/var/lib/headscale` 的 SQLite 与 noise 私钥）**丢失会导致全网节点需要重新注册**，因此有每日快照 + `tianxuan` 拉取的备份链路（见 `modules/nixos/server/headscale.nix` 与 `modules/home/services/headscale-backup-pull.nix`），恢复步骤见 `headscale.nix` 头部注释的 runbook。
 ## 新增一台 host
 
 1. 在 `hosts/default.nix` 注册 host 并创建对应的 host 模块。

@@ -1,8 +1,7 @@
 # Host module for the `tianxuan` machine.
 #
-# This module imports the system configuration and wires the single user
-# Home Manager entry into NixOS. It is consumed by flake.nix via
-# `import ./hosts/${hostname}`.
+# Only system-level overrides specific to this machine belong here.
+# The user environment is wired by lib/mkSystem.nix from home/tianxuan.nix.
 { ... }:
 {
   imports = [ ./configuration.nix ];

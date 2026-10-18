@@ -1,4 +1,9 @@
-{ ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 # 自定义 fabric patterns：从 diff / 变更描述生成 Conventional Commit 信息、
 # PR 描述与分支名。
@@ -11,13 +16,21 @@
 #   git diff main...HEAD | fabric -p my_pr_description
 #   echo "给登录页加上验证码" | fabric -p my_branch_name
 #   jj diff --git | fabric -p my_pr_bundle   # 一次输出分支名 + commit + PR 描述
+let
+  cfg = config.zine.programs.fabric;
+in
 {
+  options.zine.programs.fabric.enable = lib.mkEnableOption "fabric AI";
 
-  xdg.configFile = {
-    "fabric/patterns/my_conventional_commit/system.md".source =
-      ./patterns/my_conventional_commit/system.md;
-    "fabric/patterns/my_pr_description/system.md".source = ./patterns/my_pr_description/system.md;
-    "fabric/patterns/my_branch_name/system.md".source = ./patterns/my_branch_name/system.md;
-    "fabric/patterns/my_pr_bundle/system.md".source = ./patterns/my_pr_bundle/system.md;
+  config = lib.mkIf cfg.enable {
+    home.packages = [ pkgs.fabric-ai ];
+
+    xdg.configFile = {
+      "fabric/patterns/my_conventional_commit/system.md".source =
+        ./patterns/my_conventional_commit/system.md;
+      "fabric/patterns/my_pr_description/system.md".source = ./patterns/my_pr_description/system.md;
+      "fabric/patterns/my_branch_name/system.md".source = ./patterns/my_branch_name/system.md;
+      "fabric/patterns/my_pr_bundle/system.md".source = ./patterns/my_pr_bundle/system.md;
+    };
   };
 }

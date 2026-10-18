@@ -1,4 +1,5 @@
 {
+  config,
   inputs,
   lib,
   pkgs,
@@ -6,6 +7,8 @@
 }:
 
 let
+  cfg = config.zine.programs.zen-browser;
+
   zenPolicies = {
     DisableAppUpdate = true;
     DisableFeedbackCommands = true;
@@ -80,138 +83,143 @@ in
 {
   imports = [ inputs.zen-browser.homeModules.default ];
 
-  programs.zen-browser = {
-    setAsDefaultBrowser = false;
-    unwrappedPackage = stableZenUnwrapped;
-    policies = zenPolicies;
+  options.zine.programs.zen-browser.enable = lib.mkEnableOption "Zen Browser";
 
-    # Workaround for upstream breakage (0xc000022070/zen-browser-flake#403):
-    # the module's signed-Darwin assertion reads
-    # programs.zen-browser.enableGnomeExtensions, which recent home-manager
-    # removed (now a throwing stub), so any Darwin evaluation fails.
-    # "wrapped" makes isSignedDarwin = false, short-circuiting the assertion
-    # before its `used` value (the removed option) is forced. The wrapped
-    # bundle loses the upstream signature, which the resignZenBrowser
-    # activation below re-signs ad-hoc anyway.
-    darwin.packageMode = "wrapped";
+  config = lib.mkIf cfg.enable {
+    programs.zen-browser = {
+      enable = true;
+      setAsDefaultBrowser = false;
+      unwrappedPackage = stableZenUnwrapped;
+      policies = zenPolicies;
 
-    profiles."f03mub95.Default (release)" = {
-      id = 0;
-      name = "Default (release)";
-      path = "f03mub95.Default (release)";
-      isDefault = true;
+      # Workaround for upstream breakage (0xc000022070/zen-browser-flake#403):
+      # the module's signed-Darwin assertion reads
+      # programs.zen-browser.enableGnomeExtensions, which recent home-manager
+      # removed (now a throwing stub), so any Darwin evaluation fails.
+      # "wrapped" makes isSignedDarwin = false, short-circuiting the assertion
+      # before its `used` value (the removed option) is forced. The wrapped
+      # bundle loses the upstream signature, which the resignZenBrowser
+      # activation below re-signs ad-hoc anyway.
+      darwin.packageMode = "wrapped";
 
-      settings = {
-        "browser.ctrlTab.sortByRecentlyUsed" = true;
-        "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
-        "browser.safebrowsing.malware.enabled" = false;
-        "browser.safebrowsing.phishing.enabled" = false;
-        "browser.tabs.loadInBackground" = false;
-        "browser.toolbars.bookmarks.visibility" = "always";
-        "browser.translations.automaticallyPopup" = false;
-        "browser.urlbar.suggest.engines" = false;
-        "browser.urlbar.suggest.searches" = false;
-        "dom.security.https_only_mode" = true;
-        "extensions.formautofill.addresses.enabled" = false;
-        "extensions.formautofill.creditCards.enabled" = false;
-        "general.autoScroll" = true;
-        "intl.accept_languages" = "zh-cn,zh";
-        "intl.locale.requested" = "zh-CN,en-US";
-        "media.autoplay.default" = 0;
-        "media.peerconnection.enabled" = false;
-        "media.peerconnection.ice.default_address_only" = true;
-        "media.peerconnection.ice.no_host" = true;
-        "media.peerconnection.ice.proxy_only_if_behind_proxy" = true;
-        "network.trr.mode" = 5;
-        "nimbus.rollouts.enabled" = false;
-        "privacy.globalprivacycontrol.enabled" = true;
-        "signon.rememberSignons" = false;
-        "zen.view.compact.enable-at-startup" = true;
-        "zen.view.use-single-toolbar" = false;
-        "zen.welcome-screen.seen" = true;
-      };
+      profiles."f03mub95.Default (release)" = {
+        id = 0;
+        name = "Default (release)";
+        path = "f03mub95.Default (release)";
+        isDefault = true;
 
-      containersForce = true;
-      containers = {
-        Personal = {
-          id = 1;
-          color = "blue";
-          icon = "fingerprint";
+        settings = {
+          "browser.ctrlTab.sortByRecentlyUsed" = true;
+          "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
+          "browser.safebrowsing.malware.enabled" = false;
+          "browser.safebrowsing.phishing.enabled" = false;
+          "browser.tabs.loadInBackground" = false;
+          "browser.toolbars.bookmarks.visibility" = "always";
+          "browser.translations.automaticallyPopup" = false;
+          "browser.urlbar.suggest.engines" = false;
+          "browser.urlbar.suggest.searches" = false;
+          "dom.security.https_only_mode" = true;
+          "extensions.formautofill.addresses.enabled" = false;
+          "extensions.formautofill.creditCards.enabled" = false;
+          "general.autoScroll" = true;
+          "intl.accept_languages" = "zh-cn,zh";
+          "intl.locale.requested" = "zh-CN,en-US";
+          "media.autoplay.default" = 0;
+          "media.peerconnection.enabled" = false;
+          "media.peerconnection.ice.default_address_only" = true;
+          "media.peerconnection.ice.no_host" = true;
+          "media.peerconnection.ice.proxy_only_if_behind_proxy" = true;
+          "network.trr.mode" = 5;
+          "nimbus.rollouts.enabled" = false;
+          "privacy.globalprivacycontrol.enabled" = true;
+          "signon.rememberSignons" = false;
+          "zen.view.compact.enable-at-startup" = true;
+          "zen.view.use-single-toolbar" = false;
+          "zen.welcome-screen.seen" = true;
         };
-        Work = {
-          id = 2;
-          color = "orange";
-          icon = "briefcase";
-        };
-        Banking = {
-          id = 3;
-          color = "green";
-          icon = "dollar";
-        };
-        Shopping = {
-          id = 4;
-          color = "pink";
-          icon = "cart";
-        };
-      };
 
-      keyboardShortcutsVersion = 21;
-      keyboardShortcuts = [
-        {
-          id = "zen-compact-mode-toggle";
-          key = "s";
-          keycode = "";
-          modifiers = {
-            accel = true;
-            alt = false;
-            control = false;
-            meta = false;
-            shift = false;
+        containersForce = true;
+        containers = {
+          Personal = {
+            id = 1;
+            color = "blue";
+            icon = "fingerprint";
           };
-        }
-        {
-          id = "zen-compact-mode-show-sidebar";
-          key = "s";
-          keycode = "";
-          modifiers = {
-            accel = true;
-            alt = true;
-            control = false;
-            meta = false;
-            shift = false;
+          Work = {
+            id = 2;
+            color = "orange";
+            icon = "briefcase";
           };
-        }
-        {
-          id = "key_toggleReaderMode";
-          disabled = true;
-        }
-        {
-          id = "key_exitFullScreen";
-          disabled = true;
-        }
-      ];
+          Banking = {
+            id = 3;
+            color = "green";
+            icon = "dollar";
+          };
+          Shopping = {
+            id = 4;
+            color = "pink";
+            icon = "cart";
+          };
+        };
+
+        keyboardShortcutsVersion = 21;
+        keyboardShortcuts = [
+          {
+            id = "zen-compact-mode-toggle";
+            key = "s";
+            keycode = "";
+            modifiers = {
+              accel = true;
+              alt = false;
+              control = false;
+              meta = false;
+              shift = false;
+            };
+          }
+          {
+            id = "zen-compact-mode-show-sidebar";
+            key = "s";
+            keycode = "";
+            modifiers = {
+              accel = true;
+              alt = true;
+              control = false;
+              meta = false;
+              shift = false;
+            };
+          }
+          {
+            id = "key_toggleReaderMode";
+            disabled = true;
+          }
+          {
+            id = "key_exitFullScreen";
+            disabled = true;
+          }
+        ];
+      };
     };
+
+    # The bundle copied by Home Manager can fail LaunchServices validation on
+    # Darwin with kLSNoExecutableErr even though Contents/MacOS/zen runs. Always
+    # replace the upstream signature after the application has been copied:
+    # checking it immediately after rsync can incorrectly report it as valid.
+    home.activation.resignZenBrowser = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
+      lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+        zen_app="$HOME/Applications/Home Manager Apps/Zen Browser.app"
+        if [[ -d "$zen_app" ]]; then
+          run /usr/bin/codesign --force --deep --sign - "$zen_app"
+          run /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+            -f "$zen_app"
+        fi
+      ''
+    );
+
+    xdg.mimeApps = {
+      associations.added = lib.genAttrs browserMimeTypes (_: lib.mkDefault defaultBrowser);
+      defaultApplications = lib.genAttrs browserMimeTypes (_: lib.mkDefault defaultBrowser);
+    };
+
+    home.sessionVariables.BROWSER = "zen-stable";
   };
-
-  # The bundle copied by Home Manager can fail LaunchServices validation on
-  # Darwin with kLSNoExecutableErr even though Contents/MacOS/zen runs. Always
-  # replace the upstream signature after the application has been copied:
-  # checking it immediately after rsync can incorrectly report it as valid.
-  home.activation.resignZenBrowser = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
-    lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      zen_app="$HOME/Applications/Home Manager Apps/Zen Browser.app"
-      if [[ -d "$zen_app" ]]; then
-        run /usr/bin/codesign --force --deep --sign - "$zen_app"
-        run /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
-          -f "$zen_app"
-      fi
-    ''
-  );
-
-  xdg.mimeApps = {
-    associations.added = lib.genAttrs browserMimeTypes (_: lib.mkDefault defaultBrowser);
-    defaultApplications = lib.genAttrs browserMimeTypes (_: lib.mkDefault defaultBrowser);
-  };
-
-  home.sessionVariables.BROWSER = "zen-stable";
 }

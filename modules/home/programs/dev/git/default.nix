@@ -1,42 +1,56 @@
 {
-  programs.git = {
-    settings = {
-      user = {
-        email = "zine.xlws@gmail.com";
-        name = "zine yu";
-        signingKey = "EE86111F659E24AB";
-      };
+  config,
+  lib,
+  ...
+}:
 
-      core.editor = "nvim";
+let
+  cfg = config.zine.programs.git;
+in
+{
+  options.zine.programs.git.enable = lib.mkEnableOption "git";
 
-      commit.gpgSign = true;
-      tag.gpgSign = true;
-      init.defaultBranch = "main";
-      push.autoSetupRemote = true;
-      pull.rebase = true;
-      safe.directory = "*";
-      lfs.concurrenttransfers = 3;
+  config = lib.mkIf cfg.enable {
+    programs.git = {
+      enable = true;
+      settings = {
+        user = {
+          email = "zine.xlws@gmail.com";
+          name = "zine yu";
+          signingKey = "EE86111F659E24AB";
+        };
 
-      alias = {
-        st = "status";
-        co = "checkout";
-        ci = "commit -s -S";
-        br = "branch";
-        lg = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit";
-        lgn = "lg -n";
-      };
+        core.editor = "nvim";
 
-      "lfs \"customtransfer.xet\"" = {
-        path = "git-xet";
-        args = "transfer";
-        concurrent = true;
-      };
+        commit.gpgSign = true;
+        tag.gpgSign = true;
+        init.defaultBranch = "main";
+        push.autoSetupRemote = true;
+        pull.rebase = true;
+        safe.directory = "*";
+        lfs.concurrenttransfers = 3;
 
-      "filter \"lfs\"" = {
-        clean = "git-lfs clean -- %f";
-        smudge = "git-lfs smudge -- %f";
-        process = "git-lfs filter-process";
-        required = true;
+        alias = {
+          st = "status";
+          co = "checkout";
+          ci = "commit -s -S";
+          br = "branch";
+          lg = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit";
+          lgn = "lg -n";
+        };
+
+        "lfs \"customtransfer.xet\"" = {
+          path = "git-xet";
+          args = "transfer";
+          concurrent = true;
+        };
+
+        "filter \"lfs\"" = {
+          clean = "git-lfs clean -- %f";
+          smudge = "git-lfs smudge -- %f";
+          process = "git-lfs filter-process";
+          required = true;
+        };
       };
     };
   };

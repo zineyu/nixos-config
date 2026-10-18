@@ -9,6 +9,8 @@ let
   cfg = config.zine.programs.karabiner-elements;
 in
 {
+  options.zine.programs.karabiner-elements.enable = lib.mkEnableOption "Karabiner-Elements 用户配置";
+
   config = lib.mkIf cfg.enable {
     assertions = [
       {

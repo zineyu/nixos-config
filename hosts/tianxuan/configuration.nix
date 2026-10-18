@@ -22,8 +22,6 @@
     nvidiaBusId = vars.hosts.tianxuan.hardware.nvidiaBusId;
   };
 
-  # Host-specific networking.
-  # Host-specific networking.
   networking.hostName = hostname;
   # System activation runs before /home is mounted, so keep the system copy
   # of the administrator age identity on the root filesystem.

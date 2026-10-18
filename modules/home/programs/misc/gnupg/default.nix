@@ -6,6 +6,8 @@
 }:
 
 let
+  cfg = config.zine.programs.gpg;
+
   signingKey = "EE86111F659E24AB";
   authKeygrip = "C714C773B14F2E777BA919679A5A9DD61B2145D0";
   primaryFingerprint = "B6F9CB026D8DE746C15944E8DDA2A8ACF741A8CD";
@@ -39,101 +41,105 @@ let
   '';
 in
 {
+  options.zine.programs.gpg.enable = lib.mkEnableOption "GnuPG";
 
-  sops = {
-    age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-    defaultSopsFile = ../../../../../secrets/gnupg.yaml;
-    defaultSopsFormat = "yaml";
+  config = lib.mkIf cfg.enable {
+    sops = {
+      age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
+      defaultSopsFile = ../../../../../secrets/gnupg.yaml;
+      defaultSopsFormat = "yaml";
 
-    secrets.gnupg_private_key = {
-      mode = "0400";
+      secrets.gnupg_private_key = {
+        mode = "0400";
+      };
     };
-  };
 
-  # sops-nix tries to reload its service during activation before Home Manager
-  # has installed the service definition on a first generation. Run the generated
-  # script directly when the service is unavailable. On Darwin, setupLaunchAgents
-  # always runs later in the activation DAG, so the plist cannot be bootstrapped
-  # here yet.
-  home.activation.sops-nix = lib.mkForce (
-    lib.hm.dag.entryAfter [ "writeBoundary" ] (
-      if pkgs.stdenv.hostPlatform.isLinux then
-        ''
-          export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-          systemdStatus=$(${systemctl} --user is-system-running 2>&1 || true)
+    # sops-nix tries to reload its service during activation before Home Manager
+    # has installed the service definition on a first generation. Run the generated
+    # script directly when the service is unavailable. On Darwin, setupLaunchAgents
+    # always runs later in the activation DAG, so the plist cannot be bootstrapped
+    # here yet.
+    home.activation.sops-nix = lib.mkForce (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] (
+        if pkgs.stdenv.hostPlatform.isLinux then
+          ''
+            export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+            systemdStatus=$(${systemctl} --user is-system-running 2>&1 || true)
 
-          if [[ $systemdStatus == 'running' || $systemdStatus == 'degraded' ]] \
-            && ${systemctl} --user cat sops-nix.service >/dev/null 2>&1; then
-            ${systemctl} restart --user sops-nix
-          else
+            if [[ $systemdStatus == 'running' || $systemdStatus == 'degraded' ]] \
+              && ${systemctl} --user cat sops-nix.service >/dev/null 2>&1; then
+              ${systemctl} restart --user sops-nix
+            else
+              run ${sopsNixExecStart}
+            fi
+
+            unset systemdStatus
+          ''
+        else
+          ''
+            export PATH="''${PATH:+$PATH:}/usr/bin:/bin:/usr/sbin:/sbin"
             run ${sopsNixExecStart}
-          fi
+          ''
+      )
+    );
 
-          unset systemdStatus
+    programs.gpg = {
+      enable = true;
+      settings = {
+        default-key = signingKey;
+        keyid-format = "0xlong";
+        no-emit-version = true;
+        no-comments = true;
+        personal-digest-preferences = "SHA512 SHA384 SHA256";
+        cert-digest-algo = "SHA512";
+        default-preference-list = "SHA512 SHA384 SHA256 AES256 AES192 AES ZLIB BZIP2 ZIP Uncompressed";
+      };
+      dirmngrSettings = {
+        keyserver = "hkps://keys.openpgp.org";
+      };
+    };
+
+    services.gpg-agent = {
+      enable = true;
+      enableSshSupport = true;
+      enableExtraSocket = true;
+      enableFishIntegration = true;
+      defaultCacheTtl = 1800;
+      defaultCacheTtlSsh = 1800;
+      maxCacheTtl = 7200;
+      maxCacheTtlSsh = 7200;
+      sshKeys = [ authKeygrip ];
+      pinentry.package =
+        if pkgs.stdenv.hostPlatform.isDarwin then pkgs.pinentry_mac else pkgs.pinentry-gnome3;
+    };
+
+    programs.ssh = {
+      enableDefaultConfig = false;
+    };
+
+    systemd.user.services.import-gnupg-private-key = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+      Unit = {
+        Description = "Import GnuPG private key from sops-nix";
+        After = [ "sops-nix.service" ];
+        Requires = [ "sops-nix.service" ];
+      };
+
+      Service = {
+        Type = "oneshot";
+        ExecStart = toString importGnuPGPrivateKey;
+      };
+
+      Install.WantedBy = [ "default.target" ];
+    };
+
+    home.activation.importGnuPGPrivateKey =
+      lib.hm.dag.entryAfter
+        [
+          "sops-nix"
+          "createGpgHomedir"
+        ]
         ''
-      else
-        ''
-          export PATH="''${PATH:+$PATH:}/usr/bin:/bin:/usr/sbin:/sbin"
-          run ${sopsNixExecStart}
-        ''
-    )
-  );
-
-  programs.gpg = {
-    settings = {
-      default-key = signingKey;
-      keyid-format = "0xlong";
-      no-emit-version = true;
-      no-comments = true;
-      personal-digest-preferences = "SHA512 SHA384 SHA256";
-      cert-digest-algo = "SHA512";
-      default-preference-list = "SHA512 SHA384 SHA256 AES256 AES192 AES ZLIB BZIP2 ZIP Uncompressed";
-    };
-    dirmngrSettings = {
-      keyserver = "hkps://keys.openpgp.org";
-    };
+          run ${importGnuPGPrivateKey}
+        '';
   };
-
-  services.gpg-agent = {
-    enable = true;
-    enableSshSupport = true;
-    enableExtraSocket = true;
-    enableFishIntegration = true;
-    defaultCacheTtl = 1800;
-    defaultCacheTtlSsh = 1800;
-    maxCacheTtl = 7200;
-    maxCacheTtlSsh = 7200;
-    sshKeys = [ authKeygrip ];
-    pinentry.package =
-      if pkgs.stdenv.hostPlatform.isDarwin then pkgs.pinentry_mac else pkgs.pinentry-gnome3;
-  };
-
-  programs.ssh = {
-    enableDefaultConfig = false;
-  };
-
-  systemd.user.services.import-gnupg-private-key = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
-    Unit = {
-      Description = "Import GnuPG private key from sops-nix";
-      After = [ "sops-nix.service" ];
-      Requires = [ "sops-nix.service" ];
-    };
-
-    Service = {
-      Type = "oneshot";
-      ExecStart = toString importGnuPGPrivateKey;
-    };
-
-    Install.WantedBy = [ "default.target" ];
-  };
-
-  home.activation.importGnuPGPrivateKey =
-    lib.hm.dag.entryAfter
-      [
-        "sops-nix"
-        "createGpgHomedir"
-      ]
-      ''
-        run ${importGnuPGPrivateKey}
-      '';
 }
