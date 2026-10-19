@@ -6,25 +6,6 @@
 
 let
   sharedNixSettings = import ../../lib/nix-settings.nix;
-  mihomoConfigDir = "/Users/zine/.config/mihomo";
-  mihomoConfigFile = "${mihomoConfigDir}/config.yaml";
-  mihomoLauncher = pkgs.writeShellScript "mihomo-launcher" ''
-    set -eu
-
-    # launchd may start system daemons before Wi-Fi and the default route are
-    # ready. Wait here so Mihomo does not fail while downloading geodata.
-    while ! {
-      [ -r "${mihomoConfigFile}" ]
-      /sbin/route -n get default >/dev/null 2>&1
-      /usr/bin/nc -z -G 3 223.5.5.5 53 >/dev/null 2>&1
-    }; do
-      /bin/sleep 5
-    done
-
-    exec ${pkgs.mihomo}/bin/mihomo \
-      -d "${mihomoConfigDir}" \
-      -f "${mihomoConfigFile}"
-  '';
 in
 {
   # nix-darwin host entry for macbook-air-01.
@@ -33,6 +14,7 @@ in
     ../../modules/darwin/sops.nix
     ../../modules/darwin/tailscale.nix
     ../../modules/darwin/remote-login.nix
+    ../../modules/darwin/mihomo.nix
   ];
 
   networking.hostName = hostname;
@@ -90,20 +72,6 @@ in
       Xcode = 497799835;
     };
     onActivation.cleanup = "none";
-  };
-
-  # Run Mihomo as a root LaunchDaemon so configurations with TUN enabled can
-  # create the network interface. The configuration itself remains user-owned.
-  launchd.daemons.mihomo.serviceConfig = {
-    ProgramArguments = [
-      "${mihomoLauncher}"
-    ];
-    KeepAlive = true;
-    RunAtLoad = true;
-    ThrottleInterval = 30;
-    ProcessType = "Background";
-    StandardOutPath = "/var/log/mihomo.log";
-    StandardErrorPath = "/var/log/mihomo.log";
   };
 
   # Used for backwards compatibility, please read the changelog before changing.

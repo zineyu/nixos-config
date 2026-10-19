@@ -1,0 +1,315 @@
+allow-lan: false
+bind-address: "*"
+geox-url:
+  geoip: "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat"
+  geosite: "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
+  mmdb: "https://cdn.jsdelivr.net/gh/Loyalsoldier/geoip@release/Country.mmdb"
+dns:
+  default-nameserver:
+  - 223.5.5.5
+  - 119.29.29.29
+  direct-nameserver:
+  - https://doh.pub/dns-query
+  - https://dns.alidns.com/dns-query
+  direct-nameserver-follow-policy: true
+  enable: true
+  enhanced-mode: fake-ip
+  fake-ip-filter:
+  # tailscaled 的控制面/DERP 拨号绕过本 TUN，必须拿到真实 IP（见 ADR-0008）。
+  - hs.zineyu.cn
+  - "*.lan"
+  - "*.localdomain"
+  - "*.example"
+  - "*.invalid"
+  - "*.localhost"
+  - "*.test"
+  - "*.local"
+  - "*.home.arpa"
+  - "*.arpa"
+  - time.*.com
+  - time.*.gov
+  - time.*.edu.cn
+  - time.*.apple.com
+  - time1.*.com
+  - time2.*.com
+  - time3.*.com
+  - time4.*.com
+  - time5.*.com
+  - time6.*.com
+  - time7.*.com
+  - ntp.*.com
+  - ntp1.*.com
+  - ntp2.*.com
+  - ntp3.*.com
+  - ntp4.*.com
+  - ntp5.*.com
+  - ntp6.*.com
+  - ntp7.*.com
+  - "*.time.edu.cn"
+  - "*.ntp.org.cn"
+  - +.pool.ntp.org
+  - time1.cloud.tencent.com
+  - stun.*.*
+  - stun.*.*.*
+  - swscan.apple.com
+  - mesu.apple.com
+  - music.163.com
+  - "*.music.163.com"
+  - "*.126.net"
+  - musicapi.taihe.com
+  - music.taihe.com
+  - songsearch.kugou.com
+  - trackercdn.kugou.com
+  - "*.kuwo.cn"
+  - api-jooxtt.sanook.com
+  - api.joox.com
+  - y.qq.com
+  - "*.y.qq.com"
+  - streamoc.music.tc.qq.com
+  - mobileoc.music.tc.qq.com
+  - isure.stream.qqmusic.qq.com
+  - dl.stream.qqmusic.qq.com
+  - aqqmusic.tc.qq.com
+  - amobile.music.tc.qq.com
+  - localhost.ptlogin2.qq.com
+  - "*.xiami.com"
+  - "*.music.migu.cn"
+  - music.migu.cn
+  - "*.msftconnecttest.com"
+  - "*.msftncsi.com"
+  - www.msftconnecttest.com
+  - +.wotgame.cn
+  - +.wggames.cn
+  - +.wowsgame.cn
+  - +.wargaming.net
+  - "*.*.*.srv.nintendo.net"
+  - "*.*.stun.playstation.net"
+  - xbox.*.*.microsoft.com
+  - "*.*.xboxlive.com"
+  - "*.ipv6.microsoft.com"
+  - teredo.*.*.*
+  - teredo.*.*
+  - speedtest.cros.wr.pvp.net
+  - +.jjvip8.com
+  - www.douyu.com
+  - activityapi.huya.com
+  - activityapi.huya.com.w.cdngslb.com
+  - www.bilibili.com
+  - api.bilibili.com
+  - a.w.bilicdn1.com
+  fake-ip-range: 198.18.0.1/16
+  ipv6: false
+  listen: 0.0.0.0:1053
+  nameserver:
+  - "https://1.1.1.1/dns-query#RULES"
+  - "https://8.8.8.8/dns-query#RULES"
+  nameserver-policy:
+    rule-set:apple:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+    rule-set:direct:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+    rule-set:icloud:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+    rule-set:private:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  proxy-server-nameserver:
+  - 119.29.29.29
+  - 223.5.5.5
+  respect-rules: true
+  use-hosts: false
+  use-system-hosts: false
+experimental:
+  sniff-tls-sni: true
+external-controller: 127.0.0.1:9090
+geodata-mode: true
+geoip: cn
+ip-geosite: cn
+ipv6: false
+log-level: info
+mixed-port: 7893
+mode: rule
+port: 7890
+profile:
+  store-fake-ip: true
+  store-selected: true
+proxy-providers:
+  nodes:
+    type: file
+    # 由 modules/darwin/mihomo.nix 注入：sops 解密的代理凭据（secrets/mihomo.yaml）。
+    path: "@proxies_file@"
+
+proxy-groups:
+  - name: PROXY
+    type: select
+    use:
+      - nodes
+    proxies:
+      - DIRECT
+redir-port: 7892
+rule-providers:
+  apple:
+    behavior: domain
+    format: yaml
+    interval: 86400
+    path: ./ruleset/apple.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt
+  applications:
+    behavior: classical
+    format: yaml
+    interval: 86400
+    path: ./ruleset/applications.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt
+  cncidr:
+    behavior: ipcidr
+    format: yaml
+    interval: 86400
+    path: ./ruleset/cncidr.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt
+  direct:
+    behavior: domain
+    format: yaml
+    interval: 86400
+    path: ./ruleset/direct.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt
+  gfw:
+    behavior: domain
+    format: yaml
+    interval: 86400
+    path: ./ruleset/gfw.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt
+  google:
+    behavior: domain
+    format: yaml
+    interval: 86400
+    path: ./ruleset/google.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt
+  icloud:
+    behavior: domain
+    format: yaml
+    interval: 86400
+    path: ./ruleset/icloud.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt
+  lancidr:
+    behavior: ipcidr
+    format: yaml
+    interval: 86400
+    path: ./ruleset/lancidr.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt
+  private:
+    behavior: domain
+    format: yaml
+    interval: 86400
+    path: ./ruleset/private.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt
+  proxy:
+    behavior: domain
+    format: yaml
+    interval: 86400
+    path: ./ruleset/proxy.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt
+  reject:
+    behavior: domain
+    format: yaml
+    interval: 86400
+    path: ./ruleset/reject.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt
+  telegramcidr:
+    behavior: ipcidr
+    format: yaml
+    interval: 86400
+    path: ./ruleset/telegramcidr.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt
+  tld-not-cn:
+    behavior: domain
+    format: yaml
+    interval: 86400
+    path: ./ruleset/tld-not-cn.txt
+    proxy: DIRECT
+    type: http
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt
+rules:
+- PROCESS-NAME,cfst,DIRECT
+- PROCESS-NAME,CloudflareST,DIRECT
+- RULE-SET,applications,DIRECT
+- DOMAIN,clash.razord.top,DIRECT
+- DOMAIN,yacd.haishan.me,DIRECT
+- RULE-SET,private,DIRECT
+- RULE-SET,lancidr,DIRECT,no-resolve
+- GEOIP,LAN,DIRECT,no-resolve
+- RULE-SET,reject,REJECT
+- AND,((NETWORK,UDP),(DST-PORT,443)),REJECT
+- AND,((NETWORK,UDP),(DST-PORT,853)),REJECT
+- RULE-SET,icloud,DIRECT
+- RULE-SET,apple,DIRECT
+- RULE-SET,direct,DIRECT
+- DOMAIN-SUFFIX,browserleaks.com,PROXY
+- DOMAIN-SUFFIX,ip.sb,PROXY
+- DOMAIN-SUFFIX,ip-api.com,PROXY
+- GEOSITE,cn,DIRECT
+- RULE-SET,cncidr,DIRECT,no-resolve
+- GEOIP,CN,DIRECT
+- DOMAIN-SUFFIX,openai.com,PROXY
+- DOMAIN-SUFFIX,chatgpt.com,PROXY
+- DOMAIN-SUFFIX,oaistatic.com,PROXY
+- DOMAIN-SUFFIX,oaiusercontent.com,PROXY
+- DOMAIN-SUFFIX,anthropic.com,PROXY
+- DOMAIN-SUFFIX,claude.ai,PROXY
+- DOMAIN,gemini.google.com,PROXY
+- DOMAIN,aistudio.google.com,PROXY
+- DOMAIN,makersuite.google.com,PROXY
+- DOMAIN,generativelanguage.googleapis.com,PROXY
+- DOMAIN-SUFFIX,perplexity.ai,PROXY
+- DOMAIN-SUFFIX,poe.com,PROXY
+- DOMAIN-SUFFIX,x.ai,PROXY
+- DOMAIN-SUFFIX,grok.com,PROXY
+- RULE-SET,google,PROXY
+- RULE-SET,gfw,PROXY
+- RULE-SET,proxy,PROXY
+- RULE-SET,tld-not-cn,PROXY
+- RULE-SET,telegramcidr,PROXY,no-resolve
+- MATCH,PROXY
+socks-port: 7891
+tcp-concurrent: true
+tun:
+  auto-detect-interface: true
+  auto-redirect: true
+  auto-route: true
+  dns-hijack:
+  - any:53
+  - tcp://any:53
+  enable: true
+  route-exclude-address:
+  - 100.64.0.0/10
+  stack: mixed
+  strict-route: true
+unified-delay: true
+
+

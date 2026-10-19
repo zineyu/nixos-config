@@ -52,6 +52,6 @@
     };
   };
 
-  # macbook-air-01 专属的代理内核；配置由用户放在 ~/.config/mihomo/。
+  # macbook-air-01 专属的代理内核 CLI（LaunchDaemon 与配置见 modules/darwin/mihomo）。
   home.packages = [ pkgs.mihomo ];
 }

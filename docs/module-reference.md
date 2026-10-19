@@ -72,6 +72,7 @@ Darwin host 的系统级模块，由各 `hosts/<hostname>/default.nix` 显式导
 | `sops.nix` | Darwin host 的 sops-nix 基础配置（age identity rootfs 副本）。 | `/var/lib/sops-nix/key.txt` |
 | `tailscale.nix` | Darwin host 的 tailnet 接入：tailscaled LaunchDaemon + 自定义 MagicDNS 域 resolver。 | `services.tailscale`、`/etc/resolver/ts.zineyu.cn` |
 | `remote-login.nix` | 开启 macOS 自带 SSH（Remote Login），供 tailnet 成员直连。 | `launchctl` 操作 `com.openssh.sshd`；公钥授权经 `modules/home/ssh` 写入 |
+| `mihomo.nix` | mihomo（fake-IP TUN 代理）LaunchDaemon；原生配置与模块共置于 `mihomo/config.yaml`。 | 代理凭据来自 `secrets/mihomo.yaml`（sops binary）；运行时状态在 `/var/lib/mihomo` |
 
 ---
 

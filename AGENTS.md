@@ -31,7 +31,7 @@
   - `modules/home/desktop/` — 用户级桌面环境层（niri、DankMaterialShell、字体、图标等）；由机器文件显式导入，导入即启用，具体软件包负责声明平台支持
   - `modules/nixos/` — 系统级 NixOS 模块目录，按用途分为 `common/`（所有 host 共享，含 Docker）、`desktop/`、`server/`；各目录下的 `packages.nix` 是系统级软件清单（`programs.<name>.enable` / `environment.systemPackages`），同目录其他模块只放服务与配置
   - `modules/nixos/common/users.nix` — 单用户账户 `zine` 的声明
-  - `modules/darwin/` — 系统级 nix-darwin 模块目录（如 `sops.nix`、`tailscale.nix`），由各 `hosts/<hostname>/default.nix` 按需显式导入
+  - `modules/darwin/` — 系统级 nix-darwin 模块目录（如 `sops.nix`、`tailscale.nix`、`mihomo.nix`），由各 `hosts/<hostname>/default.nix` 按需显式导入
   - `lib/` — 可复用 Nix 函数（`mkSystem.nix`、`niri-config.nix`、`storeLinks.nix`、`nix-settings.nix`、`nixpaks-*.nix`、`scanPaths.nix`）
   - `lib/storeLinks.nix` — 统一封装 in-store / out-of-store 链接策略，供 `xdg.configFile` 使用
   - `pkgs/` — 自定义/外部包定义（如 `dsh.nix`、`jj-bond.nix`、`orca.nix`），由 `modules/home/programs/`、`modules/home/bundles/` 或 `modules/nixos/` 通过 `pkgs.callPackage` 引用；同时在 flake `packages` 输出中暴露，每个包须带 `passthru.updateScript`（简单包薄封装 nix-update，复杂包用 `writeShellApplication` 自定义脚本共置于 `pkgs/update-<name>.sh`），供 `update-pkgs.yml` 统一 `nix run .#<name>.updateScript` 调用

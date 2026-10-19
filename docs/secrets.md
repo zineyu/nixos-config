@@ -19,13 +19,14 @@
   - `secrets/aliyun-01.yaml`：本机桌面与 `aliyun-01` 均可解密，保存服务 secret。
   - `secrets/ssh-hosts.yaml`：仅本机桌面可解密。
   - `secrets/tailscale.yaml`：本机桌面与 `aliyun-01` 均可解密，保存 tailnet 可复用 preauth key（`preauth_key`，repo 管理的 host 自动入网共用）。
+  - `secrets/mihomo.yaml`：仅本机桌面可解密，保存 macbook-air-01 的 mihomo 代理凭据（binary 格式，即 `proxies:` 文档）。
   - `secrets/cachix.yaml`：仅本机桌面可解密，保存 `auth_token`（cachix 推送凭证），由 `just push-cachix` 在本地推送系统 closure 时使用。
 - `secrets/gnupg.yaml` 保存 GnuPG 私钥，由 `modules/home/programs/misc/gnupg` 导入。
 - `secrets/atuin.yaml` 保存 atuin 加密密钥（`atuin_key`，XSalsa20Poly1305 密钥的 msgpack+base64 编码），仅 `zine_desktop` 身份可解密；由 `modules/home/programs/terminal/atuin` 解密并软链到 `~/.local/share/atuin/key`（tianxuan 与 macbook-air-01 共用同一把密钥，同步历史互通）。
 - `secrets/aliyun-01.yaml` 保存 `luogo_checkin` 环境变量、Vaultwarden `ADMIN_TOKEN`、Gotify 初始管理员密码和 Headplane cookie 签名密钥（`headplane_cookie_secret`）。
 - `secrets/ssh-hosts.yaml` 保存 `aliyun-01` 的真实 SSH 地址，由 `modules/home/ssh` 解密并渲染 SSH alias。
 - `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
-- `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
+- `secrets/mihomo.yaml` 以 sops **binary** 格式保存 mihomo 的 `proxies:` 文档，解密为 `/run/secrets/mihomo_proxies`；`modules/darwin/mihomo.nix` 把它当作 proxy-provider 文件（`SAFE_PATHS` 授权）。仓库里的 `modules/darwin/mihomo/config.yaml` 只保留非敏感部分（DNS、`fake-ip-filter`、规则）。更新代理：`sops secrets/mihomo.yaml` 后执行 `sudo darwin-rebuild switch --flake .#macbook-air-01`。
 - `tianxuan` 与 `macbook-air-01` 的系统级 sops-nix 使用 `/var/lib/sops-nix/key.txt`。这是管理员 age identity 的 rootfs 副本，recipient 仍是 `zine_desktop`；系统激活早于用户 home 可用，因此不能依赖用户 home 中的 key。`/home/zine/.config/sops/age/keys.txt`（Mac 上为 `/Users/zine/.config/sops/age/keys.txt`）继续用于管理员操作和 Home Manager secret。
 
 ## GitHub Actions secrets
