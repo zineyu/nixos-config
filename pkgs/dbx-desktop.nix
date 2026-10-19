@@ -95,12 +95,13 @@ else
     };
 
     # fetcherVersion = 4 的 FOD 产物随 pnpm 大版本变化；本 hash 基于当前
-    # nixpkgs 的 pnpm 12 计算，nixpkgs 升级 pnpm 大版本时需重新生成：
-    #   nix build .#<pkg>.pnpmDeps 2>&1 | grep 'got:'
+    # nixpkgs 的 pnpm 12.9.0 计算，nixpkgs 升级 pnpm/sqlite 时需重新生成
+    # （update-dbx-desktop.sh 会在版本未变但构建失败时自动重建）：
+    #   nix build .#dbx-desktop.pnpmDeps 2>&1 | grep 'got:'
     pnpmDeps = fetchPnpmDeps {
       inherit (finalAttrs) pname version src;
       fetcherVersion = 4;
-      hash = "sha256-Jm6KssUSeSXD6CtCtppZrn20eYSJUXL8cWLAdQeTKtw=";
+      hash = "sha256-EtHVY+bgmWHfrbhCRnZsfDrIplpKaO6I9StyF+IBYdA=";
     };
 
     cargoLock = {
