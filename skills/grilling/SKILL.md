@@ -5,26 +5,31 @@ description: Grill the user relentlessly about a plan, decision, or idea. Use wh
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
 
-Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.
+## One question at a time
 
-Format a round like so:
+Ask each question with the `ask_user_question` tool. Use one tool call per question, and answer nothing else in that call. Give the user one decision to make, then wait for the answer.
 
-```
-❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
+Build the question like this:
 
-➡️ <your recommended answer>
+- `question`: number it, give it a short title, then the body. The body can hold several paragraphs and the candidate answers.
+- `options`: put your recommended answer first and end its label with `(Recommended)`. Add the other answers you expect. The user can always select Other and type an answer.
 
----
+Word each question so that "yes" accepts your recommended answer.
 
-❓ **Q2** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
+## The frontier
 
-➡️ <your recommended answer>
-```
+The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you have not heard yet.
 
-Word each question so "yes" accepts your recommended answer.
+Ask one frontier question, take the answer, then recompute the frontier. Each answer settles a decision and pushes the frontier outward. A question whose answer depends on a decision still open belongs to a later step, so ask it after that decision is settled.
 
-Each round the user answers reshapes the tree: settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
+Ask the next question in the same turn as the answer that unblocked it.
 
-Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it; don't ask the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the sub-agent to report; ask the rest of the frontier now. The _decisions_ are the user's: put each to them and wait.
+## Facts and decisions
 
-The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.
+Finding _facts_ is your job, never the user's. When a question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it. Put _decisions_ to the user, one at a time.
+
+Do not block on a running exploration. A running sub-agent is an unsettled prerequisite, so only the questions downstream of it wait. Ask the other frontier questions now.
+
+## Completion
+
+The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Ask the user to confirm that you share the same understanding. Do not act on the plan until the user confirms.
