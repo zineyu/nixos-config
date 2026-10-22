@@ -44,7 +44,6 @@
       zen-browser.enable = true;
 
       # misc
-      aria2.enable = true;
       gpg.enable = true;
       karabiner-elements.enable = true;
       ssh.enable = true;

@@ -49,9 +49,9 @@
       zen-browser.enable = true;
       dolphin.enable = true;
       cursor.enable = true;
+      qbittorrent.enable = true;
 
       # misc
-      aria2.enable = true;
       gpg.enable = true;
       ssh.enable = true;
       sops.enable = true;

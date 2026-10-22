@@ -138,6 +138,7 @@ Darwin host 的系统级模块，由各 `hosts/<hostname>/default.nix` 显式导
 | `dbx-desktop/` | DBX Desktop。 | 自定义 `pkgs/dbx-desktop.nix` derivation |
 | `dolphin/` | KDE Dolphin 安装与默认目录关联。 | `xdg.mimeApps` |
 | `firefox/` | Firefox。 | `programs.firefox` |
+| `qbittorrent/` | qBittorrent（GUI BitTorrent 客户端），接管磁力链接与 `.torrent` 默认打开方式。 | `home.packages`；`xdg.mimeApps`（配置由应用自身维护在 `~/.config/qBittorrent/`） |
 | `thunderbird/` | Thunderbird。 | `programs.thunderbird` |
 | `zen-browser/` | Zen Browser，使用自定义 unwrapped 包与策略。 | `inputs.zen-browser.homeModules.default`；Darwin 上重签名 |
 
@@ -145,7 +146,6 @@ Darwin host 的系统级模块，由各 `hosts/<hostname>/default.nix` 显式导
 
 | Directory | Purpose | Notable |
 |-----------|---------|---------|
-| `aria2/` | 下载管理器，启用 RPC。 | `programs.aria2` |
 | `gnupg/` | GnuPG、gpg-agent 与 SSH agent，通过 sops-nix 导入私钥。 | `programs.gpg`、`services.gpg-agent`、自定义导入服务 |
 | `karabiner-elements/` | Karabiner-Elements 键盘配置（Darwin）。 | 包由 Homebrew cask 安装；`xdg.configFile` |
 | `rime-ice/` | Rime Ice（雾凇拼音）输入法与 Squirrel 前端（Darwin）。 | `home.file`、`home.activation` |
