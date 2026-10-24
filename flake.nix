@@ -70,8 +70,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nomic.url = "github:zineyu/nomic";
-
     nixvim = {
       url = "github:nix-community/nixvim";
     };
