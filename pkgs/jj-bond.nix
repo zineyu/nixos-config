@@ -9,16 +9,16 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "jj-bond";
-  version = "0.1.8";
+  version = "0.1.9";
 
   src = fetchFromGitHub {
     owner = "TD-Sky";
     repo = "jj-bond";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-YjVjXYQd1tm0gqzkVGb/Ey7CnxqqGdC7Rg8oHT6f9yc=";
+    hash = "sha256-r9dyF1VUKeyRYvY7oIQXtrcOpcgLGJjujQGrXVxKcpc=";
   };
 
-  cargoHash = "sha256-ouuz8QVHKTQbm9XbcQAjeR25vneUNn2jsIi+mi86CBo=";
+  cargoHash = "sha256-RNORw0xN3NByg2XrYQdvyMDd6QC3s8nc+YZYUYzLob8=";
 
   passthru.updateScript = writeShellApplication {
     name = "update-jj-bond";
