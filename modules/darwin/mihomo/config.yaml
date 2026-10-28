@@ -148,7 +148,17 @@ proxy-groups:
     use:
       - nodes
     proxies:
+      - bytevirt-auto
       - DIRECT
+  # 两个节点的传输层不同：Hysteria2 走 UDP，VLESS + Reality 走 TCP。
+  # 本机实测 UDP 吞吐是 TCP 的 2 到 7 倍，因此 fallback 组把 Hysteria2
+  # 排在 provider 文件的前面；它探活失败时自动改用 VLESS。
+  - name: bytevirt-auto
+    type: fallback
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    use:
+      - nodes
 redir-port: 7892
 rule-providers:
   apple:
