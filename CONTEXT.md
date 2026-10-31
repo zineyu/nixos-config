@@ -26,15 +26,18 @@ _Avoid_: user entry, profile, `users/<username>/`.
 
 **Machine File**:
 `home/<hostname>.nix`. It imports only the machine-specific layers (e.g. the
-desktop layer) and sets `zine.programs.*` and `zine.services.*` switches. It
-holds no configuration of its own.
+desktop layer), sets `zine.programs.*` and `zine.services.*` switches, and may
+add a small override that is genuinely machine-local (a font size, a single
+package). It never imports the Base Layer or `programs/`.
 _Avoid_: host file, organization file, home module.
 
 **Program Module**:
 A self-contained directory `programs/<category>/<name>/`. It declares
 `zine.programs.<name>.enable` and owns that program's installation and
 configuration, both gated on the option. Native configuration files and an
-optional `package.nix` live in the same directory.
+optional `package.nix` live in the same directory. The directory name is the
+default option name; a few predate the convention (`jj` → `jujutsu`, `zed` →
+`zed-editor`, `gnupg` → `gpg`).
 _Avoid_: package config, app config, install side, entry.
 
 **Category**:

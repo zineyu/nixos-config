@@ -122,9 +122,12 @@ they had historically grown. That left five problems:
   cost of per-software granularity.
 - Verified at introduction: for all three hosts the `home.packages`,
   `home.file`, `xdg.configFile` and `environment.systemPackages` sets are
-  unchanged, and all three `drvPath`s are byte-identical to the pre-move
-  configuration. The only intended delta is that `macbook-air-01` no longer
-  installs `ccache`, which removes the Darwin evaluation failure without any
-  overlay.
+  unchanged, apart from the intended deltas: the preceding commit removed
+  `codex`, and `macbook-air-01` no longer installs `ccache`. `aliyun-01`'s
+  `drvPath` is byte-identical to the pre-move configuration; `tianxuan`'s
+  differs only by the codex removal and by the kitty out-of-store link path
+  fix, and is byte-identical from the bundle split onward. `macbook-air-01`
+  could not be evaluated at all before the change (`elfutils` under
+  `ccache`), so there is no pre-move `drvPath` to compare against.
 - CI's `update-pkgs` workflow filters and commits `*package.nix` paths instead
   of `pkgs/`.
