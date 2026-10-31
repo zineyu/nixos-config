@@ -27,10 +27,43 @@ jobs:
             os: macos-latest
     name: build ${{ matrix.host }}
     runs-on: ${{ matrix.os }}
+    # runner 失联时不要一直挂着：正常情况 tianxuan/macbook 约 20-40 分钟。
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
+      # 托管 runner 的根分区只剩 ~14 GiB，NixOS 桌面闭包 + Rust 构建产物会写满
+      # 磁盘；同时 4 核 / 16 GiB 上并行编译多个 Rust 大 crate 会 OOM（codex 的
+      # preBuild 注释里也提到单个 rustc 峰值 ~12 GiB）。两者都会让 runner 直接
+      # 失联（日志表现为 exit 143 / "lost communication"），顺手补上。
+      - name: Free disk space and add swap (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          if ! swapon --show | grep -q /mnt/swapfile; then
+            sudo fallocate -l 8G /mnt/swapfile \
+              || sudo dd if=/dev/zero of=/mnt/swapfile bs=1M count=8192 status=none
+            sudo chmod 600 /mnt/swapfile
+            sudo mkswap /mnt/swapfile >/dev/null
+            sudo swapon /mnt/swapfile
+          fi
+          df -h / /mnt
+          free -h
+
       - uses: cachix/install-nix-action@v31
+        with:
+          # 与 lib/nix-settings.nix 的 substituters 对齐（TUNA 镜像对海外托管
+          # runner 反而更慢，故 CI 不启用）。
+          # cache.numtide.com 提供 llm-agents.nix（codex 等）的预构建二进制：
+          # 缺这一条，runner 会从源码编译 codex，单次约 50 分钟。
+          # ezkea.cachix.org 对应 aagl-gtk-on-nix（anime-game-launcher 等）。
+          extra_nix_config: |
+            extra-substituters = https://cache.numtide.com https://ezkea.cachix.org
+            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= ezkea.cachix.org-1:ioBmUbJTZIKsHmWWXPe1FSFbeVe+afhfgqgTSNd34eI=
+            max-jobs = auto
+            http-connections = 50
+            fallback = true
 
       - uses: cachix/cachix-action@v17
         with:

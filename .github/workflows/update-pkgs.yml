@@ -16,10 +16,34 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
+      # 构建验证会编译 dbx-desktop 这类 Rust 包，同样需要额外的磁盘与交换空间。
+      - name: Free disk space and add swap
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          if ! swapon --show | grep -q /mnt/swapfile; then
+            sudo fallocate -l 8G /mnt/swapfile \
+              || sudo dd if=/dev/zero of=/mnt/swapfile bs=1M count=8192 status=none
+            sudo chmod 600 /mnt/swapfile
+            sudo mkswap /mnt/swapfile >/dev/null
+            sudo swapon /mnt/swapfile
+          fi
+          df -h / /mnt
+          free -h
+
       - uses: cachix/install-nix-action@v31
+        with:
+          # 与 build.yml / lib/nix-settings.nix 的 substituters 对齐。
+          extra_nix_config: |
+            extra-substituters = https://cache.numtide.com https://ezkea.cachix.org
+            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= ezkea.cachix.org-1:ioBmUbJTZIKsHmWWXPe1FSFbeVe+afhfgqgTSNd34eI=
+            max-jobs = auto
+            http-connections = 50
+            fallback = true
 
       # 更新后的包会重新构建，顺带推入 cache，加速当天 build.yml 与本地 rebuild
       - uses: cachix/cachix-action@v17
