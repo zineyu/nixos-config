@@ -47,7 +47,6 @@ in
       (pkgs.callPackage ../../../pkgs/codegraph.nix { })
 
       # 编码 Agent
-      llmAgents.codex
       llmAgents.dsh
     ];
   };

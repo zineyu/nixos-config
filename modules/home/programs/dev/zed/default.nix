@@ -60,7 +60,6 @@ in
         };
 
         agent_servers = {
-          codex-acp.type = "registry";
           pi-acp.type = "registry";
           opencode.type = "registry";
         };
