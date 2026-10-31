@@ -67,7 +67,7 @@ pi（coding agent harness）内置的 bash 工具只能前台执行命令并阻�
 
 ### 安装
 
-- 扩展目录放入 `modules/home/programs/dev/pi/extensions/`，由既有 `home.file` 机制自动 symlink 到 `~/.pi/agent/extensions/`，Nix 侧零改动。
+- 扩展目录放入 `programs/dev/pi/extensions/`，由既有 `home.file` 机制自动 symlink 到 `~/.pi/agent/extensions/`，Nix 侧零改动。
 
 ## 测试决策
 

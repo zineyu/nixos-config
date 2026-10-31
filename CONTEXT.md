@@ -1,8 +1,9 @@
 # Personal NixOS configuration context
 
 This repository builds complete NixOS and nix-darwin systems for personal
-machines, using a single flake that combines system-level modules and
-user-level Home Manager modules.
+machines, using a single flake that combines system-level modules with
+user-level Home Manager modules. Pure software lives in `programs/`; system-side
+configuration lives in `modules/`.
 
 ## Language
 
@@ -18,53 +19,73 @@ that machine's system-level overrides only.
 _Avoid_: machine, device, node.
 
 **User Environment**:
-The Home Manager configuration of the single user `zine`, wired by
-`lib/mkSystem.nix` from `home/<hostname>.nix` when that file exists.
+The Home Manager configuration of the single user `zine`. `lib/mkSystem.nix`
+wires the Base Layer and the Program Modules into `home-manager.users.zine` from
+`home/<hostname>.nix` when that file exists.
 _Avoid_: user entry, profile, `users/<username>/`.
 
 **Machine File**:
-`home/<hostname>.nix`. It imports the shared user layer and the optional
-desktop layer, then sets `zine.programs.*`, `zine.bundles.*` and
-`zine.services.*` switches. It holds no configuration of its own.
+`home/<hostname>.nix`. It imports only the machine-specific layers (e.g. the
+desktop layer) and sets `zine.programs.*` and `zine.services.*` switches. It
+holds no configuration of its own.
 _Avoid_: host file, organization file, home module.
 
-**Shared User Layer**:
-`modules/home/`, imported by every machine file through
-`modules/home/default.nix`. Its modules define software but enable nothing by
-default.
-_Avoid_: base config, common home.
-
 **Program Module**:
-A self-contained directory `modules/home/programs/<category>/<name>/`. It
-declares `zine.programs.<name>.enable` and owns that program's installation and
-configuration, both gated on the option. Native configuration files live in the
-same directory.
-_Avoid_: package config, app config, install side.
+A self-contained directory `programs/<category>/<name>/`. It declares
+`zine.programs.<name>.enable` and owns that program's installation and
+configuration, both gated on the option. Native configuration files and an
+optional `package.nix` live in the same directory.
+_Avoid_: package config, app config, install side, entry.
 
-**Bundle**:
-`modules/home/bundles/<name>.nix`. It declares `zine.bundles.<name>.enable` and
-installs a group of leaf packages that need no configuration.
-_Avoid_: package list, tools file.
+**Category**:
+One of `shell`, `terminal`, `dev`, `gui`, `misc` under `programs/`. Categories
+group by kind of software, never by platform.
+_Avoid_: group, bundle, platform.
+
+**Package Recipe**:
+`package.nix` inside a program directory (or, for a package consumed by a system
+module, inside its system module directory). The flake exposes it as
+`.#<directory-name>`, which is also the name `nix-update --flake <name>` uses.
+_Avoid_: custom package, pkgs entry, derivation file.
+
+**Base Layer**:
+`modules/base/`, the platform-independent Home Manager layer: state version,
+agent skills and user-level services. `lib/mkSystem.nix` adds it to every User
+Environment, so machine files never import it.
+_Avoid_: common home, shared user layer, `modules/home`.
 
 **Desktop Layer**:
-`modules/home/desktop/`, imported only by machines that run a Wayland desktop.
-Import activates the layer; it has no switch.
-_Avoid_: DE, WM config.
+`modules/desktop/`. Its `home/` half is the user-level Wayland desktop (niri,
+DankMaterialShell, fonts, icon theme, XDG user dirs); its `system/` half is the
+matching NixOS configuration (greetd, portal, audio, graphics, input method,
+nixpak, Steam). Import activates the layer; it has no switch.
+_Avoid_: DE, WM config, desktop stack.
+
+**System Module**:
+A module under `modules/nixos/` or `modules/darwin/`, keyed by platform. It
+configures the machine, not the user.
+_Avoid_: platform config, host layer.
 
 ## Example dialogue
 
 > **Explorer**: I want to add a new keyboard daemon for the desktop host. Where
 > does it go?
 >
-> **Maintainer**: If it needs no configuration, add the package to the matching
-> Bundle. If it needs configuration, create a Program Module and enable
-> `zine.programs.<name>` in the Machine File. If it is a system service, put it
-> in `modules/nixos/` and import it from the Host.
+> **Maintainer**: If it is software the user runs, create a Program Module under
+> `programs/<category>/<name>/` and enable `zine.programs.<name>` in the Machine
+> File. If it is a system service, put it in `modules/nixos/` and import it from
+> the Host.
 >
 > **Explorer**: Where does a user-level systemd timer go?
 >
-> **Maintainer**: `modules/home/services/`, behind a `zine.services.<name>`
+> **Maintainer**: `modules/base/services/`, behind a `zine.services.<name>`
 > switch, and enabled in the Machine File.
+>
+> **Explorer**: Why is `ccache` only enabled on `tianxuan`?
+>
+> **Maintainer**: Because `macbook-air-01` is Darwin and `ccache` pulls a
+> Linux-only build input. With one option per program, that is one line in the
+> Machine File instead of a bundle that fails to evaluate.
 >
 > **Explorer**: What is the difference between a Host and a Machine File?
 >
