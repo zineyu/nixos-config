@@ -1,10 +1,11 @@
-# tianxuan 的 Home Manager 组织文件：导入共享层，再逐个打开开关。
+# tianxuan 的 Home Manager 组织文件：Linux 桌面层 + 软件开关表。
 { ... }:
 
 {
   imports = [
-    ../modules/home # 用户环境共享层（programs、ssh、agent-skills 等）
-    ../modules/home/desktop # Linux 桌面层（niri + DankMaterialShell + 字体）
+    # 平台无关的 HM 基础层与 program 开关表由 lib/mkSystem.nix 接入；
+    # 这里只额外导入 Linux 桌面层（niri + DankMaterialShell + 字体）。
+    ../modules/desktop/home
   ];
 
   zine.programs = {

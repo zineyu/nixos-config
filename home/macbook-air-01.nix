@@ -1,11 +1,9 @@
-# macbook-air-01 的 Home Manager 组织文件：导入共享层，再逐个打开开关。
+# macbook-air-01 的 Home Manager 组织文件：软件开关表与机器专属包。
 { pkgs, ... }:
 
 {
-  imports = [
-    ../modules/home # 用户环境共享层（programs、ssh、agent-skills 等）
-  ];
-
+  # 平台无关的 HM 基础层（modules/base）与 programs 由 lib/mkSystem.nix 接入；
+  # 本文件只保留开关表与机器专属包。
   zine.programs = {
     # shell
     fish.enable = true;

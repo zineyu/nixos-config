@@ -26,7 +26,13 @@ let
           homeStateVersion
           ;
       };
-      home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ];
+      # 平台无关的用户环境：modules/base（状态版本、agent skills、用户服务）
+      # 与 programs（每个软件一个 zine.programs.<name> 模块）。机器文件只写开关。
+      home-manager.sharedModules = [
+        inputs.sops-nix.homeManagerModules.sops
+        ../modules/base
+        ../programs
+      ];
 
       home-manager.users = lib.mkIf (builtins.pathExists homeFile) {
         zine = import homeFile;

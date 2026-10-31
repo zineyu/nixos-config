@@ -12,7 +12,7 @@
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     ../../modules/nixos
-    ../../modules/nixos/desktop
+    ../../modules/desktop/system
   ];
 
   # Host-specific NVIDIA Optimus configuration.

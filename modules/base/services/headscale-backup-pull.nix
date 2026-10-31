@@ -15,7 +15,7 @@ in
   config = lib.mkIf cfg.enable {
     # Headscale 状态备份：每日从 aliyun-01 拉取快照目录（快照由服务器侧
     # headscale-backup timer 生成，见 modules/nixos/server/headscale.nix）。
-    # SSH 走 modules/home/ssh 的 aliyun-01 alias（root@aliyun-01，复用 deploy 的密钥）。
+    # SSH 走 programs/misc/ssh 的 aliyun-01 alias（root@aliyun-01，复用 deploy 的密钥）。
     systemd.user.services.headscale-backup-pull = {
       Unit.Description = "Pull headscale state snapshot from aliyun-01";
       Service = {
