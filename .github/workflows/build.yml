@@ -24,7 +24,7 @@ jobs:
           - host: aliyun-01
             os: ubuntu-latest
           - host: macbook-air-01
-            os: macos-14
+            os: macos-latest
     name: build ${{ matrix.host }}
     runs-on: ${{ matrix.os }}
     steps:
