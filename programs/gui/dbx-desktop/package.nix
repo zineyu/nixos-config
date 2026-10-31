@@ -18,7 +18,8 @@
   pnpmConfigHook,
   cargo-tauri,
   nodejs_22,
-  pnpm,
+  pnpm_10,
+  mold,
   jq,
   perl,
   pkg-config,
@@ -51,11 +52,11 @@
 if stdenv.hostPlatform.isDarwin then
   stdenvNoCC.mkDerivation (finalAttrs: {
     pname = "dbx-desktop";
-    version = "0.6.42";
+    version = "0.6.62";
 
     src = fetchurl {
       url = "https://github.com/t8y2/dbx/releases/download/v${finalAttrs.version}/DBX_${finalAttrs.version}_arm64.app.tar.gz";
-      hash = "sha256-Z5dq861+XyhJLikjfRLijoMLkDP2RhacMdLo7HtY9Vw=";
+      hash = "sha256-boOrOkOBVaP4v32E5kVsnXK353Q3zEeySZAcS+W91Kk=";
     };
 
     sourceRoot = ".";
@@ -84,24 +85,28 @@ if stdenv.hostPlatform.isDarwin then
 else
   rustPlatform.buildRustPackage (finalAttrs: {
     pname = "dbx-desktop";
-    version = "0.6.42";
+    version = "0.6.62";
 
     # 上游 release tag 对应的 commit；version/rev/hash 由本目录 update.sh 自动更新
     src = fetchFromGitHub {
       owner = "t8y2";
       repo = "dbx";
-      rev = "d9c464d7d5c41c7c2993d7ea19a3ffcfb2353292";
-      hash = "sha256-EttBdq7EQNROQMFU0UM65uMyByS/GcLqv+6c1BFhTE8=";
+      rev = "d70512235ba66c8242b637e660aa4b61a047c96b";
+      hash = "sha256-+LZTnePyRdDb6tw3fPGvpJiWT+hmPbcvaa36YmXXNGw=";
     };
 
-    # fetcherVersion = 4 的 FOD 产物随 pnpm 大版本变化；本 hash 基于当前
-    # nixpkgs 的 pnpm 12.9.0 计算，nixpkgs 升级 pnpm/sqlite 时需重新生成
+    # 上游 packageManager 为 pnpm@10.34.x，其 package.json 里的 pnpm.overrides
+    # 与 pnpm-lock.yaml 的 overrides 段匹配；pnpm 11+ 只读 pnpm-workspace.yaml
+    # 的 overrides，会报 ERR_PNPM_LOCKFILE_CONFIG_MISMATCH，故显式钉 pnpm_10。
+    # fetcherVersion = 4 的 FOD 产物随 pnpm 大版本变化；本 hash 基于 pnpm_10 计算，
+    # 换 pnpm 大版本或 nixpkgs 升级 sqlite 时需重新生成
     # （本目录 update.sh 会在版本未变但构建失败时自动重建）：
     #   nix build .#dbx-desktop.pnpmDeps 2>&1 | grep 'got:'
     pnpmDeps = fetchPnpmDeps {
       inherit (finalAttrs) pname version src;
+      pnpm = pnpm_10;
       fetcherVersion = 4;
-      hash = "sha256-EtHVY+bgmWHfrbhCRnZsfDrIplpKaO6I9StyF+IBYdA=";
+      hash = "sha256-lBkJNxk39G07brqQs2+W+jnoKd7Gi511VpxBq0A95kE=";
     };
 
     cargoLock = {
@@ -117,12 +122,13 @@ else
 
     nativeBuildInputs = [
       nodejs_22
-      pnpm
+      pnpm_10
       pnpmConfigHook # 从 pnpmDeps 离线安装 node_modules
       cargo-tauri # tauri build 负责嵌入前端资源
       jq # preConfigure 删除 packageManager 字段
       perl
       pkg-config
+      mold # 比默认 bfd 快数倍的链接器（见下方 RUSTFLAGS）
       copyDesktopItems
       desktop-file-utils
       imagemagick # 生成各尺寸 hicolor 图标
@@ -157,7 +163,21 @@ else
       OPENSSL_INCLUDE_DIR = "${lib.getDev openssl}/include";
       # Tauri 构建期读取，跳过 dev server 检查
       TAURI_SKIP_DEVSERVER_CHECK = "true";
+
+      # 上游 release profile 是 `lto = true` + `codegen-units = 1`（全程序 fat LTO），
+      # 实测编译/链接阶段只吃满一个核，是构建时长的绝对大头。这里用 cargo 的
+      # 环境变量覆盖而不是改 Cargo.toml（源码不可变）：thin LTO 可并行，运行性能
+      # 与 fat LTO 差异在个位数百分比，对 DB 客户端无感。
+      # 想完全对齐上游产物（体积最小）时删掉这两行即可。
+      CARGO_PROFILE_RELEASE_LTO = "thin";
+      CARGO_PROFILE_RELEASE_CODEGEN_UNITS = "16";
     };
+
+    # mold 经 gcc 包装器以 -fuse-ld=mold 使用；rustPlatform 支持列表形式 RUSTFLAGS。
+    RUSTFLAGS = [
+      "-C"
+      "link-arg=-fuse-ld=mold"
+    ];
 
     PKG_CONFIG_PATH = lib.makeSearchPath "lib/pkgconfig" [
       openssl.dev

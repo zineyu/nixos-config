@@ -39,7 +39,10 @@ fix_fod_hash() {
     rm -f "$log"
     exit 1
   fi
-  got=$(grep -oE 'got:[[:space:]]*sha256-[A-Za-z0-9+/=]+' "$log" | tail -1 | grep -oE 'sha256-[A-Za-z0-9+/=]+')
+  # `|| true`：构建失败原因不是 hash 不匹配时（例如 pnpm 报
+  # ERR_PNPM_LOCKFILE_CONFIG_MISMATCH）日志里没有 got:，若让 pipeline 的
+  # 非零状态漏出，set -e 会在打印错误前就静默退出。
+  got=$(grep -oE 'got:[[:space:]]*sha256-[A-Za-z0-9+/=]+' "$log" | tail -1 | grep -oE 'sha256-[A-Za-z0-9+/=]+' || true)
   if [[ -z "$got" ]]; then
     echo "error: 无法从构建日志解析 $attr 的新 hash" >&2
     cat "$log" >&2
@@ -61,8 +64,9 @@ fix_cargo_hashes() {
       rm -f "$log"
       return 0
     fi
-    key=$(grep -oE "fixed-output derivation '/nix/store/[a-z0-9]+-[^']+\.drv'" "$log" | head -1 | sed -E "s|.*-[0-9a-z]+-([^']+)\.drv'|\1|")
-    got=$(grep -oE 'got:[[:space:]]*sha256-[A-Za-z0-9+/=]+' "$log" | tail -1 | grep -oE 'sha256-[A-Za-z0-9+/=]+')
+    # `|| true` 同 fix_fod_hash：解析不到时由下面的判断打印完整日志再退出
+    key=$(grep -oE "fixed-output derivation '/nix/store/[a-z0-9]+-[^']+\.drv'" "$log" | head -1 | sed -E "s|.*-[0-9a-z]+-([^']+)\.drv'|\1|" || true)
+    got=$(grep -oE 'got:[[:space:]]*sha256-[A-Za-z0-9+/=]+' "$log" | tail -1 | grep -oE 'sha256-[A-Za-z0-9+/=]+' || true)
     if [[ -z "$key" || -z "$got" ]]; then
       echo "error: cargoDeps 构建失败且无法自动解析 outputHashes，需人工处理" >&2
       cat "$log" >&2

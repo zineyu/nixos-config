@@ -58,20 +58,34 @@ jobs:
       # - dbx-desktop：多源 + FOD hash 重建，自定义脚本（programs/gui/dbx-desktop/update.sh，
       #   模式参考上游 .github/workflows/update-nix-pnpm-hash.yml）
       - name: Run passthru.updateScript for each custom package
+        id: update_scripts
         run: |
+          set -uo pipefail
+          failed=""
           for pkg in breezex-cursor codegraph dbx-desktop jj-bond rime-flypy squirrel; do
             echo "=== $pkg ==="
-            nix run ".#$pkg.updateScript" || echo "::warning::$pkg 更新失败，已跳过"
+            if ! nix run ".#$pkg.updateScript"; then
+              echo "::error::$pkg 更新失败，已跳过（package.nix 的半成品改动会被回退）"
+              failed="$failed $pkg"
+            fi
           done
+          echo "failed=${failed# }" >> "$GITHUB_OUTPUT"
 
       # 构建验证有变更的包；失败的包回退其更新（由 Gotify 通知人工处理）。
       # squirrel 为 darwin-only（构建需 /usr/bin/codesign），无法在 Linux runner 验证，
       # 其 src hash 已由 nix-update 通过 FOD 重建校验，可靠性足够。
       - name: Build updated packages (x86_64-linux)
         id: verify
+        env:
+          FAILED_SCRIPTS: ${{ steps.update_scripts.outputs.failed }}
         run: |
           set -euo pipefail
           failed=""
+          # updateScript 中途失败会留下半更新的配方（部分 hash 已改、部分没改），
+          # 不可信：直接回退，避免提交不完整的更新（也可能碰巧仍可构建）。
+          for pkg in ${FAILED_SCRIPTS}; do
+            git checkout -- "*${pkg}/package.nix" 2>/dev/null || true
+          done
           changed=$(git diff --name-only || true)
           for pkg in breezex-cursor codegraph dbx-desktop jj-bond rime-flypy; do
             if grep -q "/${pkg}/package.nix$" <<<"$changed"; then
@@ -129,4 +143,17 @@ jobs:
           curl -sf -X POST "https://gotify.zineyu.cn/message?token=$GOTIFY_TOKEN" \
             -F "title=自定义包更新失败" \
             -F "message=updateScript 或构建验证未通过，详见 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -F "priority=8"
+
+      # 注意：updateScript 失败不会让本 job 失败，也不一定产生 package.nix 变更，
+      # 因此上面的"已更新"通知不会触发——这正是 dbx-desktop 静默停更 18 天的原因。
+      - name: Notify skipped updateScripts via Gotify
+        if: steps.update_scripts.outputs.failed != ''
+        env:
+          GOTIFY_TOKEN: ${{ secrets.GOTIFY_TOKEN }}
+          FAILED_SCRIPTS: ${{ steps.update_scripts.outputs.failed }}
+        run: |
+          curl -sf -X POST "https://gotify.zineyu.cn/message?token=$GOTIFY_TOKEN" \
+            -F "title=自定义包自动更新被跳过" \
+            -F "message=以下包的 updateScript 执行失败，本次未更新，需人工处理: $FAILED_SCRIPTS；详见 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             -F "priority=8"
