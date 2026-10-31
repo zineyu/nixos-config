@@ -15,7 +15,7 @@ in
     # 软链到 atuin 的数据目录（Linux/macOS 均为 ~/.local/share/atuin/key）。
     # 密钥不进入 Nix store；各机器登录同一账号即可共享同步历史。
     sops.secrets.atuin_key = {
-      sopsFile = ../../../../../secrets/atuin.yaml;
+      sopsFile = ../../../secrets/atuin.yaml;
       mode = "0400";
     };
 

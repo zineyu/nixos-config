@@ -6,9 +6,8 @@
 }:
 
 let
-  storeLinks = import ../../../../../lib/storeLinks.nix { inherit config; };
-  kittyConfig =
-    relPath: storeLinks.mkOutOfStoreDotfiles "modules/home/programs/terminal/kitty/config/${relPath}";
+  storeLinks = import ../../../lib/storeLinks.nix { inherit config; };
+  kittyConfig = relPath: storeLinks.mkOutOfStoreDotfiles "programs/terminal/kitty/config/${relPath}";
   cfg = config.zine.programs.kitty;
 in
 {
