@@ -33,7 +33,13 @@ jobs:
             fallback = true
 
       - name: Update flake.lock
-        run: nix flake update
+        run: |
+          set -euo pipefail
+          # 见 scripts/update-flake.sh：nixpkgs 钉到 nixos-unstable 的频道修订
+          # （Hydra 已构建、cache.nixos.org 有产物的 commit），其余 input 按分支更新。
+          rev=$(./scripts/update-flake.sh)
+          echo "nixos-unstable channel rev: $rev"
+          echo "NIXPKGS_REV=$rev" >> "$GITHUB_ENV"
 
       - name: Detect changes
         id: changes
@@ -54,7 +60,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add flake.lock
-          git commit -m "chore: update flake.lock"
+          git commit -m "chore: update flake.lock" \
+            -m "nixpkgs pinned to nixos-unstable channel ${NIXPKGS_REV}"
           git push origin "HEAD:${{ github.ref_name }}"
 
       - name: Notify via Gotify
@@ -64,7 +71,7 @@ jobs:
         run: |
           curl -sf -X POST "https://gotify.zineyu.cn/message?token=$GOTIFY_TOKEN" \
             -F "title=flake.lock 已更新" \
-            -F "message=home-manager flake inputs 已更新并通过 nix flake check，详见 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -F "message=flake inputs 已更新（nixpkgs = nixos-unstable 频道 ${NIXPKGS_REV}）并通过 nix flake check，详见 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             -F "priority=5"
 
       - name: Notify failure via Gotify

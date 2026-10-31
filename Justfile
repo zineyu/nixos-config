@@ -31,6 +31,10 @@ check:
 fmt:
     nix fmt
 
+# Update flake inputs; nixpkgs pinned to the nixos-unstable channel rev (see scripts/update-flake.sh)
+update:
+    ./scripts/update-flake.sh
+
 # Deploy a remote host via deploy-rs
 deploy host:
     nix run .#deploy -- .#{{host}}
