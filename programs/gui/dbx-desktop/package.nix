@@ -86,7 +86,7 @@ else
     pname = "dbx-desktop";
     version = "0.6.42";
 
-    # 上游 release tag 对应的 commit；version/rev/hash 由 pkgs/update-dbx-desktop.sh 自动更新
+    # 上游 release tag 对应的 commit；version/rev/hash 由本目录 update.sh 自动更新
     src = fetchFromGitHub {
       owner = "t8y2";
       repo = "dbx";
@@ -96,7 +96,7 @@ else
 
     # fetcherVersion = 4 的 FOD 产物随 pnpm 大版本变化；本 hash 基于当前
     # nixpkgs 的 pnpm 12.9.0 计算，nixpkgs 升级 pnpm/sqlite 时需重新生成
-    # （update-dbx-desktop.sh 会在版本未变但构建失败时自动重建）：
+    # （本目录 update.sh 会在版本未变但构建失败时自动重建）：
     #   nix build .#dbx-desktop.pnpmDeps 2>&1 | grep 'got:'
     pnpmDeps = fetchPnpmDeps {
       inherit (finalAttrs) pname version src;
@@ -296,7 +296,7 @@ else
         git
         nix
       ];
-      text = builtins.readFile ./update-dbx-desktop.sh;
+      text = builtins.readFile ./update.sh;
     };
 
     meta = {

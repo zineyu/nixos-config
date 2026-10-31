@@ -107,16 +107,26 @@
         perSystem =
           { pkgs, system, ... }:
           let
-            # 仓库根 pkgs/ 下的自定义包，暴露为 flake packages，供
-            # nix-update（update-pkgs.yml）、pkgs/update-*.sh 与 `nix build .#<name>` 使用
-            customPkgs = {
-              breezex-cursor = pkgs.callPackage ./pkgs/breezex-cursor.nix { };
-              codegraph = pkgs.callPackage ./pkgs/codegraph.nix { };
-              dbx-desktop = pkgs.callPackage ./pkgs/dbx-desktop.nix { };
-              jj-bond = pkgs.callPackage ./pkgs/jj-bond.nix { };
-              rime-flypy = pkgs.callPackage ./pkgs/rime-flypy.nix { };
-              squirrel = pkgs.callPackage ./pkgs/squirrel.nix { };
-            };
+            # 自定义包配方（package.nix）与消费它的模块共置，attr 名 = 目录名，
+            # 例如 programs/dev/codegraph/package.nix → `codegraph`。
+            # 暴露为 flake packages，供 nix-update（update-pkgs.yml）、目录内的
+            # update*.sh（nix-update 依 meta.position 定位文件）与 `nix build .#<name>` 使用。
+            packageRoots = [
+              ./programs
+              ./modules/desktop
+            ];
+            customPkgs = builtins.listToAttrs (
+              map
+                (file: {
+                  name = builtins.baseNameOf (builtins.dirOf file);
+                  value = pkgs.callPackage file { };
+                })
+                (
+                  builtins.filter (path: builtins.baseNameOf path == "package.nix") (
+                    pkgs.lib.concatMap pkgs.lib.filesystem.listFilesRecursive packageRoots
+                  )
+                )
+            );
           in
           {
             # `nix run .#deploy -- .#<hostname>` 调用 deploy-rs CLI，

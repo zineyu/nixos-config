@@ -73,8 +73,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       git
       nix
     ];
-    # 多平台 hash 表无法由 nix-update 处理，脚本与包定义共置于 pkgs/
-    text = builtins.readFile ./update-codegraph.sh;
+    # 多平台 hash 表无法由 nix-update 处理，脚本与包定义共置于本目录
+    text = builtins.readFile ./update.sh;
   };
 
   meta = {

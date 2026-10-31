@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 更新 pkgs/codegraph.nix 的版本与 4 平台 hash 表。
+# 更新 codegraph 的 package.nix（版本 + 4 平台 hash 表）。
 # codegraph 的 src hash 是 hashes.${platform} 间接引用（多平台 hash 表），
 # nix-update 无法处理，由本脚本维护。
 # 通过 codegraph 的 passthru.updateScript 调用：`nix run .#codegraph.updateScript`
@@ -7,7 +7,14 @@
 set -euo pipefail
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
-FILE="$REPO_ROOT/pkgs/codegraph.nix"
+# 包配方 package.nix 与更新脚本共置；脚本运行时自身位于 /nix/store，
+# 因此用 git 索引按目录名唯一定位配方文件。
+FILE_REL=$(git ls-files --full-name -- '*codegraph/package.nix')
+if [[ -z "$FILE_REL" || "$(wc -l <<<"$FILE_REL")" -ne 1 ]]; then
+  echo "error: 无法唯一定位 codegraph 的 package.nix（git ls-files 结果: ${FILE_REL:-空}）" >&2
+  exit 1
+fi
+FILE="$REPO_ROOT/$FILE_REL"
 REPO="colbymchenry/codegraph"
 PLATFORMS=(darwin-arm64 darwin-x64 linux-arm64 linux-x64)
 

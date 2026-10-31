@@ -7,7 +7,7 @@
 
 let
   cfg = config.zine.programs.cursor;
-  breezex-cursor = pkgs.callPackage ../../../pkgs/breezex-cursor.nix { };
+  breezex-cursor = pkgs.callPackage ../breezex-cursor/package.nix { };
 in
 {
   options.zine.programs.cursor.enable = lib.mkEnableOption "BreezeX 光标主题";

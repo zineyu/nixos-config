@@ -1,6 +1,6 @@
 { pkgs, ... }:
 let
-  rime-flypy = pkgs.callPackage ../../../pkgs/rime-flypy.nix { };
+  rime-flypy = pkgs.callPackage ./rime-flypy/package.nix { };
 in
 {
   i18n.inputMethod = {

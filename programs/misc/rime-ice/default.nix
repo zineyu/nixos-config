@@ -8,7 +8,7 @@
 let
   cfg = config.zine.programs.rime-ice;
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-  squirrel = pkgs.callPackage ../../../pkgs/squirrel.nix { };
+  squirrel = pkgs.callPackage ./squirrel/package.nix { };
   squirrelApp = "${squirrel}/Library/Input Methods/Squirrel.app";
 in
 {

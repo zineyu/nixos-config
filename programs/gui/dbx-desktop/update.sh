@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 更新 pkgs/dbx-desktop.nix 到上游（t8y2/dbx）最新 release。
+# 更新 dbx-desktop 的 package.nix 到上游（t8y2/dbx）最新 release。
 #
 # hash 修复模式参考上游 .github/workflows/update-nix-pnpm-hash.yml：
 #   将 FOD hash 置为 fake → nix build → 从日志解析 "got:" → 写回。
@@ -15,7 +15,14 @@
 set -euo pipefail
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
-FILE="$REPO_ROOT/pkgs/dbx-desktop.nix"
+# 包配方 package.nix 与更新脚本共置；脚本运行时自身位于 /nix/store，
+# 因此用 git 索引按目录名唯一定位配方文件。
+FILE_REL=$(git ls-files --full-name -- '*dbx-desktop/package.nix')
+if [[ -z "$FILE_REL" || "$(wc -l <<<"$FILE_REL")" -ne 1 ]]; then
+  echo "error: 无法唯一定位 dbx-desktop 的 package.nix（git ls-files 结果: ${FILE_REL:-空}）" >&2
+  exit 1
+fi
+FILE="$REPO_ROOT/$FILE_REL"
 FLAKE_ROOT="$REPO_ROOT"
 REPO="t8y2/dbx"
 FAKE_HASH="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
@@ -103,7 +110,7 @@ if [[ "$current" == "$latest" ]]; then
     exit 1
   fi
   rm -f "$log"
-  echo "pkgs/dbx-desktop.nix 已修复，等待构建验证"
+  echo "dbx-desktop 的 package.nix 已修复，等待构建验证"
   exit 0
 fi
 

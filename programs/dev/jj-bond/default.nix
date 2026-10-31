@@ -12,6 +12,6 @@ in
   options.zine.programs.jj-bond.enable = lib.mkEnableOption "jj-bond：Jujutsu TUI";
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ (pkgs.callPackage ../../../pkgs/jj-bond.nix { }) ];
+    home.packages = [ (pkgs.callPackage ./package.nix { }) ];
   };
 }
