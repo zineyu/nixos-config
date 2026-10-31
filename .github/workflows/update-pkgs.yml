@@ -54,7 +54,8 @@ jobs:
               echo "=== build $pkg ==="
               if ! nix build ".#$pkg" -L --no-link; then
                 echo "::warning::$pkg 更新后构建失败，回退该包的更新"
-                git checkout -- "$(git ls-files -- "*${pkg}/package.nix")"
+                # 单一路径规格（git 的 * 可跨目录），避免同名目录出现第二个 package.nix 时失败
+                git checkout -- "*${pkg}/package.nix"
                 failed="$failed $pkg"
               fi
             fi
