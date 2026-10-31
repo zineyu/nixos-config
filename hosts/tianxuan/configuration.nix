@@ -13,6 +13,7 @@
     ./hardware-configuration.nix
     ../../modules/nixos
     ../../modules/desktop/system
+    ../../modules/mihomo/nixos.nix
   ];
 
   # Host-specific NVIDIA Optimus configuration.
@@ -26,12 +27,6 @@
   # System activation runs before /home is mounted, so keep the system copy
   # of the administrator age identity on the root filesystem.
   sops.age.keyFile = "/var/lib/sops-nix/key.txt";
-
-  services.mihomo = {
-    enable = true;
-    configFile = "/home/zine/.config/mihomo/config.yaml";
-    tunMode = true;
-  };
 
   # Bluetooth: the kernel already detects the adapter (hci0), but without
   # hardware.bluetooth.enable the BlueZ daemon (bluetoothd) never starts, so

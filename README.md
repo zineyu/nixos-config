@@ -59,7 +59,8 @@ direnv allow
 | `programs/<category>/<name>/` | 每个纯软件一个自包含目录（`zine.programs.<name>.enable`、安装、配置、可选 `package.nix` 共置），按 shell/terminal/dev/gui/misc 分类 |
 | `programs/<...>/package.nix` | 自定义包配方，attr 名 = 目录名（`nix build .#<name>`），供 `nix-update --flake <name>` 与 CI 更新 |
 | `modules/nixos/` | NixOS 系统模块，按 `common/`（所有 host 共享，含 Docker）、`server/` 分组 |
-| `modules/darwin/` | nix-darwin 系统模块（sops、tailscale、Remote Login、mihomo） |
+| `modules/darwin/` | nix-darwin 系统模块（sops、tailscale、Remote Login） |
+| `modules/mihomo/` | mihomo 代理：跨平台系统模块，`config.yaml` 一份配置 + `darwin.nix`（launchd）/ `nixos.nix`（systemd） |
 | `modules/desktop/home/` | 用户级桌面层（niri、DankMaterialShell、环境变量、fontconfig、图标主题、XDG 用户目录等），由需要的机器文件显式导入 |
 | `modules/desktop/system/` | 桌面层的系统级部分（greetd/portal、音频、显卡、输入法、nixpak overlay、Steam），由桌面 host 显式导入 |
 | `modules/base/` | 平台无关的 Home Manager 基础层：`common.nix`、`agent-skills/`、用户级 `services/`，由 `lib/mkSystem.nix` 自动接入 |

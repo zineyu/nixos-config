@@ -1,3 +1,5 @@
+# mihomo（fake-IP TUN 代理）的系统级部分：nix-darwin（launchd LaunchDaemon）。
+# 配置与 NixOS 侧共用 ../config.yaml，代理凭据由 sops 注入。
 {
   config,
   lib,
@@ -10,11 +12,11 @@ let
   stateDir = "/var/lib/mihomo";
 
   # 代理凭据由 sops 解密（secrets/mihomo.yaml，binary 格式）；其余配置
-  # （DNS、fake-ip-filter、规则）留在仓库内，避免与文档再次漂移（ADR-0008）。
+  # （DNS、fake-ip-filter、规则）与 NixOS 共用 ../config.yaml（ADR-0008）。
   proxiesFile = config.sops.secrets.mihomo_proxies.path;
 
   configFile = pkgs.writeText "mihomo-config.yaml" (
-    lib.replaceStrings [ "@proxies_file@" ] [ proxiesFile ] (builtins.readFile ./mihomo/config.yaml)
+    lib.replaceStrings [ "@proxies_file@" ] [ proxiesFile ] (builtins.readFile ./config.yaml)
   );
 
   launcher = pkgs.writeShellScript "mihomo-launcher" ''

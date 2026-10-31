@@ -95,6 +95,6 @@
     zip.enable = true;
   };
 
-  # macbook-air-01 专属的代理内核 CLI（LaunchDaemon 与配置见 modules/darwin/mihomo）。
+  # macbook-air-01 专属的代理内核 CLI（LaunchDaemon 与配置见 modules/mihomo）。
   home.packages = [ pkgs.mihomo ];
 }

@@ -14,7 +14,7 @@ in
     ../../modules/darwin/sops.nix
     ../../modules/darwin/tailscale.nix
     ../../modules/darwin/remote-login.nix
-    ../../modules/darwin/mihomo.nix
+    ../../modules/mihomo/darwin.nix
   ];
 
   networking.hostName = hostname;

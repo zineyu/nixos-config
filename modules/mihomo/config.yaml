@@ -139,7 +139,7 @@ profile:
 proxy-providers:
   nodes:
     type: file
-    # 由 modules/darwin/mihomo.nix 注入：sops 解密的代理凭据（secrets/mihomo.yaml）。
+    # 由 modules/mihomo/{darwin,nixos}.nix 注入：sops 解密的代理凭据（secrets/mihomo.yaml）。
     path: "@proxies_file@"
 
 proxy-groups:

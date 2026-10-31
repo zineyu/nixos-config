@@ -82,7 +82,22 @@ Darwin host 的系统级模块，由各 `hosts/<hostname>/default.nix` 显式导
 | `sops.nix` | Darwin host 的 sops-nix 基础配置（age identity rootfs 副本）。 | `/var/lib/sops-nix/key.txt` |
 | `tailscale.nix` | Darwin host 的 tailnet 接入：tailscaled LaunchDaemon + 自定义 MagicDNS 域 resolver。 | `services.tailscale`、`/etc/resolver/ts.zineyu.cn` |
 | `remote-login.nix` | 开启 macOS 自带 SSH（Remote Login），供 tailnet 成员直连。 | `launchctl` 操作 `com.openssh.sshd`；公钥授权经 `programs/misc/ssh` 写入 |
-| `mihomo.nix` | mihomo（fake-IP TUN 代理）LaunchDaemon；原生配置与模块共置于 `mihomo/config.yaml`。 | 代理凭据来自 `secrets/mihomo.yaml`（sops binary）；运行时状态在 `/var/lib/mihomo` |
+
+---
+
+## Cross-platform System Modules
+
+### `modules/mihomo/`
+
+mihomo（fake-IP TUN 代理）。**一份配置、两个平台的系统级模块**：配置内容只维护 `config.yaml`，平台差异（launchd vs systemd、状态目录、凭据挂载方式）留在各自的 `.nix` 里。
+
+| File | Purpose | Notable |
+|------|---------|---------|
+| `config.yaml` | 两个平台共用的 mihomo 配置（DNS、`fake-ip-filter`、规则、`proxy-providers`）。 | `path: "@proxies_file@"` 由各平台模块在构建期替换为代理凭据路径 |
+| `darwin.nix` | macOS：root LaunchDaemon 跑 mihomo，代理凭据取自 sops 文件并由 `SAFE_PATHS` 授权。 | 运行时状态 `/var/lib/mihomo`；`secrets/mihomo.yaml`（sops binary） |
+| `nixos.nix` | Linux：`services.mihomo`（systemd，`DynamicUser` + TUN 能力）。 | 配置与代理凭据都通过 `LoadCredential` 挂到 `/run/credentials/mihomo.service`，凭据不落全局可读路径；`SAFE_PATHS` 指向同一目录 |
+
+两机共用同一份 `config.yaml`：`hs.zineyu.cn` 必须在 `fake-ip-filter` 内（tailscaled 控制面直连，见 ADR-0008），tailnet 流量（`100.64.0.0/10`）通过 `route-exclude-address` 绕开 TUN。
 
 ---
 
