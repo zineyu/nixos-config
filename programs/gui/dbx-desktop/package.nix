@@ -52,11 +52,11 @@
 if stdenv.hostPlatform.isDarwin then
   stdenvNoCC.mkDerivation (finalAttrs: {
     pname = "dbx-desktop";
-    version = "0.6.62";
+    version = "0.6.64-beta.20261102.1";
 
     src = fetchurl {
       url = "https://github.com/t8y2/dbx/releases/download/v${finalAttrs.version}/DBX_${finalAttrs.version}_arm64.app.tar.gz";
-      hash = "sha256-boOrOkOBVaP4v32E5kVsnXK353Q3zEeySZAcS+W91Kk=";
+      hash = "sha256-HzOCJoRg/82zckB/rmL8zISY5taiFe0aFDO1ZMib74A=";
     };
 
     sourceRoot = ".";
@@ -85,14 +85,14 @@ if stdenv.hostPlatform.isDarwin then
 else
   rustPlatform.buildRustPackage (finalAttrs: {
     pname = "dbx-desktop";
-    version = "0.6.62";
+    version = "0.6.64-beta.20261102.1";
 
     # 上游 release tag 对应的 commit；version/rev/hash 由本目录 update.sh 自动更新
     src = fetchFromGitHub {
       owner = "t8y2";
       repo = "dbx";
-      rev = "d70512235ba66c8242b637e660aa4b61a047c96b";
-      hash = "sha256-+LZTnePyRdDb6tw3fPGvpJiWT+hmPbcvaa36YmXXNGw=";
+      rev = "c107fa773905994a726bbba19cfaaa42a4ecd678";
+      hash = "sha256-yESk0ZP/Ysrad1qWRfFyFf2splG3Q6MkwvBEE1/Wr60=";
     };
 
     # 上游 packageManager 为 pnpm@10.34.x，其 package.json 里的 pnpm.overrides
