@@ -80,7 +80,13 @@ fix_cargo_hashes() {
 }
 
 # 重建全部 FOD hash（幂等：hash 已正确时写回原值）。
+# src / pnpmDeps / cargoLock.outputHashes 只属于 linux 分支，在 darwin 上既无法
+# 验证也无法修复（锚点不匹配且需要交叉构建），跳过并把该事项留给 Linux 上的运行。
 repair_fods() {
+  if [[ "$(uname -s)" != Linux ]]; then
+    echo "非 Linux 平台：跳过 linux 分支 FOD hash 重建，请在 Linux 上重跑本脚本" >&2
+    return 0
+  fi
   fix_fod_hash "dbx-desktop.src" 'rev = "[0-9a-f]{40}";\s*'
   fix_fod_hash "dbx-desktop.pnpmDeps" 'fetcherVersion = 4;\s*'
   fix_cargo_hashes
@@ -95,7 +101,17 @@ if [[ -z "$latest" || "$latest" == "null" ]]; then
   exit 1
 fi
 
-if [[ "$current" == "$latest" ]]; then
+# release tag 与资产文件名中的版本不一定相同（例如 tag v0.6.65 的资产名为
+# DBX_0.6.65-beta.20261103.1_arm64.app.tar.gz）。包版本以资产名为准，tag 仅用于解析
+# commit。
+asset_version=$(curl -sf "https://api.github.com/repos/$REPO/releases/latest" \
+  | jq -r '[.assets[].name | select(startswith("DBX_") and endswith("_arm64.app.tar.gz")) | .[4:] | rtrimstr("_arm64.app.tar.gz")] | first // ""')
+if [[ -z "$asset_version" ]]; then
+  echo "error: 最新 release 中找不到 DBX_<version>_arm64.app.tar.gz 资产" >&2
+  exit 1
+fi
+
+if [[ "$current" == "$asset_version" ]]; then
   echo "dbx-desktop 已是最新 ($current)，校验构建"
   log=$(mktemp)
   if nix build "$FLAKE_ROOT#dbx-desktop" --no-link --print-build-logs >"$log" 2>&1; then
@@ -128,22 +144,23 @@ if [[ -z "$rev" ]]; then
   exit 1
 fi
 
-echo "dbx-desktop: $current -> $latest ($rev)"
+echo "dbx-desktop: $current -> $asset_version (tag v$latest, commit $rev)"
 
 # 1) darwin 预编译 .app：fetchurl 直接下载，prefetch 即得正确 hash，无需构建
 tmp=$(mktemp)
 trap 'rm -f "$tmp"' EXIT
-echo "prefetch darwin asset DBX_${latest}_arm64.app.tar.gz"
-curl -sfL -o "$tmp" "https://github.com/$REPO/releases/download/v${latest}/DBX_${latest}_arm64.app.tar.gz"
+echo "prefetch darwin asset DBX_${asset_version}_arm64.app.tar.gz"
+curl -sfL -o "$tmp" "https://github.com/$REPO/releases/download/v${latest}/DBX_${asset_version}_arm64.app.tar.gz"
 darwin_hash=$(nix hash file --sri "$tmp")
 rm -f "$tmp"
 
-# 2) 更新两处 version、darwin fetchurl hash（文件中首个 hash）、linux rev
-sed -i -E "s|^    version = \"[0-9.]+\";$|    version = \"${latest}\";|g" "$FILE"
+# 2) 更新两处 version、darwin releaseTag、darwin fetchurl hash（文件中首个 hash）、linux rev
+sed -i -E "s|^    version = \"[^\"]+\";$|    version = \"${asset_version}\";|g" "$FILE"
+sed -i -E "s|^    releaseTag = \"[^\"]+\";$|    releaseTag = \"${latest}\";|g" "$FILE"
 perl -0pi -e "s|hash = \"sha256-[^\"]+\"|hash = \"${darwin_hash}\"|" "$FILE"
 sed -i -E "s|^      rev = \"[0-9a-f]{40}\";$|      rev = \"${rev}\";|" "$FILE"
 
 # 3) 重建 linux FOD hash（src / pnpmDeps / cargoLock.outputHashes）
 repair_fods
 
-echo "dbx-desktop 已更新到 $latest"
+echo "dbx-desktop 已更新到 $asset_version"

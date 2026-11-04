@@ -52,11 +52,14 @@
 if stdenv.hostPlatform.isDarwin then
   stdenvNoCC.mkDerivation (finalAttrs: {
     pname = "dbx-desktop";
-    version = "0.6.64-beta.20261102.1";
+    version = "0.6.65-beta.20261103.1";
+    # 上游 release tag 与资产名中的版本可能不同（tag v0.6.65 对应资产
+    # DBX_0.6.65-beta.20261103.1_arm64.app.tar.gz），故单独声明 tag。
+    releaseTag = "0.6.65";
 
     src = fetchurl {
-      url = "https://github.com/t8y2/dbx/releases/download/v${finalAttrs.version}/DBX_${finalAttrs.version}_arm64.app.tar.gz";
-      hash = "sha256-HzOCJoRg/82zckB/rmL8zISY5taiFe0aFDO1ZMib74A=";
+      url = "https://github.com/t8y2/dbx/releases/download/v${finalAttrs.releaseTag}/DBX_${finalAttrs.version}_arm64.app.tar.gz";
+      hash = "sha256-ELzKyBkMOC+v2rJiwzaCrigQYtoHb0JJxMydHuHqb3s=";
     };
 
     sourceRoot = ".";
@@ -85,14 +88,14 @@ if stdenv.hostPlatform.isDarwin then
 else
   rustPlatform.buildRustPackage (finalAttrs: {
     pname = "dbx-desktop";
-    version = "0.6.64-beta.20261102.1";
+    version = "0.6.65-beta.20261103.1";
 
     # 上游 release tag 对应的 commit；version/rev/hash 由本目录 update.sh 自动更新
     src = fetchFromGitHub {
       owner = "t8y2";
       repo = "dbx";
-      rev = "c107fa773905994a726bbba19cfaaa42a4ecd678";
-      hash = "sha256-yESk0ZP/Ysrad1qWRfFyFf2splG3Q6MkwvBEE1/Wr60=";
+      rev = "8e080e9717c08c7e6a3c08ae1fbf34f1847ff034";
+      hash = "sha256-e8o79zQhM+Fyb1cfauYb9BMaJeaNu+IEJIwhLkrjm/M=";
     };
 
     # 上游 packageManager 为 pnpm@10.34.x，其 package.json 里的 pnpm.overrides
