@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  vars,
   ...
 }:
 {
@@ -36,7 +37,7 @@
   networking.domain = "";
   services.openssh.enable = true;
   users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHGgIF/RgUlwjhijDzN9pzFhKNaFCZZ/fTo+CVrBmgu7 openpgp:0xD075FA27"
+    vars.ssh.zinePublicKey
   ];
   system.stateVersion = "26.11";
 

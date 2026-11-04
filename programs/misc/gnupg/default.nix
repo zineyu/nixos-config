@@ -8,8 +8,8 @@
 let
   cfg = config.zine.programs.gpg;
 
-  signingKey = "EE86111F659E24AB";
-  authKeygrip = "C714C773B14F2E777BA919679A5A9DD61B2145D0";
+  signingKey = "23D4E0D603C3F90E";
+  authKeygrip = "84C651B9903AAD75F84998E29EF4E65DD4264F6F";
   primaryFingerprint = "B6F9CB026D8DE746C15944E8DDA2A8ACF741A8CD";
   systemctl = if pkgs.stdenv.hostPlatform.isLinux then config.systemd.user.systemctlPath else null;
   sopsNixExecStart =

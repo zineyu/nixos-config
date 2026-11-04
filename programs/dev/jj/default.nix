@@ -20,7 +20,7 @@ in
         };
 
         signing = {
-          key = "EE86111F659E24AB";
+          key = "23D4E0D603C3F90E";
           backend = "gpg";
           behavior = "own";
         };

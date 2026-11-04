@@ -17,7 +17,7 @@ in
         user = {
           email = "zine.xlws@gmail.com";
           name = "zine yu";
-          signingKey = "EE86111F659E24AB";
+          signingKey = "23D4E0D603C3F90E";
         };
 
         core.editor = "nvim";
