@@ -49,7 +49,7 @@
 | [`second-pass`](./code/second-pass/SKILL.md) | 回头审自己刚做完的工作：找更好的实现与被浪费的步骤。（手动 /skill: 调用） |
 | [`statechart`](./code/statechart/SKILL.md) | 用 TLA+ 检查状态机，并画出 Mermaid 状态图。（手动 /skill: 调用） |
 | [`tdd`](./code/tdd/SKILL.md) | 红—绿—重构，一次推进一个行为切片。 |
-| [`typescript-best-practices`](./code/typescript-best-practices/SKILL.md) | 读写 `.ts`/`.tsx` 时的类型与边界规则。（手动 /skill: 调用） |
+| [`typescript-best-practices`](./code/typescript-best-practices/SKILL.md) | 读写 `.ts`/`.tsx` 时的类型与边界规则。 |
 | [`why`](./code/why/SKILL.md) | 挖出代码为什么长成现在这样：设计取舍、回归原因、阈值来源，全部带引用。（手动 /skill: 调用） |
 
 <a id="workflow"></a>
