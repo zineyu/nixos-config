@@ -1,0 +1,5 @@
+interface:
+  display_name: "Second Pass"
+  short_description: "Review the work you just finished: the better implementation, and the steps the run wasted."
+policy:
+  allow_implicit_invocation: false
