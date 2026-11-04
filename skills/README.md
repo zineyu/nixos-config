@@ -6,12 +6,12 @@
 
 | 分类 | 数量 | 范围 |
 |---|---|---|
-| [Code — 作用于代码本身](#code) | 30 | 读懂与设计、实现与重构、审查与验证。 |
+| [Code — 作用于代码本身](#code) | 29 | 读懂与设计、实现与重构、审查与验证。 |
 | [Workflow — 围绕需求与协作](#workflow) | 24 | 访谈、spec、工单、交付、复盘、写作、多 agent 编排。 |
 | [Tools — 工具与集合维护](#tools) | 6 | 仓库工具与这个技能集自身的维护。 |
 | [Principles — 判据层](#principles) | 24 | 跨流程复用的判断标准，被上面各层点名引用。 |
 
-合计 **84** 个技能。
+合计 **83** 个技能。
 
 <a id="code"></a>
 
@@ -25,8 +25,7 @@
 | [`benchmark-checklist`](./code/benchmark-checklist/SKILL.md) | 报性能数字之前先自查限幅、误差、可重复性与相关性。（手动 /skill: 调用） |
 | [`blast-radius`](./code/blast-radius/SKILL.md) | 找出改动会波及 diff 之外的哪些地方，并跑真实代码证明那条安全前提。（手动 /skill: 调用） |
 | [`code-reuse`](./code/code-reuse/SKILL.md) | 判断该直接复用、该抽公共模块，还是该保留这份重复。 |
-| [`code-review`](./code/code-review/SKILL.md) | 针对某个固定基准点，按标准与 spec 两轴评审改动。 |
-| [`code-review-and-quality`](./code/code-review-and-quality/SKILL.md) | 多维度质量评审，适合合并前的最后一道关。 |
+| [`code-review`](./code/code-review/SKILL.md) | 对着一个固定基准点，按 Standards + Spec 双轴评审，并覆盖正确性/可读性/架构/安全/性能五维。 |
 | [`code-simplification`](./code/code-simplification/SKILL.md) | 在不改行为的前提下，把难读的代码改到读得懂。 |
 | [`codebase-design`](./code/codebase-design/SKILL.md) | 提供“深模块”设计词汇，用来讨论和改进入口与接口的形状。 |
 | [`correct`](./code/correct/SKILL.md) | 找出 agent 反复犯的错，用架构、类型、lint、测试让它们无法再犯。（手动 /skill: 调用） |
