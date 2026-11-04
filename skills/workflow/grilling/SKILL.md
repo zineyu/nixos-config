@@ -36,4 +36,4 @@ The session is done when the frontier is empty: every branch of the design tree 
 
 ## Related skills
 
-[`sharpen`](../sharpen/SKILL.md) · [`principle-attack-the-premise`](../../principles/principle-attack-the-premise/SKILL.md)
+[`sharpen`](../sharpen/SKILL.md) · [`principle-attack-the-premise`](../../principles/principle-attack-the-premise/SKILL.md) · [`grill-me`](../grill-me/SKILL.md) · [`grill-with-docs`](../grill-with-docs/SKILL.md) · [`to-questionnaire`](../to-questionnaire/SKILL.md) · [`principle-never-block-on-the-human`](../../principles/principle-never-block-on-the-human/SKILL.md)

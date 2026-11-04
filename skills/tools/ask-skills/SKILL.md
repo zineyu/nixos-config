@@ -106,3 +106,7 @@ These sit off the main flow and get named by the skills above; reach for one dir
 ## Precondition
 
 **`/setup-skills`**: run before your first engineering flow to configure the issue tracker, triage labels, and doc layout the other skills assume. Custom issue trackers also work.
+
+## Related skills
+
+[`find-skill`](../find-skill/SKILL.md) · [`research`](../research/SKILL.md) · [`wizard`](../wizard/SKILL.md) · [`jujutsu`](../jujutsu/SKILL.md) · [`teach`](../../workflow/teach/SKILL.md)

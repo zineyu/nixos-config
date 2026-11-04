@@ -41,4 +41,4 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 ## Related skills
 
-[`swarm`](../../workflow/swarm/SKILL.md) · [`architect`](../architect/SKILL.md) · [`code-review`](../code-review/SKILL.md)
+[`swarm`](../../workflow/swarm/SKILL.md) · [`architect`](../architect/SKILL.md) · [`code-review`](../code-review/SKILL.md) · [`show-me-your-work`](../../workflow/show-me-your-work/SKILL.md) · [`principle-outcome-oriented-execution`](../../principles/principle-outcome-oriented-execution/SKILL.md)

@@ -90,4 +90,4 @@ Reporting them separately stops one axis from masking the other.
 
 ## Related skills
 
-[`interrogate`](../interrogate/SKILL.md) · [`blast-radius`](../blast-radius/SKILL.md) · [`principle-test-behavior-not-implementation`](../../principles/principle-test-behavior-not-implementation/SKILL.md)
+[`interrogate`](../interrogate/SKILL.md) · [`blast-radius`](../blast-radius/SKILL.md) · [`principle-test-behavior-not-implementation`](../../principles/principle-test-behavior-not-implementation/SKILL.md) · [`typescript-best-practices`](../typescript-best-practices/SKILL.md)

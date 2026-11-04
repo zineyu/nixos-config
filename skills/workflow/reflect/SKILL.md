@@ -46,7 +46,7 @@ One `worker` subagent call, `model` unset. It spot-verifies citations through th
 
 ## 4. Structural enforcement check
 
-Move any Accepted item that a lint rule, script, metadata flag, or runtime check would enforce more reliably to Backlog. See the **encode-lessons-in-structure** principle skill.
+Move any Accepted item that a lint rule, script, metadata flag, or runtime check would enforce more reliably to Backlog. See the **principle-encode-lessons-in-structure** skill.
 
 ## 5. Apply
 

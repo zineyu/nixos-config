@@ -82,4 +82,4 @@ You win twice: fewer tokens, and a sharper hook for the agent to hang its thinki
 
 ## Related skills
 
-[`unslop`](../unslop/SKILL.md) · [`technical-writing`](../technical-writing/SKILL.md)
+[`automate-me`](../automate-me/SKILL.md) · [`unslop`](../unslop/SKILL.md) · [`technical-writing`](../technical-writing/SKILL.md) · [`principle-guard-the-context-window`](../../principles/principle-guard-the-context-window/SKILL.md)

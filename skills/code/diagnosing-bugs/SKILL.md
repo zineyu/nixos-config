@@ -139,4 +139,4 @@ Required before declaring done:
 
 ## Related skills
 
-[`benchmark-checklist`](../benchmark-checklist/SKILL.md) · [`principle-explain-the-number`](../../principles/principle-explain-the-number/SKILL.md) · [`principle-attack-the-premise`](../../principles/principle-attack-the-premise/SKILL.md) · [`blast-radius`](../blast-radius/SKILL.md)
+[`benchmark-checklist`](../benchmark-checklist/SKILL.md) · [`principle-explain-the-number`](../../principles/principle-explain-the-number/SKILL.md) · [`principle-attack-the-premise`](../../principles/principle-attack-the-premise/SKILL.md) · [`blast-radius`](../blast-radius/SKILL.md) · [`principle-fix-root-causes`](../../principles/principle-fix-root-causes/SKILL.md)

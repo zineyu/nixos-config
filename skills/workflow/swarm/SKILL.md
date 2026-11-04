@@ -41,3 +41,7 @@ Read the terminal results. Drop a result that does not record the SHAs and metho
 ## Phase D: Report
 
 Return one consolidated in-chat report with a result table, issue one-liners, gaps or dropouts, and the race rule when used.
+
+## Related skills
+
+[`principle-separate-before-serializing-shared-state`](../../principles/principle-separate-before-serializing-shared-state/SKILL.md)
