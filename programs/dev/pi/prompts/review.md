@@ -1,38 +1,37 @@
 ---
-description: Review a diff along both axes and report findings by severity, with no verdict and no edits
-argument-hint: "[base, defaults to main]"
+description: 沿两条轴线评审一份 diff，按严重度报告发现，不给结论，也不改动代码
+argument-hint: "[基准点，默认为 main]"
 ---
 
-Invoke the `code-review` skill. The base is `$1`, and defaults to `main`.
+调用 `code-review` 技能。基准点是 `$1`，默认为 `main`。
 
-## Routing
+## 路由
 
-| Situation | Skill |
+| 情况 | 技能 |
 |---|---|
-| The default two-axis review of a diff | `code-review` |
-| The change deserves more than one model attacking it | `interrogate` |
-| The diff adds a second copy of logic | `code-reuse` |
-| Reviewing work you just finished yourself | `second-pass` |
+| 对一份 diff 做默认的双轴评审 | `code-review` |
+| 这份改动值得不止一个模型来攻击 | `interrogate` |
+| 这份 diff 增加了第二份相同的逻辑 | `code-reuse` |
+| 评审你自己刚刚完成的工作 | `second-pass` |
 
-## What this command adds
+## 本命令补充的要求
 
-- Both axes are dispatched in a single reply, never one after the other.
-- Every finding carries a severity, `file:line`, and the fix you would make.
-- Review only. Do not edit the code; this command ends with the report.
+- 两条轴在一次回复中同时派出，永不一条接一条。
+- 每条发现都带严重度、`file:line`，以及你会采取的修法。
+- 只做评审。不要改动代码；本命令以报告结束。
 
-## Severity
+## 严重度
 
-| Tier | Meaning |
+| 等级 | 含义 |
 |---|---|
-| Critical | Correctness, security, or data loss risk. Blocks the change. |
-| Required | Breaks a documented standard, or leaves a stated requirement unmet. |
-| Optional | A real improvement that the change can ship without. |
-| Nit | Naming, wording, formatting. |
+| 致命 | 正确性、安全性或数据丢失风险。阻止本次变更。 |
+| 必须 | 违反已经写下的标准，或留下一项已声明的需求未满足。 |
+| 可选 | 真实的改进，本次变更不带它也能上线。 |
+| 细节 | 命名、措辞、格式。 |
 
-## Output
+## 输出
 
-Lead with the counts per tier. Then one list per axis (Standards, Spec), each finding as
-`severity — file:line — finding — proposed fix`. Close with the findings you could not place on
-either axis, and say why.
+先给每个等级的条数。然后每条轴一份清单（标准、规格），每条发现的写法是
+`严重度 — file:line — 发现 — 拟采取的修法`。最后给出你无法归入任何一条轴的发现，并说明原因。
 
-This command stops at the findings. The verdict belongs to whoever merges the change.
+本命令止于发现。结论属于合并这次变更的人。

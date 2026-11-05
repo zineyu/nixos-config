@@ -148,11 +148,11 @@ state insufficient:
   `make-operations-idempotent`. Nothing moved to `references/`: that directory
   is for lookup material, and every principle carries a rule that changes
   behaviour.
-- **`html-report` is a shared presenter.** Ten skills hand their findings to it
+- **`html-report` is a shared presenter.** Nine skills hand their findings to it
   when the list is long enough to skim or when the comparison is the point:
   `code-review`, `arena`, `blast-radius`, `interrogate`, `swarm`,
-  `security-and-hardening`, `second-pass`, `ci-cd-and-automation`, `retro`, and
-  `reflect`. The reference is conditional on purpose. A review with three
+  `security-and-hardening`, `second-pass`, `ci-cd-and-automation`, and
+  `retro`. The reference is conditional on purpose. A review with three
   findings reads faster as text, and a page produced for it costs more than it
   returns. `html-report` sits in `tools/` because it is machinery, not a step.
 - **Shared checklists live in `skills/references/`.** A checklist used by more

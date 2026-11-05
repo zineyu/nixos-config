@@ -27,4 +27,4 @@ The two branches produce very different artifacts, so getting this wrong wastes 
 
 ## Related skills
 
-[`arena`](../arena/SKILL.md) · [`principle-exhaust-the-design-space`](../../principles/principle-exhaust-the-design-space/SKILL.md)
+[`arena`](../arena/SKILL.md) · [`statechart`](../statechart/SKILL.md)

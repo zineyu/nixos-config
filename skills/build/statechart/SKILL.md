@@ -83,4 +83,4 @@ When the model describes code, replay each bug path against the real code, as a 
 
 ## Related skills
 
-[`create-formal-verification-skill`](../../test/create-formal-verification-skill/SKILL.md)
+[`formal-verification-skill`](../../test/formal-verification-skill/SKILL.md)

@@ -1,28 +1,28 @@
 ---
-description: Break a spec into tracer-bullet tickets with blocking edges and publish them
-argument-hint: "[spec issue number, URL, or path; omit to use this conversation]"
+description: 把一份 spec 拆成带阻塞关系的 tracer-bullet 工单并发布
+argument-hint: "[spec 的 issue 编号、URL 或路径；留空则使用本段对话]"
 ---
 
-Invoke the `to-tickets` skill.
+调用 `to-tickets` 技能。
 
-The source is `$1` when given, otherwise the spec already in this conversation.
+给出 `$1` 时以它为来源，否则以本段对话中已有的 spec 为来源。
 
-## Routing
+## 路由
 
-| Situation | Skill |
+| 情况 | 技能 |
 |---|---|
-| The spec is settled and the work needs slicing | `to-tickets` |
-| A task is too large because it is too shallow | `sharpen` |
-| A ticket cannot be written until someone decides something | `to-questionnaire` |
-| The work spans several sessions and needs a decision map | `wayfinder` |
-| Issues and incoming changes need ordering before planning | `triage` |
+| spec 已定稿，工作还需要切片 | `to-tickets` |
+| 任务太大，因为它太浅 | `sharpen` |
+| 必须先由某人决定一件事，才能写出工单 | `to-questionnaire` |
+| 工作跨越多个会话，需要一张决策地图 | `wayfinder` |
+| issue 与外来变更需要在规划之前排序 | `triage` |
 
-## Two things this command fixes
+## 本命令固定的两件事
 
-Stop and ask when unchecked tickets for this feature already exist. Never silently overwrite an incomplete plan.
+当该功能已经存在未勾选的工单时，停下来询问。永不悄悄覆盖一份未完成的计划。
 
-Publish in dependency order, blockers first, so each ticket's blocking edges can name real identifiers.
+按依赖顺序发布，阻碍者在前，这样每张工单的阻塞边可以指向真实的标识。
 
-## Finishing
+## 收尾
 
-Report the ticket identifiers and the tickets whose blockers are all done, since those can start now. Do not start implementing.
+报告工单的标识，以及阻碍者已经全部完成的工单（它们现在可以开始）。不要开始实现。

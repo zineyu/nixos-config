@@ -1,5 +1,5 @@
 interface:
   display_name: "Retro"
-  short_description: "Conduct a retrospective on a coding session."
+  short_description: "Retrospect a coding session: manual pass, or the deep pass with review subagents."
 policy:
   allow_implicit_invocation: false

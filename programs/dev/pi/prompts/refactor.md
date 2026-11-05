@@ -1,80 +1,83 @@
 ---
-description: Survey the repository for refactoring candidates across architecture, layout, lint, CI, deployment, performance, abstraction, and simplification, then stop at the list
-argument-hint: "[path or subsystem; empty for the whole repository]"
+description: 跨架构、布局、lint、CI、部署、性能、抽象与简化八个维度扫描仓库中的重构候选，然后停在清单上
+argument-hint: "[路径或子系统；留空表示整个仓库]"
 ---
 
-Read these skills before surveying. Each contributes one rule this command enforces.
+# 代码库重构扫描
 
-| Skill | What it contributes here |
+扫描范围：当提供了 `$1` 时，以 `$1` 为扫描范围；否则以整个代码仓库为扫描范围。
+
+重构意图：如果这次重构有明确的目标，请在下一行写下这个目标，例如“收拢 X 模块的接缝”或者“去掉 Y 层的转发”；如果没有明确目标，请将这一行留空，八个维度全部开启。重构意图越具体，扫描范围就越窄，`second-pass` 在交回之前丢弃的猜测就越多。
+
+## 在开始扫描之前，先阅读下面这些技能
+
+下面每一个技能都为这次扫描贡献一条规则，或者为一个维度提供门槛：
+
+| 技能 | 这个技能贡献什么 |
 |---|---|
-| `html-report` | the page the survey is delivered on |
-| `improve-codebase-architecture` | the architecture pass |
-| `codebase-design` | the deletion test, and the module / interface / seam vocabulary every candidate uses |
-| `code-reuse` | when a duplicate costs less than the abstraction that would remove it |
-| `code-simplification` | what a simplification candidate looks like |
-| `constraint-driven-development` | the bar for the lint dimension |
-| `ci-cd-and-automation` | the bar for the CI dimension |
-| `shipping-and-launch` | the bar for the deployment dimension |
-| `benchmark-checklist` | the bar for the performance dimension |
-| `principle-laziness-protocol` | bias to deletion: the survey proposes removals, never a new layer |
-| `principle-build-the-lever` | when a finding recurs across the survey, propose the script that checks it instead of repeating the check by hand |
-| `principle-subtract-before-you-add` | the order of the hand-off: removal first, construction on the simpler base |
-| `second-pass` | the check on your own output, before you hand the list back |
+| `html-report` | 扫描结果所呈现的页面的格式，以及写给人的规则 |
+| `improve-codebase-architecture` | 架构维度的那一趟扫描 |
+| `codebase-design` | 删除测试，以及每个候选都使用的模块、接口、接缝词汇 |
+| `code-reuse` | 何时重复的代价低于消除重复的抽象 |
+| `code-simplification` | 一个简化候选长什么样 |
+| `constraint-driven-development` | lint 维度的门槛 |
+| `ci-cd-and-automation` | CI 维度的门槛 |
+| `shipping-and-launch` | 部署维度的门槛 |
+| `benchmark-checklist` | 性能维度的门槛 |
+| `principle-laziness-protocol` | 偏向删除：扫描只提出删除，永远不提出新层 |
+| `principle-build-the-lever` | 当一条发现贯穿整次扫描反复出现时，提出一个检查它的脚本，而不是手工重复检查 |
+| `principle-subtract-before-you-add` | 交出去的顺序：先删除，再在更简单的基础上构建 |
+| `second-pass` | 在交回清单之前，对自己产出的清单做一次检查 |
 
-## Dimensions
+## 维度
 
-| Dimension | A candidate is |
+每一个候选都必须归入下面这些维度中的恰好一个维度：
+
+| 维度 | 什么算作一个候选 |
 |---|---|
-| Architecture | a shallow module that could be deepened behind one seam |
-| Layout | a directory mixing two kinds of thing, or a file whose neighbours no longer predict it |
-| Lint | a suppression, a disabled rule, or a rule that exists but never blocks |
-| CI | a check in one place but not the other, or a job whose failure nobody would notice |
-| Deployment | a step done from memory, or a rollback that has never been executed |
-| Performance | a number nobody measured, or a claim with no limiter named |
-| Abstraction | an interface with one implementation, a wrapper that only forwards, a layer that only converts types, a flag that is always true, a `utils/` function with one caller |
-| Simplification | a construct that makes a new reader slow down |
+| 架构 | 一个浅模块，可以收进一条接缝之后被加深 |
+| 布局 | 一个混杂了两类东西的目录，或者一个邻居不再能预测它的文件 |
+| Lint | 一处抑制、一条被关掉的规则，或者一条存在却从不阻止任何东西的规则 |
+| CI | 一边有检查而另一边没有检查，或者一个失败了也没有人注意的任务 |
+| 部署 | 凭记忆执行的步骤，或者从未执行过的回滚 |
+| 性能 | 没有人测量过的数字，或者没有说出限制因素的结论 |
+| 抽象 | 只有一个实现的接口、只做转发的包装、只做类型转换的层、恒为真的开关、只有一个调用方的 `utils/` 函数 |
+| 简化 | 让新的读者不得不放慢速度的写法 |
 
-The scope is `$1` when given, otherwise the whole repository.
+## 抽象那一趟扫描
 
-## The abstraction pass
+先枚举，再判断。走过扫描范围，列出每一处间接，然后用 `codebase-design` 的删除测试逐个检验：在脑中删掉它，然后问复杂度去了哪里。
 
-Enumerate before judging. Walk the scope and list every indirection, then test each one with the
-deletion test from `codebase-design`: delete it in your head, and ask where the complexity goes.
+- 复杂度消失了：它只是一段过路，算作一个候选。
+- 复杂度重新出现在调用方里：它挣得了自己的位置，不算作候选——但要把这个结果报告为一条**被证实的接缝**，并说明一条 ADR 可以阻止未来的扫描再次提出它。
 
-- vanishes: it was a pass-through, and it is a candidate
-- reappears in the callers: it was earning its place, and it is not a candidate
+`code-reuse` 守住相反的失误：一个把两个可能各自演化的上下文耦合起来的抽象，它的代价高于它所消除的重复。在提出合并之前，先读 `code-reuse`。
 
-An abstraction that survives the test is a finding too. Report it as a proven seam, and say that an
-ADR would stop a future survey from proposing it again.
+## 规则
 
-`code-reuse` guards the opposite error: an abstraction that couples two contexts which could evolve
-apart costs more than the duplication it removed. Read it before proposing a merge.
+- 每一个候选都必须带上：**维度徽标**、`file:line`、一句话的摩擦描述、**删掉什么**，以及**重构边界**——用一句话说明删除或者内联之后，哪个可观察行为必须原样保留。
+- 每一个候选还必须标明**测试托底**：覆盖该处的测试是在 `file:line`，还是缺失；如果测试本身就是候选，按 `codebase-design` 的删除测试单独列出。
+- 按拖延的代价排序，不按整洁程度排序。没有人会绊到的候选排在最后。
+- 已经记录在 ADR 中的决定不是候选；它是答案。
+- 提出增加一层的扫描已经违反了 `principle-laziness-protocol`。
+- 不提出接口，不做访谈，也不改动代码。**报告就是交付物——扫描到此为止。**
 
-## Rules
+## 交回之前
 
-- Every candidate carries evidence: `file:line`, and the friction it causes in one sentence.
-- Rank by cost of delay, not by tidiness. A candidate nobody will trip over goes last.
-- A decision already recorded in an ADR is not a candidate; it is the answer.
-- Every candidate removes something. A survey that proposes adding a layer has broken
-  `principle-laziness-protocol`.
-- Do not propose interfaces, do not interview, and do not edit code. The report is the deliverable.
+对产出的清单运行 `second-pass`，不是对代码运行 `second-pass`：对每一个候选，问同一次删除是否存在更好的版本，并丢掉那些你无法用一句话说出摩擦的候选。一份更短的、被证实的候选清单胜过一份更长的猜测清单。
 
-## Before you hand back
+## 输出
 
-Run `second-pass` over the list you produced, not over the code: for each candidate, ask whether a
-better version of the same removal exists, and drop the ones whose friction you cannot state in one
-sentence. A shorter list of proven candidates beats a longer list of suspicions.
+调用 `html-report` 技能，由它负责页面格式与写给人的规则。本命令为每一张卡片增加两个字段：第一个字段是上表中的**维度**，它作为推荐强度旁边的徽标，让读者能够分清架构候选与 lint 候选；第二个字段是**重构边界与测试托底**，让下游不必重新讨论安全性。
 
-## Output
+## 扫描完成之后：先询问用户，不要直接开始
 
-Invoke the `html-report` skill. It owns the page format and the rules for writing to a person.
-This command adds one field per card: the **dimension** from the table above, as a badge beside the
-recommendation strength, so a reader can tell an architecture candidate from a lint one.
+报告一旦交付，扫描就结束了。**不要自动进入 `/plan`，不要自动进入 `/code-simplify`，也不要自动进入 `/build`；不要开始改动任何代码。** 先停下来，向用户提出关于下一步做什么的问题，并等待用户的回答。
 
-## Hand off
+这些问题应当让用户选择接下来做什么，同时给出建议的落地顺序供用户参考，这个顺序遵循 `principle-subtract-before-you-add`：删除先落地，删除所释放出来的东西之后在更简单的基础上构建：
 
-A picked candidate continues at `/plan`. An abstraction to inline, or a construct to simplify,
-continues at `/code-simplify`. One small enough to state in a single line continues at `/build`.
+1. 从哪一条候选开始？
+2. 走哪一条下游路径——`/plan`（跨维度的改动，或者需要先补测试的改动）、`/code-simplify`（内联抽象、简化写法），还是 `/build`（一行就能说清的小改动）？
+3. 是否需要先补上测试托底，再动手删除？
 
-Order matters on the way out, per `principle-subtract-before-you-add`: the removal lands first, and
-whatever the removal makes possible is built on the simpler base afterwards.
+只有当用户明确做出选择之后，才进入对应的下游命令。**询问用户，不要替用户决定。**

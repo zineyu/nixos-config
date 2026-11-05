@@ -1,27 +1,26 @@
 ---
-description: Vet a performance number before you report it or act on it
-argument-hint: "[the claim, or the change you are about to measure]"
+description: 在报告或依据一个性能数字行动之前，先核查该数字
+argument-hint: "[要报的结论，或你即将测量的变更]"
 ---
 
-Invoke the `benchmark-checklist` skill.
+调用 `benchmark-checklist` 技能。
 
-## Routing
+## 路由
 
-One skill covers this command: `benchmark-checklist`. It carries the seven questions and the
-report shape. This command only decides when to enter it.
+本命令只有一个技能：`benchmark-checklist`。它携带七个问题与报告的写法。本命令只决定何时进入。
 
-## When to enter it
+## 何时进入
 
-- you are about to report a speedup, a regression, or a choice between options
-- a plan, a review, or a change description quotes a number nobody measured
+- 你即将报告一个提速、一个回归，或在几个选项之间作出选择
+- 一份计划、一份评审或一条变更描述引用了没有人测量过的数字
 
-Do not enter when correctness is the open question. That is `/test` or `/review`.
+正确性尚未确定时不要进入。那属于 `/test` 或 `/review`。
 
-## Two rules this command adds
+## 本命令补充的两条规则
 
-- Write the claim sentence before the run, in the words you would ship.
-- For a choice between options, every side is tuned the way production runs it. An untuned side makes the run a comparison of configurations, not of implementations, and no winner comes out of it.
+- 在运行之前先写下结论句，用你准备发布的措辞。
+- 在几个选项之间选择时，每一方都按生产方式调优。没有调优的一方会让这次运行变成配置的比较，而不是实现的比较，也得不出胜者。
 
-## Output
+## 输出
 
-Verdict first: faster, slower, no measurable difference, or inconclusive. Then the number with its unit, the run count, the range, and the limiter. When the limiter cannot be named, the verdict is inconclusive and the report says so.
+先给判断：更快、更慢、无可测差异，或无法定论。然后给数字及其单位、运行次数、范围，以及限制因素。限制因素说不出来时，判断为无法定论，报告要写明这一点。

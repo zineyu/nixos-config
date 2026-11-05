@@ -1,58 +1,67 @@
 ---
-description: Implement one ticket at a time, or the whole plan in one approved pass with "auto"
-argument-hint: "[ticket-id | auto]"
+description: 逐个工单实现，或用 "auto" 在一次批准中实现整份计划
+argument-hint: "[工单编号 | auto]"
 ---
 
-Invoke the `implement` skill, with `tdd` for the loop and `diagnosing-bugs` when a test will not pass.
+实现用户在 spec 或工单中描述的工作。
 
-## Routing
+## 循环
 
-| Situation | Skill |
+每一个工单执行以下步骤：
+
+1. 从 issue 跟踪器取回该工单，并在开始之前说出它的标题。引用含糊时，先询问。
+2. 用 `tdd` 技能在工单已经约定好的接缝处实现。测试无法通过、原因又不明显时，使用 `diagnosing-bugs`。
+3. 经常运行类型检查，经常运行单个测试文件，并在最后完整运行一次测试套件。
+4. 对结果调用 `code-review` 技能。在提交之前修好它指出的问题。
+5. 把这次工作提交到当前分支，作为一次变更，描述写到只看标题就能说出影响。
+
+## 路由
+
+| 情况 | 技能 |
 |---|---|
-| Implementing a ticket, test first | `implement` with `tdd` |
-| A test will not pass and the cause is not obvious | `diagnosing-bugs` |
-| The interface or module shape is not settled | `codebase-design`, then `architect` |
-| The domain model is unclear before writing stateful logic | `domain-driven-design` |
-| A design question needs running code to answer it | `prototype` |
-| The behaviour is a state machine | `statechart` |
-| Several candidate approaches should compete | `arena` |
-| Independent slices can run in parallel | `swarm` |
-| A whole spec should be driven at once | `implement-spec` |
-| Reading existing code before changing it | `why`, or `how` for a subsystem |
-| The files are TypeScript | `typescript-best-practices` |
-| The work is user-facing UI | `frontend-ui-engineering` |
+| 实现一个工单，测试先行 | `tdd` |
+| 测试无法通过，原因不明显 | `diagnosing-bugs` |
+| 接口或模块形状还没有确定 | `codebase-design`，然后 `architect` |
+| 写有状态逻辑之前，领域模型不清楚 | `domain-driven-design` |
+| 一个设计问题需要能跑的代码才能回答 | `prototype` |
+| 行为是一个状态机 | `statechart` |
+| 多个候选方案应当同场竞争 | `arena` |
+| 相互独立的切片可以并行 | `swarm` |
+| 整份 spec 应当一次驱动完成 | `implement-spec` |
+| 在改动之前先读懂现有代码 | `why`，子系统则用 `how` |
+| 文件是 TypeScript | `typescript-best-practices` |
+| 工作面向用户的界面 | `frontend-ui-engineering` |
 
-## Baseline
+## 基线
 
-Run `jj status` and `jj log`. Confirm no unmerged conflict, the parent commit builds, and the suite passes. Uncommitted work outside the ticket's scope stops the run: ask the user to commit, abandon, or confirm how to handle it.
+运行 `jj status` 与 `jj log`。确认没有未合并的冲突，父提交可以构建，测试套件全部通过。工单范围之外的未提交工作会中止本次运行：请用户提交、放弃，或确认如何处理。
 
-## Modes
+## 模式
 
-- `/build <ticket-id>` implements that ticket, then stops.
-- `/build auto` implements the frontier in dependency order: any ticket whose blockers are all done.
-- `/build` with no argument names the first frontier ticket it chose, then implements it.
+- `/build <工单编号>` 实现该工单，然后停止。
+- `/build auto` 按依赖顺序实现前沿：阻碍者已经全部完成的工单。
+- `/build` 不带参数时，先说出它选择的第一张前沿工单，然后实现它。
 
-Automatic mode is not faster per ticket. It runs the same loop and only removes the human stepping between tickets.
+自动模式不会让单个工单更快。它运行同一个循环，只是去掉了工单之间的人工步骤。
 
-## The one gate
+## 唯一的闸门
 
-In automatic mode, present the plan once and wait for an unambiguous affirmative. A hedged reply ("looks reasonable", "I guess") is not approval.
+在自动模式中，把计划呈现一次，并等待明确无歧义的肯定回答。含糊的回答（“看起来还行”“我猜可以”）不算批准。
 
-## Per ticket
+## 每个工单
 
-One change per ticket, created with `jj commit` and described so the title alone states the impact. That is what makes any point a clean rollback.
+每个工单一次变更，用 `jj commit` 创建，描述写到只看标题就能说出影响。这正是任何一点都能干净回滚的原因。
 
-## Stop and ask
+## 停下来询问
 
-- a test will not pass and the cause is not obvious
-- the spec is silent on a decision the ticket needs
-- the ticket is high-risk or irreversible: authentication, permissions, destructive migrations, payments, deletions, deploys, secrets
+- 测试无法通过，原因又不明显
+- spec 对工单所需的一项决定保持沉默
+- 该工单风险高或不可逆：认证、权限、破坏性迁移、支付、删除、部署、密钥
 
-Everything else proceeds without asking, per `principle-never-block-on-the-human`: a reversible
-step is taken and reported, not put back to the user as a question.
+其余一切都不必询问，按 `principle-never-block-on-the-human` 执行：可逆的步骤直接做并报告，不把它当问题抛回给用户。
 
-After a blocker is resolved, re-run `/build auto`; it resumes at the next ticket.
+阻碍解决之后，重新运行 `/build auto`；它会从下一张工单继续。
 
-## Finishing
+## 收尾
 
-Report the tickets completed, the tests added, the changes created, and anything skipped or flagged.
+报告完成的工单、新增的测试、创建的变更，以及任何被跳过或被标记的事项。

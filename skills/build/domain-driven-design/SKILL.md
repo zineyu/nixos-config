@@ -41,7 +41,7 @@ Framework for tackling software complexity by modeling code around the business 
 | Module structure | Organize by domain concept | `shipping/`, `billing/` -- not `controllers/`, `services/` |
 | Code review | Reject technical-only names | Flag `Manager`, `Helper`, `Processor`, `Utils` as naming smells |
 
-See: [references/ubiquitous-language.md](references/ubiquitous-language.md) when running modeling sessions or maintaining a glossary -- covers how the language evolves and feeds back into code.
+See: the [`domain-modeling`](../../spec/domain-modeling/SKILL.md) skill when running modeling sessions or maintaining the project's language. It owns the terms, where they live, and how they feed back into code.
 
 ### 2. Bounded Contexts and Context Mapping
 

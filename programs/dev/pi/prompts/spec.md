@@ -1,50 +1,45 @@
 ---
-description: Settle the intent, then publish the spec to the tracker
-argument-hint: "[existing issue number or URL to extend]"
+description: 先定下意图，再把 spec 发布到跟踪器
+argument-hint: "[要扩充的现有 issue 编号或 URL]"
 ---
 
-Invoke the `interview-me` and `domain-modeling` skills, then the `to-spec` skill, in that order.
+按顺序调用 `interview-me` 与 `domain-modeling` 技能，然后调用 `to-spec` 技能。
 
-## Routing
+## 先复述
 
-| Situation | Skill |
+在提出任何问题之前，用你自己的话复述你认为用户的目标，以及用户试图解决的问题。一段短文，然后等待纠正。复述错了只花一条消息；spec 错了要花掉整个构建。
+
+## 路由
+
+| 情况 | 技能 |
 |---|---|
-| The ask is one sentence and its goal is unclear | `in-your-own-words` |
-| The intent is underspecified: no who, no why, no success, no constraint | `interview-me` |
-| Terms or a hard-to-reverse trade-off will be recorded | `domain-modeling` |
-| A question needs someone else's answer | `to-questionnaire` |
-| The intent is confirmed and the spec must be written | `to-spec` |
+| 意图不充分：没有对象、没有缘由、没有成功标准、没有约束 | `interview-me` |
+| 术语或难以逆转的取舍将被记录下来 | `domain-modeling` |
+| 一个问题需要别人的答案 | `to-questionnaire` |
+| 意图已经确认，spec 必须写下来 | `to-spec` |
 
-## Stop at the intent, not at the tree
+## 停在意图上，不要停在工单树上
 
-`interview-me` stops when you can predict the user's reaction to the next three questions you would
-ask. That is the gate. The implementation decisions a spec cannot settle are not this command's
-work: `/plan` slices them into tickets and `/build` stops and asks when a ticket reaches one the
-spec never answered.
+当你能预测用户对你接下来三个问题的反应时，`interview-me` 就停止。那就是闸门。spec 无法定下的实现决定不属于本命令的工作：`/plan` 把它们切成工单，而 `/build` 在某张工单触到 spec 从未回答的决定时停下来询问。
 
-## Why `domain-modeling` follows
+## 为什么接着做 `domain-modeling`
 
-`to-spec` records decisions; it does not make them. `interview-me` settles the intent, and
-`domain-modeling` writes what crystallises where this repository keeps it: a resolved term into
-the `## Language` section of `CONTEXT.md`, a hard-to-reverse trade-off into `docs/adr/`. Do not
-create a second glossary file.
+`to-spec` 记录决定；它不做决定。`interview-me` 定下意图，`domain-modeling` 把结晶出来的东西写到本仓库存放它们的地方：解析清楚的术语写入
+`GLOSSARY.md`，难以逆转的取舍写入 `docs/adr/`。不要另外创建第二份术语表。
 
-## The coverage gate
+## 覆盖闸门
 
-Before synthesis, check every section the spec template needs against what the user has explicitly said:
+在综合之前，把 spec 模板所需的每一节对照用户明确说过的话检查一遍：
 
-- Problem Statement
-- Solution
-- User Stories
-- Implementation Decisions
-- Testing Decisions
-- Out of Scope
+- 问题陈述
+- 方案
+- 用户故事
+- 实现决定
+- 测试决定
+- 范围之外
 
-`interview-me` already covers the first, second, and last, and gives the vocabulary for user
-stories. Whatever remains rests on an assumption: ask it now rather than writing an open question
-in its place. Facts are the exception; look them up in the repository or by dispatching a subagent.
+`interview-me` 已经覆盖第一节、第二节与最后一节，并给出用户故事所需的词汇。剩下的部分都建立在假设之上：现在就问，不要用一个悬而未决的问题代替它。事实是例外；在仓库里查，或派一个 subagent 去查。
 
-## Finishing
+## 收尾
 
-With an argument, extend that existing issue. With none, open a new one. Publish with the
-`ready-for-agent` label and report the issue number and title. Do not start implementing.
+带参数时扩充那份现有 issue。不带参数时新建一份。用 `ready-for-agent` 标签发布，并报告 issue 编号与标题。不要开始实现。

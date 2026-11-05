@@ -11,20 +11,20 @@
 
 | 分类 | 数量 | 对应命令 | 范围 |
 |---|---|---|---|
-| [`spec`](#spec) | 4 | /spec | 定义 — 把想法与决策收敛成 spec。 |
+| [`spec`](#spec) | 3 | /spec | 定义 — 把想法与决策收敛成 spec。 |
 | [`plan`](#plan) | 5 | /plan | 规划 — 把 spec 拆成可执行的工单。 |
-| [`build`](#build) | 15 | /build | 实现 — 写代码：设计、实现、调试。 |
-| [`test`](#test) | 5 | /test | 验证 — 开发完成后，对着真实产物与波及面测试。 |
+| [`build`](#build) | 14 | /build | 实现 — 写代码：设计、实现、调试。 |
+| [`test`](#test) | 3 | /test | 验证 — 开发完成后，对着真实产物与波及面测试。 |
 | [`review`](#review) | 4 | /review | 评审 — 提交前读 diff：标准与规格。 |
 | [`code-simplify`](#code-simplify) | 2 | /code-simplify | 简化 — 不改行为地降低复杂度。 |
 | [`perf`](#perf) | 1 | /perf | 测量 — 报性能数字之前先核查。 |
 | [`refactor`](#refactor) | 1 | /refactor | 重构候选 — 跨维度扫描可重构之处，只出清单。 |
 | [`gate`](#gate) | 4 | /gate | 门槛 — 把质量与安全写成可执行的门槛并守住。 |
 | [`ship`](#ship) | 3 | /ship | 交付 — 部署、观测、描述改动。 |
-| [`principles`](#principles) | 21 | — | 判据 — 跨阶段复用的判断标准，被上面各层点名引用。 |
-| [`tools`](#tools) | 19 | — | 工具 — 跨阶段的工具与这个技能集自身的维护。 |
+| [`principles`](#principles) | 20 | — | 判据 — 跨阶段复用的判断标准，被上面各层点名引用。 |
+| [`tools`](#tools) | 18 | — | 工具 — 跨阶段的工具与这个技能集自身的维护。 |
 
-合计 **84** 个技能。另有 `references/` 存放被多个技能共用的清单，不是技能分类。
+合计 **78** 个技能。另有 `references/` 存放被多个技能共用的清单，不是技能分类。
 
 <a id="spec"></a>
 
@@ -36,7 +36,6 @@
 |---|---|
 | [`domain-modeling`](./spec/domain-modeling/SKILL.md) | 维护项目的领域语言：术语表与 ADR 的写法与演进。 |
 | [`interview-me`](./spec/interview-me/SKILL.md) | 一次一问直到能预测用户的反应；产出确认过的意图，供 /spec、/triage、/wayfinder 使用。 |
-| [`in-your-own-words`](./spec/in-your-own-words/SKILL.md) | 开工前先用自己的话复述一遍你理解的目标与问题。（手动 /skill: 调用） |
 | [`to-spec`](./spec/to-spec/SKILL.md) | 把当前对话整理成 spec 并发布到 issue 跟踪器。（手动 /skill: 调用） |
 
 <a id="plan"></a>
@@ -68,7 +67,6 @@
 | [`domain-driven-design`](./build/domain-driven-design/SKILL.md) | 用限界上下文、聚合、防腐层划分业务边界并组织代码。 |
 | [`frontend-ui-engineering`](./build/frontend-ui-engineering/SKILL.md) | 做出可访问、响应式、生产质量的界面。 |
 | [`how`](./build/how/SKILL.md) | 讲清一个子系统怎么运转，并判断代码该放在哪一层、归谁拥有。（手动 /skill: 调用） |
-| [`implement`](./build/implement/SKILL.md) | 按 spec 或工单实现一个工作单元，内置 TDD 与评审。（手动 /skill: 调用） |
 | [`implement-spec`](./build/implement-spec/SKILL.md) | 把整份 spec 当任务图并行推进，最后落到一条集成分支。（手动 /skill: 调用） |
 | [`prototype`](./build/prototype/SKILL.md) | 造一个一次性原型，用能跑的东西回答一个设计问题。 |
 | [`statechart`](./build/statechart/SKILL.md) | 用 TLA+ 检查状态机，并画出 Mermaid 状态图。（手动 /skill: 调用） |
@@ -86,10 +84,8 @@
 | 技能 | 作用 |
 |---|---|
 | [`blast-radius`](./test/blast-radius/SKILL.md) | 找出改动会波及 diff 之外的哪些地方，并跑真实代码证明那条安全前提。（手动 /skill: 调用） |
-| [`create-formal-verification-skill`](./test/create-formal-verification-skill/SKILL.md) | 在最贵、测试覆盖最少的地方建形式化验证。（手动 /skill: 调用） |
-| [`create-verification-skill`](./test/create-verification-skill/SKILL.md) | 生成一个像用户那样驱动本项目的验证技能。（手动 /skill: 调用） |
-| [`maintain-formal-verification-skill`](./test/maintain-formal-verification-skill/SKILL.md) | 代码变动后，把形式化验证与模型同步回正。（手动 /skill: 调用） |
-| [`maintain-verification-skill`](./test/maintain-verification-skill/SKILL.md) | 定期让验证技能与功能地图重新对齐代码现状。（手动 /skill: 调用） |
+| [`formal-verification-skill`](./test/formal-verification-skill/SKILL.md) | 在最贵、测试覆盖最少的地方建形式化验证；代码变动后把模型与性质同步回正。（手动 /skill: 调用） |
+| [`verification-skill`](./test/verification-skill/SKILL.md) | 生成一个像用户那样驱动本项目的验证技能；功能地图与代码漂移时重新对齐。（手动 /skill: 调用） |
 
 <a id="review"></a>
 
@@ -171,7 +167,6 @@
 | [`principle-boundary-discipline`](./principles/principle-boundary-discipline/SKILL.md) | 校验集中在系统边界（CLI、配置、网络、外部 API），内部信任类型。（手动 /skill: 调用） |
 | [`principle-build-the-lever`](./principles/principle-build-the-lever/SKILL.md) | 重复劳动先造工具（脚本、检查、生成器），而不是手工再来一遍。（手动 /skill: 调用） |
 | [`principle-encode-lessons-in-structure`](./principles/principle-encode-lessons-in-structure/SKILL.md) | 同一条纠正出现两次，就把它编码进 lint、类型或结构。（手动 /skill: 调用） |
-| [`principle-exhaust-the-design-space`](./principles/principle-exhaust-the-design-space/SKILL.md) | 没有先例的交互或架构决策，先做 2–3 个原型并排比。（手动 /skill: 调用） |
 | [`principle-explain-the-number`](./principles/principle-explain-the-number/SKILL.md) | 报任何数字之前，先解释它从哪来、误差有多大。（手动 /skill: 调用） |
 | [`principle-fix-root-causes`](./principles/principle-fix-root-causes/SKILL.md) | 沿症状找到系统第一次出错的地方，并且在那里修。（手动 /skill: 调用） |
 | [`principle-foundational-thinking`](./principles/principle-foundational-thinking/SKILL.md) | 写逻辑之前，先把核心类型、数据结构与并发共享定下来。（手动 /skill: 调用） |
@@ -206,9 +201,8 @@
 | [`jujutsu`](./tools/jujutsu/SKILL.md) | 用 jj 管理改动：edit 流、squash 流与提交前整理。 |
 | [`ketchup`](./tools/ketchup/SKILL.md) | 用白话把“你上次发言之后发生了什么”讲给你听，并列出等你拍板的事。（手动 /skill: 调用） |
 | [`novix-worktrace-agent`](./tools/novix-worktrace-agent/SKILL.md) | 在 NovixWorkTrace 中按当前用户权限协作测试反馈、需求、任务与凭证提交。 |
-| [`reflect`](./tools/reflect/SKILL.md) | 让三个并行 subagent 复盘本次对话，把经验落成对技能的修改。（手动 /skill: 调用） |
 | [`research`](./tools/research/SKILL.md) | 对着高可信来源调研一个问题，并把结论落成带引用的文档。 |
-| [`retro`](./tools/retro/SKILL.md) | 复盘一次会话，改进 agent 的工作环境而不只是这次结果。（手动 /skill: 调用） |
+| [`retro`](./tools/retro/SKILL.md) | 复盘一次会话，改进 agent 的工作环境：手动单遍，或用三个并行 subagent 的深度复盘。（手动 /skill: 调用） |
 | [`setup-skills`](./tools/setup-skills/SKILL.md) | 一次性配置仓库的 issue 跟踪器、分诊标签与文档布局。（手动 /skill: 调用） |
 | [`show-me-your-work`](./tools/show-me-your-work/SKILL.md) | 长任务里留一份可审查的决策流水：做了什么、为什么、证据、结果。（手动 /skill: 调用） |
 | [`teach`](./tools/teach/SKILL.md) | 用一个目录当长期教学空间，带你从零学一个主题。（手动 /skill: 调用） |

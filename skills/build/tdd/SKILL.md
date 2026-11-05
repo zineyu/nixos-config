@@ -39,4 +39,4 @@ When the shape of that interface is itself in question (how deep the module is, 
 
 ## Related skills
 
-[`principle-test-behavior-not-implementation`](../../principles/principle-test-behavior-not-implementation/SKILL.md) · [`create-verification-skill`](../../test/create-verification-skill/SKILL.md)
+[`principle-test-behavior-not-implementation`](../../principles/principle-test-behavior-not-implementation/SKILL.md) · [`verification-skill`](../../test/verification-skill/SKILL.md)

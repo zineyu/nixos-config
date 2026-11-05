@@ -31,7 +31,7 @@ Where a phase inside one session ends and which of the five ways to cross it fit
 ## Skills that stand alone
 
 - `triage` pushes incoming issues and changes to a decision
-- `retro` and `reflect` improve the agent's environment after a session
+- `retro` improves the agent's environment after a session, in a manual pass or a deep pass with review subagents
 - `automate-me` turns a way of working into a `-mode` skill
 - `show-me-your-work` leaves a reviewable trail of decisions during a long run
 - `ketchup` says what happened since your last message, in plain words

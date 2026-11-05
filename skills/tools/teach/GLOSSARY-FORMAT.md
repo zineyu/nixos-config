@@ -1,4 +1,6 @@
-# GLOSSARY.md Format
+# Teaching workspace glossary format
+
+This file formats the teaching workspace's own `GLOSSARY.md`, which lives beside the lessons. A project's domain glossary is a different file at the repository root, owned by the [`domain-modeling`](../../spec/domain-modeling/SKILL.md) skill; keep the two apart, and never merge the lesson vocabulary into the project's terms.
 
 `GLOSSARY.md` is the canonical language for this teaching workspace. All explainers, exercises, and learning records should adhere to its terminology. Building it is itself part of learning: compressing a concept into a tight definition is evidence the user understands it.
 

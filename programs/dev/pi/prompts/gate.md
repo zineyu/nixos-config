@@ -1,30 +1,30 @@
 ---
-description: Write this repository's quality bar into CONSTRAINTS.md, then guard it against silent weakening
+description: 把本仓库的质量门槛写进 CONSTRAINTS.md，然后守住它不被悄悄放宽
 argument-hint: "[check | guard | ratchet]"
 ---
 
-Invoke the `constraint-driven-development` skill.
+调用 `constraint-driven-development` 技能。
 
-It supplies the interview, the `CONSTRAINTS.md` sections, the four questions with defaults, and the five moves the guard watches for. This command supplies the entry points and where each output lands here.
+它提供访谈、`CONSTRAINTS.md` 的各个小节、带默认值的四个问题，以及守卫所观察的五种动作。本命令提供入口，以及每项产出的落点。
 
-## Routing
+## 路由
 
-| Situation | Skill |
+| 情况 | 技能 |
 |---|---|
-| No bar is written down and one must be chosen | `constraint-driven-development` |
-| The same correction has been made twice and must stop recurring | `correct` |
-| The change accepts untrusted input, touches auth, secrets, or dependencies | `security-and-hardening` |
-| The change touches the pipeline or the checks themselves | `ci-cd-and-automation` |
+| 还没有写下的门槛，必须选一个 | `constraint-driven-development` |
+| 同一条纠正已经出现两次，必须停止重复 | `correct` |
+| 变更接受不可信输入，或触及认证、密钥、依赖 | `security-and-hardening` |
+| 变更触及流水线或检查本身 | `ci-cd-and-automation` |
 
-## Where things land
+## 落点
 
-- the bar: `CONSTRAINTS.md` at the repository root
-- the pointer: one line in `CONTEXT.md` telling agents to read it and never weaken it to make a change pass
-- the commands: one `just` recipe per check, named in that rule's row in the table
+- 门槛：仓库根目录的 `CONSTRAINTS.md`
+- 指针：`CONTEXT.md` 中的一行，告诉 agent 去读它，并永不为了让变更通过而放宽它
+- 命令：每条检查一个 `just` 配方，写在该规则所在表格行的名称里
 
-## Sub-commands
+## 子命令
 
-- `/gate` runs the interview and writes the bar
-- `/gate check` runs every rule against the current branch, one line per rule with its exit status
-- `/gate guard` scans the diff for the five moves and reports `file:line` for each
-- `/gate ratchet` measures today and records the value as the floor that must not fall
+- `/gate` 运行访谈并写下门槛
+- `/gate check` 对当前分支运行每一条规则，每条规则一行，带退出状态
+- `/gate guard` 扫描 diff 中的五种动作，并逐个报告 `file:line`
+- `/gate ratchet` 测量当前值，并把该值记为不得下降的下限

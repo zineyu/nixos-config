@@ -1,25 +1,25 @@
 ---
-description: Simplify code without changing behaviour, and revert any simplification that breaks the tests
-argument-hint: "[path or scope, defaults to the last change]"
+description: 在不改变行为的前提下简化代码，并回退任何让测试失败的简化
+argument-hint: "[路径或范围，默认为最近一次变更]"
 ---
 
-Invoke the `code-simplification` skill.
+调用 `code-simplification` 技能。
 
-## Routing
+## 路由
 
-| Situation | Skill |
+| 情况 | 技能 |
 |---|---|
-| Simplifying code that already works | `code-simplification` |
-| Looking for refactoring candidates before simplifying anything | `/refactor`, which surveys every dimension |
-| Comments explain what the code does rather than why | `no-comments` |
+| 简化已经能正常工作的代码 | `code-simplification` |
+| 在简化之前先寻找重构候选 | `/refactor`，它跨所有维度扫描 |
+| 注释讲的是代码做什么，而不是为什么 | `no-comments` |
 
-## What this command fixes
+## 本命令补齐的两件事
 
-The skill owns the principles, the process, and the verification. Two things it leaves open:
+技能负责原则、流程与验证。它留下两件事由本命令决定：
 
-- **Scope.** `$1` when given. Otherwise the files in the most recent change (`jj diff --stat`) plus the files that call them. State the scope before touching anything.
-- **Change boundary.** This is a refactoring change and it never carries a feature or a fix. When the working copy already holds unrelated work, run `jj new` first so the simplification sits in its own change.
+- **范围。** 给出 `$1` 时用它。否则用最近一次变更中的文件（`jj diff --stat`），加上调用这些文件的文件。在动手之前先说出范围。
+- **变更边界。** 这是一次重构变更，永不携带功能或修复。当工作副本已经持有无关的工作时，先运行 `jj new`，让简化单独落在一个变更里。
 
-## Finishing
+## 收尾
 
-Report the simplifications kept, the ones reverted and why, and the test output for the final state. A simplification whose tests fail is reverted, not repaired inside this command.
+报告保留的简化、被回退的简化及其原因，以及最终状态的测试输出。测试失败的简化会被回退，不在本命令内修好。

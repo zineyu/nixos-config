@@ -8,4 +8,4 @@ Wait, I don't understand where you've got to here. Re-pitch that: give me a litt
 
 ## Related skills
 
-[`in-your-own-words`](../../spec/in-your-own-words/SKILL.md) · [`ketchup`](../ketchup/SKILL.md)
+[`ketchup`](../ketchup/SKILL.md)

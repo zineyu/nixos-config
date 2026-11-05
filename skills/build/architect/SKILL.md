@@ -30,7 +30,7 @@ Run the **arena** skill with the design-sketch task and the Phase A grounding ar
 
 Use the same runner set as the **arena** skill's Phase A: one subagent per candidate, all on the parent model. Spawn with pi's `subagent` tool. Leave `model` unset so the subagent runs on its configured default, and keep bulk output in the subagent (see [`principle-guard-the-context-window`](../../principles/principle-guard-the-context-window/SKILL.md)).
 
-Design it twice. Require at least two structurally distinct candidates before synthesis, even when the first looks sufficient. This is the **principle-exhaust-the-design-space** skill made concrete. Whole-shape alternatives, not point fixes inside one shape.
+Design it twice. Require at least two structurally distinct candidates before synthesis, even when the first looks sufficient. Whole-shape alternatives, not point fixes inside one shape, which is what the **arena** skill exists to produce.
 
 Screen every candidate against [`references/design-red-flags.md`](references/design-red-flags.md) before synthesis. Assume the next contributor is an agent that sees only the files it opened, copies the nearest example, and takes the shortest path that compiles. Prefer the design where a change that looks right from one file is right for the whole repo.
 

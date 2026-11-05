@@ -14,12 +14,13 @@ Every candidate gets the same prompt, so the prompt is the contract.
 
 1. State the artifact each candidate is producing.
 2. Derive the rubric, 3-6 concrete gradeable criteria for what success looks like on *this* task. It is the picker's tool in Phase D. Candidates only see the task.
-3. Pick the runners. One subagent per candidate, all on the parent model: leave `model` unset. Spawn more runners when the arena covers multiple design directions. Use the same parent model N times when the work is generation-bound rather than judgment-sensitive.
-4. Give each candidate its own output location (a git worktree where possible, otherwise `/tmp/arena-<slug>/candidate-<n>/`), per the **principle-separate-before-serializing-shared-state** skill.
+3. Declare the selection rule before you spawn, so the pick is not settled after the results arrive. The default is pick one base and graft the strongest parts of the others. `best-of` takes the single strongest candidate and grafts nothing. `rank all` orders every candidate and reports why.
+4. Pick the runners. One subagent per candidate, all on the parent model: leave `model` unset. Spawn more runners when the arena covers multiple design directions.
+5. Give each candidate its own output location (a git worktree where possible, otherwise `/tmp/arena-<slug>/candidate-<n>/`), per the **principle-separate-before-serializing-shared-state** skill.
 
 ## Phase B: Fan out
 
-Spawn all N subagents in one message with pi's `subagent` tool (fire-and-forget; each result arrives back automatically), each with the task, the path to the shared grounding, its own output path, and instructions to produce the artifact and a short rationale naming the alternatives it considered and what it rejected.
+Spawn all N subagents in one message with pi's `subagent` tool (fire-and-forget; each result arrives back automatically), each with the task, the path to the shared grounding, its own output path, and instructions to produce the artifact and a short rationale naming the alternatives it considered and what it rejected. Use the same parent model N times when the work is generation-bound rather than judgment-sensitive.
 
 If a candidate produces no output, proceed with N-1 and note the dropout.
 
@@ -54,4 +55,4 @@ When the findings are numerous enough to skim, or the comparison is the point, p
 
 ## Related skills
 
-[`principle-prove-it-works`](../../principles/principle-prove-it-works/SKILL.md) · [`html-report`](../../tools/html-report/SKILL.md)
+[`swarm`](../swarm/SKILL.md) · [`principle-prove-it-works`](../../principles/principle-prove-it-works/SKILL.md) · [`html-report`](../../tools/html-report/SKILL.md)

@@ -1,42 +1,42 @@
 ---
-description: Test a finished change against the real artifact and the reach beyond its diff
-argument-hint: "[the change, ticket, or behaviour to test]"
+description: 对着真实产物测试已完成的改动，以及它越过 diff 的波及面
+argument-hint: "[要测试的变更、工单或行为]"
 ---
 
-Invoke the `principle-prove-it-works` skill, then `blast-radius`.
+调用 `principle-prove-it-works` 技能，然后调用 `blast-radius`。
 
-This command runs **after** the code is written. Development-time red-green belongs to `/build` and the `tdd` skill; reading the diff belongs to `/review`. Here the code already exists and the question is whether it works.
+本命令在代码写完之后运行。开发阶段的红—绿循环属于 `/build` 与 `tdd` 技能；读 diff 属于 `/review`。这里的代码已经存在，问题是它是否工作。
 
-## Routing
+## 路由
 
-| Situation | Skill |
+| 情况 | 技能 |
 |---|---|
-| Proving the change works against the real artifact | `principle-prove-it-works` |
-| The change can break callers or config beyond its diff | `blast-radius` |
-| The repository cannot be driven the way a user would | `create-verification-skill` |
-| A critical invariant needs a proof, not a sample | `create-formal-verification-skill` |
-| A verification skill has drifted from the code | `maintain-verification-skill` |
+| 对着真实产物证明改动可用 | `principle-prove-it-works` |
+| 改动可能破坏 diff 之外的调用方或配置 | `blast-radius` |
+| 本仓库无法按用户的方式驱动 | `verification-skill`，generate 模式 |
+| 一条关键不变量需要证明，而不是抽样 | `formal-verification-skill`，generate 模式 |
+| 验证技能已经与代码脱节 | `verification-skill` 或 `formal-verification-skill`，re-sync 模式 |
 
-## Two questions
+## 两个问题
 
-1. **Does it work?** From `principle-prove-it-works`: run the real thing — the command, the page, the host, the script. Read the actual value. A passing compile, a self-report, or a proxy is not evidence. Verify against the real artifact.
-2. **What else did it reach?** From `blast-radius`: name the callers of a changed interface, the shared state, the configuration, and the other hosts a change of this shape can touch. Run the real code for each safety claim you intend to make.
+1. **它能工作吗？** 来自 `principle-prove-it-works`：运行真实的东西——命令、页面、主机、脚本。读取真实的值。编译通过、自我报告、或代理指标都不是证据。对着真实产物验证。
+2. **它还碰到了什么？** 来自 `blast-radius`：说出被改动接口的调用方、共享状态、配置，以及这种形状的改动可能触及的其他主机。为每一条你打算作出的安全结论运行真实的代码。
 
-## Sequence
+## 顺序
 
-1. State what "works" means for this change in observable terms, before testing anything.
-2. Run it. Record the exact command and its output.
-3. Run the adjacent paths the change can break: the callers of a changed interface, the sibling configuration of a changed module, the other host that shares the module.
-4. Report every claim as verified or unverified, with the evidence for the first and the reason for the second.
+1. 在测试任何东西之前，用可观察的说法给出本次改动“能工作”的含义。
+2. 运行它。记录确切的命令与输出。
+3. 运行改动可能破坏的相邻路径：被改动接口的调用方、被改动模块的同级配置、共享该模块的另一台主机。
+4. 把每一条结论报告为已验证或未验证，前者给出证据，后者给出原因。
 
-## Unverified is a result
+## 未验证也是结果
 
-A claim you could not test is reported as unverified, never as passing. Say what blocked it and what evidence would settle it.
+无法测试的结论报告为未验证，永不说成通过。说出是什么阻碍了它，以及什么证据可以确定它。
 
-## When a gap turns up
+## 发现缺口时
 
-Fix it through `/build`, which runs the red-green loop. This command tests what exists; it does not develop new behaviour.
+通过 `/build` 修复，它运行红—绿循环。本命令测试已经存在的东西；它不开发新行为。
 
-## When there is nothing to drive
+## 没有东西可以驱动时
 
-If the repository has no way to exercise itself the way a user would, `create-verification-skill` builds one. That is its own session, not a step here.
+如果本仓库没有办法按用户的方式演练自己，`verification-skill` 的 generate 模式会建一个。那是它自己的一次会话，不是本命令的一步。
