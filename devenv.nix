@@ -26,6 +26,7 @@
     sops
     ssh-to-age
     just
+    python3
     inputs.deploy-rs.packages.${stdenv.hostPlatform.system}.deploy-rs
   ];
 }

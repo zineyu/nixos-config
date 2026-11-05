@@ -174,6 +174,7 @@
                         pkgs.deadnix
                         pkgs.nixfmt
                         pkgs.statix
+                        pkgs.python3
                       ];
                     }
                     ''
@@ -184,6 +185,8 @@
                       deadnix --fail --exclude ./hosts/tianxuan/hardware-configuration.nix .
                       echo "Running statix..."
                       statix check .
+                      echo "Linting skills..."
+                      python3 scripts/lint-skills.py
                       touch $out
                     '';
               };

@@ -64,20 +64,22 @@ direnv allow
 | `modules/desktop/home/` | 用户级桌面层（niri、DankMaterialShell、环境变量、fontconfig、图标主题、XDG 用户目录等），由需要的机器文件显式导入 |
 | `modules/desktop/system/` | 桌面层的系统级部分（greetd/portal、音频、显卡、输入法、nixpak overlay、Steam），由桌面 host 显式导入 |
 | `modules/base/` | 平台无关的 Home Manager 基础层：`common.nix`、`agent-skills/`、用户级 `services/`，由 `lib/mkSystem.nix` 自动接入 |
-| `skills/<name>/` | Agent skill 源目录；每个目录经 Home Manager 安装到 `~/.agents/skills/<name>` |
+| `skills/<command>/<name>/` | Agent skill 源目录，目录名即命令：`/refactor` 路由到 `skills/refactor/` 里的技能。`principles/` 与 `tools/` 不属于任何命令，`references/` 放共享清单。每个 skill 经 Home Manager 扁平安装到 `~/.agents/skills/<name>` |
+| `programs/dev/pi/prompts/` | pi 的 prompt 模板源目录：一个 `.md` 就是一个 `/命令`，经 Home Manager 链接到 `~/.pi/agent/prompts/` |
 | `lib/` | 可复用 Nix 函数（如 `mkSystem.nix`、`niri-config.nix`、`storeLinks.nix`、`nixpaks-*.nix`） |
 | `vars/default.nix` | 共享变量（`git` 身份）与按 host 组织的变量（`hosts.<hostname>.*`） |
 | `docs/adr/` | 架构决策记录（ADRs） |
 | `docs/module-reference.md` | 模块与辅助函数速查表 |
 | `docs/secrets.md` | sops-nix 与 secret 管理说明 |
 | `secrets/` | `sops-nix` 加密的 secrets |
-| `Justfile` | 常用命令快捷方式（`build`、`check`、`deploy`、`ssh-hosts` 等） |
+| `Justfile` | 常用命令快捷方式（`build`、`check`、`deploy`、`lint-skills`、`ssh-hosts` 等） |
 
 ## 新增内容
 
 - **新增 program**：创建 `programs/<category>/<name>/default.nix`，声明 `zine.programs.<name>.enable` option，并用 `lib.mkIf cfg.enable` 包住安装与配置（各层 `default.nix` 通过 `scanPaths` 自动导入），最后在需要的 `home/<hostname>.nix` 开关表里启用。只安装包、无配置的叶子软件也是同样的三行模块。
 - **新增自定义包**：把 `package.nix` 放进消费它的 program 目录，flake 自动暴露为 `.#<目录名>`；`nix-update` 依 `meta.position` 就地更新。
-- **新增 agent skill**：创建 `skills/<name>/SKILL.md` 及所需资源；`modules/base/agent-skills` 会自动安装，无需注册。
+- **新增 agent skill**：放入它所属命令的目录，即 `skills/<command>/<name>/SKILL.md`；跨命令的判据进 `principles/`，工具进 `tools/`。`modules/base/agent-skills` 会自动安装，无需注册。改完运行 `just lint-skills`，检查 frontmatter、命名与互引链。
+- **新增命令**：在 `programs/dev/pi/prompts/` 写一个 `<name>.md`，正文第一句声明它调用的技能，再加一张 `## Routing` 表说明什么情况换用哪个技能；同名技能目录随之建立。执行 `darwin-rebuild switch` 后成为 `/<name>`。
 - **新增 host**：在 `hosts/default.nix` 添加 `hostname = "system";` 映射，并创建 `hosts/<hostname>/default.nix` 和 `hosts/<hostname>/configuration.nix`（导入 `modules/nixos` 以获得 common 基础配置）。如为服务器，额外导入 `modules/nixos/server`。
 - **新增 NixOS 模块**：在 `modules/nixos/` 下按类型放入 `common/` 或 `server/`；桌面相关的系统配置放 `modules/desktop/system/`。
 

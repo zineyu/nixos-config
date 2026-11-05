@@ -94,3 +94,14 @@ _Avoid_: platform config, host layer.
 >
 > **Maintainer**: The Host is system-level. The Machine File selects the
 > user-level software for that same machine. `lib/mkSystem.nix` connects them.
+
+**Command**:
+A prompt template in `programs/dev/pi/prompts/`, installed as `/<name>`. It answers the *when*: which
+skills run, in which order, with which arguments, behind which gate. Its `## Routing` table names the
+situation that switches to another skill.
+_Avoid_: entry point, slash command (use command), workflow.
+
+**Skill**:
+A directory `skills/<command>/<name>/` holding `SKILL.md`. It answers the *how*: the procedure, the
+bar, and the exit criteria. `principles/` and `tools/` hold skills that no single command owns.
+_Avoid_: prompt, playbook, recipe.

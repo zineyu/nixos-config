@@ -14,6 +14,9 @@ let
   # 新增扩展只需放入该目录，无需修改本文件。
   extensionsDir = ./extensions;
 
+  # pi prompt 模板源目录：每个 .md 是一个 /命令，文件名即命令名。
+  promptsDir = ./prompts;
+
   # 把源目录中的每个文件链接到目标前缀下
   linkDir =
     targetPrefix: dir:
@@ -30,6 +33,6 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [ llmAgents.pi ];
 
-    home.file = linkDir ".pi/agent/extensions" extensionsDir;
+    home.file = linkDir ".pi/agent/extensions" extensionsDir // linkDir ".pi/agent/prompts" promptsDir;
   };
 }

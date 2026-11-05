@@ -31,6 +31,10 @@ check:
 fmt:
     nix fmt
 
+# Lint every skill under skills/ (frontmatter, naming, triggers, link targets)
+lint-skills:
+    python3 scripts/lint-skills.py
+
 # Update flake inputs; nixpkgs pinned to the nixos-unstable channel rev (see scripts/update-flake.sh)
 update:
     ./scripts/update-flake.sh

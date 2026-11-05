@@ -111,7 +111,7 @@ mihomo（fake-IP TUN 代理）。**一份配置、两个平台的系统级模块
 |------|---------|---------|
 | `default.nix` | 基础层聚合器：导入 `common.nix`、`agent-skills`、`services`。 | 由 `lib/mkSystem.nix` 自动接入 |
 | `common.nix` | Home Manager 基础状态与自启用。 | `programs.home-manager.enable`；`home.stateVersion` 由 host inventory 注入 |
-| `agent-skills/` | 自动发现仓库根目录 `skills/<name>/` 并逐项安装 agent skills。 | 每个目录必须包含 `SKILL.md`；目标为 `~/.agents/skills/<name>` |
+| `agent-skills/` | 自动发现仓库根目录 `skills/<command>/<name>/` 并逐项安装 agent skills。 | 每个目录必须包含 `SKILL.md`；目录名即命令，`principles/`、`tools/`、`references/` 除外；目标为 `~/.agents/skills/<name>` |
 | `services/` | 用户级 systemd 服务与定时任务，按 `zine.services.<name>.enable` 门控。 | 见下表 |
 
 #### `modules/base/services/`
@@ -177,7 +177,7 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 | `mise/` | mise 运行时管理器，集成 fish。 | `programs.mise` |
 | `nixvim/` | Neovim 编辑器（nixvim），核心与插件配置拆分。 | `inputs.nixvim.homeModules.nixvim`；`core.nix`、`plugins/` |
 | `npm/` | npm prefix 配置。 | `programs.npm` |
-| `pi/` | pi 编码 Agent：扩展、workflow package 与虚拟模型配置。 | `llm-agents-nix` 的 `pi` 包 + `home.file` |
+| `pi/` | pi 编码 Agent：扩展、prompt 模板与虚拟模型配置。prompt 模板源目录 `prompts/`，一个 `.md` 即一个 `/命令`。 | `llm-agents-nix` 的 `pi` 包 + `home.file` |
 | `vscode/` | VS Code。 | `programs.vscode` |
 | `zed/` | Zed 编辑器，含 GLM 模型与 vim 键位。 | `programs.zed-editor` |
 
