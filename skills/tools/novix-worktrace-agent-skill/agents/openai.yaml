@@ -1,0 +1,7 @@
+interface:
+  display_name: "NovixWorkTrace Agent"
+  short_description: "协作处理需求、任务、测试反馈和凭证提交"
+  default_prompt: "Use $novix-worktrace-agent only for NovixWorkTrace test feedback, requirements, tasks, and evidence submission."
+
+policy:
+  allow_implicit_invocation: true
