@@ -181,7 +181,7 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 | `vscode/` | VS Code。 | `programs.vscode` |
 | `zed/` | Zed 编辑器，含 GLM 模型与 vim 键位。 | `programs.zed-editor` |
 
-只安装包的开发工具叶子模块（每目录一个开关）：`buf`、`bun`、`ccache`（仅 tianxuan，Linux-only 构建输入）、`clang`（低优先级）、`cmake`、`dart-sass`、`gcc`、`github-cli`、`gnumake`、`go`、`lazygit`、`lazyjj`、`llvm`、`maven`、`mold`、`ninja`、`pip`、`python3`、`rustup`、`stylua`、`tree-sitter`、`uv`。
+只安装包的开发工具叶子模块（每目录一个开关）：`buf`、`bun`、`ccache`（仅 tianxuan，Linux-only 构建输入）、`clang`（低优先级）、`cmake`、`dart-sass`、`gcc`、`github-cli`、`gnumake`、`go`、`lazygit`、`lazyjj`、`llvm`、`maven`、`mold`（仅 Linux）、`ninja`、`pip`、`python3`、`rustup`、`stylua`、`tree-sitter`、`uv`。
 
 #### `programs/gui/` — 图形界面应用
 
