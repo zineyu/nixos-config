@@ -52,12 +52,19 @@ in
   services.tailscale.enable = true;
 
   launchd.daemons.tailscale-autologin = {
+    # 可执行文件必须经 `command` 交付，不能直接写
+    # `serviceConfig.ProgramArguments`：nix-darwin 只对 `command` 注入
+    # `/bin/wait4path /nix/store` 包装，否则开机时 launchd 会在 /nix 卷
+    # 挂载之前启动本 job，找不到脚本即判定初始化失败（见
+    # modules/mihomo/darwin.nix 中的同一说明）。
+    command = "${tsAutoLogin}";
+
     serviceConfig = {
-      ProgramArguments = [ "${tsAutoLogin}" ];
       RunAtLoad = true;
-      # 网络变化时重试（可自愈掉线/状态丢失），成功退出后不循环。
+      # 失败退出后重试，成功退出后不循环。launchd 已经不再支持
+      # NetworkState 键（日志会报"The NetworkState key is no longer
+      # respected"），因此只按退出码重试。
       KeepAlive = {
-        NetworkState = true;
         SuccessfulExit = false;
       };
       ThrottleInterval = 30;

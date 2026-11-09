@@ -94,10 +94,12 @@ mihomo（fake-IP TUN 代理）。**一份配置、两个平台的系统级模块
 | File | Purpose | Notable |
 |------|---------|---------|
 | `config.yaml` | 两个平台共用的 mihomo 配置（DNS、`fake-ip-filter`、规则、`proxy-providers`）。 | `path: "@proxies_file@"` 由各平台模块在构建期替换为代理凭据路径 |
-| `darwin.nix` | macOS：root LaunchDaemon 跑 mihomo，代理凭据取自 sops 文件并由 `SAFE_PATHS` 授权。 | 运行时状态 `/var/lib/mihomo`；`secrets/mihomo.yaml`（sops binary） |
+| `darwin.nix` | macOS：root LaunchDaemon 跑 mihomo，代理凭据取自 sops 文件并由 `SAFE_PATHS` 授权。 | 运行时状态 `/var/lib/mihomo`；`secrets/mihomo.yaml`（sops binary）；可执行文件必须经 `launchd.daemons.<name>.command` 交付 |
 | `nixos.nix` | Linux：`services.mihomo`（systemd，`DynamicUser` + TUN 能力）。 | 配置与代理凭据都通过 `LoadCredential` 挂到 `/run/credentials/mihomo.service`，凭据不落全局可读路径；`SAFE_PATHS` 指向同一目录 |
 
 两机共用同一份 `config.yaml`：`hs.zineyu.cn` 必须在 `fake-ip-filter` 内（tailscaled 控制面直连，见 ADR-0008），tailnet 流量（`100.64.0.0/10`）通过 `route-exclude-address` 绕开 TUN。
+
+**nix-darwin 的 LaunchDaemon 可执行文件必须经 `command`（或 `script`）交付。** nix-darwin 只对这两个选项注入 `/bin/wait4path /nix/store` 包装。直接写 `serviceConfig.ProgramArguments` 会生成指向 `/nix/store` 的裸路径；开机时 launchd 启动 job 的时刻早于 `/nix` 卷挂载完成的时刻，于是报 `Missing executable detected`，把 job 置为 `service inactive`，`KeepAlive` 不再重试，服务直到手工启动之前都保持停止。`modules/mihomo/darwin.nix` 与 `modules/darwin/tailscale.nix` 都遵循这条约束。
 
 ---
 
