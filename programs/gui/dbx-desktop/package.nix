@@ -109,7 +109,7 @@ else
       inherit (finalAttrs) pname version src;
       pnpm = pnpm_10;
       fetcherVersion = 4;
-      hash = "sha256-lBkJNxk39G07brqQs2+W+jnoKd7Gi511VpxBq0A95kE=";
+      hash = "sha256-pMa7AX2g0zLlOviY6neTZBMki4JRMR4ffl9NMIf3uSo=";
     };
 
     cargoLock = {
