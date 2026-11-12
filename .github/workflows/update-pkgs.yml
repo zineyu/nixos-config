@@ -2,8 +2,10 @@ name: Update custom packages
 
 on:
   schedule:
-    # 每天 01:00 UTC（北京时间 09:00），先于 update.yml(02:00) / build.yml(04:00)
-    - cron: "0 1 * * *"
+    # 每天 02:00 UTC（北京时间 10:00），晚于 update.yml(01:00)：
+    # 先拿到新 lock，再据此重建自定义包与其 FOD hash，否则升级 lock 后
+    # hash 会再度失效。build.yml(04:00) 在本工作流之后运行。
+    - cron: "0 2 * * *"
   workflow_dispatch:
 
 permissions:

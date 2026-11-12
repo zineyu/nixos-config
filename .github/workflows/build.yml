@@ -2,7 +2,8 @@ name: Build hosts
 
 on:
   schedule:
-    # 每天 04:00 UTC（北京时间 12:00），在 update.yml 之后运行以缓存最新 lock
+    # 每天 04:00 UTC（北京时间 12:00），在 update.yml(01:00) 与 update-pkgs.yml(02:00)
+    # 之后运行，以缓存最新 lock 与最新包
     - cron: "0 4 * * *"
   workflow_dispatch:
 

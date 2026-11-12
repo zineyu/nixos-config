@@ -2,8 +2,10 @@ name: Update flake.lock
 
 on:
   schedule:
-    # 每天 02:00 UTC（北京时间 10:00）
-    - cron: "0 2 * * *"
+    # 每天 01:00 UTC（北京时间 09:00），必须早于 update-pkgs.yml(02:00)：
+    # nixpkgs 升级 sqlite 等输入会让 FOD hash 失效，自定义包的 hash 修复
+    # 只能在 lock 更新之后进行。
+    - cron: "0 1 * * *"
   workflow_dispatch:
 
 permissions:
