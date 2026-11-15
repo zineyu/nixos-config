@@ -56,7 +56,6 @@
     uv.enable = true;
 
     # gui
-    rustdesk.enable = true;
     dbx-desktop.enable = true;
     zen-browser.enable = true;
 

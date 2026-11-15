@@ -197,7 +197,6 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 | `firefox/` | Firefox。 | `programs.firefox` |
 | `qbittorrent/` | qBittorrent（GUI BitTorrent 客户端），接管磁力链接与 `.torrent` 默认打开方式。 | `home.packages`；`xdg.mimeApps`（配置由应用自身维护在 `~/.config/qBittorrent/`） |
 | `qq/` | QQ（nixpak 沙盒，消费 `modules/desktop/system/nixpak.nix` 的 overlay）。 | `pkgs.nixpaks.qq` |
-| `rustdesk/` | RustDesk 客户端与被控常驻服务。 | `vars.rustdesk.publicKey`；Linux 用 `rustdesk-flutter` |
 | `thunderbird/` | Thunderbird。 | `programs.thunderbird` |
 | `wechat/` | 微信（nixpak 沙盒）。 | `pkgs.nixpaks.wechat` |
 | `zen-browser/` | Zen Browser，使用自定义 unwrapped 包与策略。 | `inputs.zen-browser.homeModules.default`；Darwin 上重签名 |
@@ -257,7 +256,7 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、`hosts.<hostname>.hardware` 等硬件参数、`rustdesk.publicKey` |
+| `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、`hosts.<hostname>.hardware` 等硬件参数 |
 | `hosts/default.nix` | 结构化 host inventory：attr key 为 hostname，声明 `system` / `kind`（nixos 或 darwin）/ 可选 `homeStateVersion` / 可选 `deploy` 元数据。 | `flake.nix` 按 `kind` 生成 `nixosConfigurations` / `darwinConfigurations`，按 `deploy.enable` 生成 deploy-rs nodes |
 | `home/<hostname>.nix` | 每台机器的开关表：导入机器专属层（如 `modules/desktop/home`），设 `zine.programs.*` / `zine.services.*`，外加少量机器专属覆盖（如字体大小、单机包）。 | 由 `lib/mkSystem.nix` 自动接入；文件不存在则该 host 无用户环境 |
 | `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、扫描出的 `package.nix` 包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `hosts/default.nix` 注册表构建 |
