@@ -8,8 +8,12 @@ dns:
   default-nameserver:
   - 223.5.5.5
   - 119.29.29.29
+  # 本网络实测：doh.pub 的 119.29.29.29:443 全程超时（同机 :53/:80 正常，其余 DoH
+  # 端点 15~45ms），留着它等于每次解析先吃满一个 5s 超时再回退，日志里就是成片的
+  # "dial tcp 119.29.29.29:443: i/o timeout"。国内解析走 UDP 223.5.5.5，AliDNS DoH 兜底。
   direct-nameserver:
-  - https://doh.pub/dns-query
+  - 223.5.5.5
+  - 119.29.29.29
   - https://dns.alidns.com/dns-query
   direct-nameserver-follow-policy: true
   enable: true
@@ -105,20 +109,24 @@ dns:
   - "https://8.8.8.8/dns-query#RULES"
   nameserver-policy:
     rule-set:apple:
-    - https://doh.pub/dns-query
+    - 223.5.5.5
+    - 119.29.29.29
     - https://dns.alidns.com/dns-query
     rule-set:direct:
-    - https://doh.pub/dns-query
+    - 223.5.5.5
+    - 119.29.29.29
     - https://dns.alidns.com/dns-query
     rule-set:icloud:
-    - https://doh.pub/dns-query
+    - 223.5.5.5
+    - 119.29.29.29
     - https://dns.alidns.com/dns-query
     rule-set:private:
-    - https://doh.pub/dns-query
+    - 223.5.5.5
+    - 119.29.29.29
     - https://dns.alidns.com/dns-query
   proxy-server-nameserver:
-  - 119.29.29.29
   - 223.5.5.5
+  - 119.29.29.29
   respect-rules: true
   use-hosts: false
   use-system-hosts: false
