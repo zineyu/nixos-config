@@ -24,6 +24,7 @@
   perl,
   pkg-config,
   openssl,
+  aws-lc,
   makeDesktopItem,
   copyDesktopItems,
   desktop-file-utils,
@@ -140,6 +141,12 @@ else
 
     buildInputs = [
       openssl
+      # rustls 的 aws-lc-rs 后端会编译 aws-lc-sys；nixpkgs 的 cargo setup hook
+      # 全局导出 AWS_LC_SYS_USE_SYSTEM=1（见 pkgs/build-support/rust/hooks/
+      # cargo-setup-hook.sh），即要求链接系统 AWS-LC，否则 build script panic。
+      # aws-lc-sys >= 0.42 靠 pkg-config 发现它（模块 aws-lc / libcrypto-awslc，
+      # 需要 dev 输出里的 share/rust/aws_lc_bindings.rs）。
+      aws-lc
       webkitgtk_4_1
       gtk3
       libappindicator-gtk3
@@ -161,9 +168,11 @@ else
     ];
 
     env = {
-      OPENSSL_DIR = "${openssl.dev}";
-      OPENSSL_LIB_DIR = "${lib.getLib openssl}/lib";
-      OPENSSL_INCLUDE_DIR = "${lib.getDev openssl}/include";
+      # 不要设 OPENSSL_DIR / OPENSSL_INCLUDE_DIR / OPENSSL_LIB_DIR：aws-lc-sys 的
+      # system 探测只在"这些变量全未设置"时才回退到 pkg-config，否则只会拿
+      # OPENSSL_* 指向的普通 OpenSSL 当候选并因缺少 AWS-LC 标记而失败。
+      # openssl-sys 本身由 cargo setup hook 的 OPENSSL_NO_VENDOR=1 + pkg-config 处理。
+      #
       # Tauri 构建期读取，跳过 dev server 检查
       TAURI_SKIP_DEVSERVER_CHECK = "true";
 
@@ -184,6 +193,7 @@ else
 
     PKG_CONFIG_PATH = lib.makeSearchPath "lib/pkgconfig" [
       openssl.dev
+      aws-lc.dev
       webkitgtk_4_1.dev
       gtk3.dev
       glib.dev
