@@ -3,7 +3,12 @@
 # 广播-门控：被 modules/nixos/optional/default.nix 无条件导入，只有带
 # "tailscale" tag 的 host 生效。这里没有 option：能力不可能与决定它的 metadata
 # 漂移；不想要 tailnet 的 host 不打这个 tag。
-{ config, host, lib, ... }:
+{
+  config,
+  host,
+  lib,
+  ...
+}:
 {
   config = lib.mkIf host.gates.tailscale {
     # 接入采用双重授权模型（见 docs/secrets.md「Tailnet（Headscale）」）：

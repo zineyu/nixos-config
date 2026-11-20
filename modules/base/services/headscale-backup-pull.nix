@@ -2,7 +2,12 @@
 #
 # 广播-门控：被 modules/base/services/default.nix 无条件导入，只有带
 # "headscale-backup" tag 的 host 生效。
-{ host, lib, pkgs, ... }:
+{
+  host,
+  lib,
+  pkgs,
+  ...
+}:
 {
   config = lib.mkIf host.gates."headscale-backup" {
     # Headscale 状态备份：每日从 aliyun-01 拉取快照目录（快照由服务器侧

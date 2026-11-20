@@ -2,7 +2,12 @@
 #
 # 广播-门控：被 lib/mkSystem.nix 无条件加入 home-manager.sharedModules，
 # 只有带 "desktop" tag 的 host 生效。
-{ host, lib, pkgs, ... }:
+{
+  host,
+  lib,
+  pkgs,
+  ...
+}:
 let
   desktop = host.gates.desktop;
 in

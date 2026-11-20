@@ -7,7 +7,12 @@
 # 非 WSL host 上无条件定义 `wsl.*`（哪怕包在 lib.mkIf false 里），module system
 # 仍会因 option 不存在而在求值期报错。所以设置拆到 wsl-config.nix，随模块一起
 # 条件导入，而不是用 mkIf 门控。
-{ host, inputs, lib, ... }:
+{
+  host,
+  inputs,
+  lib,
+  ...
+}:
 let
   wsl = host.gates.wsl;
 in
