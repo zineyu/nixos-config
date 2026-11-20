@@ -189,6 +189,8 @@
                       statix check .
                       echo "Linting skills..."
                       python3 scripts/lint-skills.py
+                      echo "Linting difference axes (ADR-0018)..."
+                      python3 scripts/lint-structure.py
                       touch $out
                     '';
               };

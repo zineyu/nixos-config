@@ -35,6 +35,10 @@ fmt:
 lint-skills:
     python3 scripts/lint-skills.py
 
+# Lint how host differences are expressed (ADR-0018: R1-R5)
+lint-structure:
+    python3 scripts/lint-structure.py
+
 # Update flake inputs; nixpkgs pinned to the nixos-unstable channel rev (see scripts/update-flake.sh)
 update:
     ./scripts/update-flake.sh

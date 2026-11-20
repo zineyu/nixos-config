@@ -44,6 +44,19 @@ jobs:
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "$matrix"
 
+  # 结构门禁（ADR-0018）：格式化、deadnix、statix、skills 与差异轴 lint。
+  # 单独一个轻量 job，不依赖任何主机构建，几十秒内失败。
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      - name: Lint
+        run: nix build .#checks.x86_64-linux.lint -L
+
   build:
     needs: inventory
     strategy:

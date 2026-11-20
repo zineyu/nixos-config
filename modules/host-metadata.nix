@@ -186,7 +186,7 @@ in
       # 形态与构建路径一致：desktop / server / wsl 都是 NixOS 模块树。
       {
         assertion =
-          !(lib.elem (host.facts.form) [
+          !(lib.elem host.facts.form [
             "desktop"
             "server"
             "wsl"

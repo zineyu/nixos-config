@@ -81,8 +81,8 @@ in
 {
   imports = [ inputs.zen-browser.homeModules.default ];
 
-  config = lib.mkIf host.gates.gui (
-    {
+  config = lib.mkMerge [
+    (lib.mkIf host.gates.gui {
       programs.zen-browser = {
         enable = true;
         setAsDefaultBrowser = false;
@@ -212,13 +212,15 @@ in
       );
 
       home.sessionVariables.BROWSER = "zen-stable";
-    }
-    # 缺席轴：xdg.mimeApps（默认浏览器关联）是 Linux 专属，macOS 走 LaunchServices。
-    // lib.optionalAttrs (host.kind == "nixos") {
+    })
+
+    # 缺席轴：xdg.mimeApps（默认浏览器关联）只对 Linux 有效，macOS 走 LaunchServices。
+    # zen-browser 本身跨平台，只有这一段按 host.kind 排除（ADR-0018）。
+    (lib.mkIf (host.gates.gui && host.kind == "nixos") {
       xdg.mimeApps = {
         associations.added = lib.genAttrs browserMimeTypes (_: lib.mkDefault defaultBrowser);
         defaultApplications = lib.genAttrs browserMimeTypes (_: lib.mkDefault defaultBrowser);
       };
-    }
-  );
+    })
+  ];
 }
