@@ -2,6 +2,7 @@
 # 配置与 nix-darwin 侧共用 ../config.yaml，代理凭据由 sops 注入。
 {
   config,
+  host,
   lib,
   pkgs,
   ...
@@ -22,26 +23,28 @@ let
   );
 in
 {
-  sops.secrets.mihomo_proxies = {
-    sopsFile = ../../secrets/mihomo.yaml;
-    format = "binary";
-  };
-
-  services.mihomo = {
-    enable = true;
-    inherit configFile;
-    # 授予 CAP_NET_ADMIN；TUN 本身仍由 config.yaml 的 tun.enable 打开。
-    tunMode = true;
-  };
-
-  systemd.services.mihomo = {
-    # mihomo 只允许 proxy-provider 从 SAFE_PATHS 读取文件。
-    environment = {
-      SAFE_PATHS = credentialsDir;
+  config = lib.mkIf host.gates.mihomo {
+    sops.secrets.mihomo_proxies = {
+      sopsFile = ../../secrets/mihomo.yaml;
+      format = "binary";
     };
-    serviceConfig.LoadCredential = lib.mkForce [
-      "config.yaml:${configFile}"
-      "providers.yaml:${proxiesFile}"
-    ];
+
+    services.mihomo = {
+      enable = true;
+      inherit configFile;
+      # 授予 CAP_NET_ADMIN；TUN 本身仍由 config.yaml 的 tun.enable 打开。
+      tunMode = true;
+    };
+
+    systemd.services.mihomo = {
+      # mihomo 只允许 proxy-provider 从 SAFE_PATHS 读取文件。
+      environment = {
+        SAFE_PATHS = credentialsDir;
+      };
+      serviceConfig.LoadCredential = lib.mkForce [
+        "config.yaml:${configFile}"
+        "providers.yaml:${proxiesFile}"
+      ];
+    };
   };
 }

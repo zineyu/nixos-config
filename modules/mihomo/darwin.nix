@@ -2,6 +2,7 @@
 # 配置与 NixOS 侧共用 ../config.yaml，代理凭据由 sops 注入。
 {
   config,
+  host,
   lib,
   pkgs,
   ...
@@ -37,33 +38,35 @@ let
   '';
 in
 {
-  sops.secrets.mihomo_proxies = {
-    sopsFile = ../../secrets/mihomo.yaml;
-    format = "binary";
-  };
+  config = lib.mkIf host.gates.mihomo {
+    sops.secrets.mihomo_proxies = {
+      sopsFile = ../../secrets/mihomo.yaml;
+      format = "binary";
+    };
 
-  system.activationScripts.mihomo.text = ''
-    install -d -m 0700 ${stateDir}
-  '';
+    system.activationScripts.mihomo.text = ''
+      install -d -m 0700 ${stateDir}
+    '';
 
-  # TUN 需要 root，因此以系统 LaunchDaemon 运行。
-  #
-  # 可执行文件必须经 `command` 交付，不能直接写
-  # `serviceConfig.ProgramArguments`。nix-darwin 只对 `command` 注入
-  # `/bin/wait4path /nix/store` 包装；直接写 ProgramArguments 会让 plist
-  # 指向 /nix/store 内的脚本，而开机时 launchd 启动本 job 的时刻早于
-  # /nix 卷挂载完成的时刻。launchd 找不到该文件即判定初始化失败并置为
-  # service inactive，此后 KeepAlive 不再触发重试。
-  launchd.daemons.mihomo.command = "${launcher}";
+    # TUN 需要 root，因此以系统 LaunchDaemon 运行。
+    #
+    # 可执行文件必须经 `command` 交付，不能直接写
+    # `serviceConfig.ProgramArguments`。nix-darwin 只对 `command` 注入
+    # `/bin/wait4path /nix/store` 包装；直接写 ProgramArguments 会让 plist
+    # 指向 /nix/store 内的脚本，而开机时 launchd 启动本 job 的时刻早于
+    # /nix 卷挂载完成的时刻。launchd 找不到该文件即判定初始化失败并置为
+    # service inactive，此后 KeepAlive 不再触发重试。
+    launchd.daemons.mihomo.command = "${launcher}";
 
-  launchd.daemons.mihomo.serviceConfig = {
-    KeepAlive = true;
-    RunAtLoad = true;
-    ThrottleInterval = 30;
-    ProcessType = "Background";
-    # mihomo 只允许 proxy-provider 读取受信目录内的文件。
-    EnvironmentVariables.SAFE_PATHS = lib.dirOf proxiesFile;
-    StandardOutPath = "/var/log/mihomo.log";
-    StandardErrorPath = "/var/log/mihomo.log";
+    launchd.daemons.mihomo.serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      ThrottleInterval = 30;
+      ProcessType = "Background";
+      # mihomo 只允许 proxy-provider 读取受信目录内的文件。
+      EnvironmentVariables.SAFE_PATHS = lib.dirOf proxiesFile;
+      StandardOutPath = "/var/log/mihomo.log";
+      StandardErrorPath = "/var/log/mihomo.log";
+    };
   };
 }

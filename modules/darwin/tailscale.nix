@@ -1,5 +1,6 @@
 {
   config,
+  host,
   lib,
   pkgs,
   ...
@@ -41,55 +42,57 @@ let
   '';
 in
 {
-  # Darwin host 的 tailnet 接入（见 docs/adr/0008-headscale-tailnet.md）。
-  # 与 NixOS 相同，使用共享 sops 文件中的可复用 preauth key 自动注册
-  # （provisioning 见 modules/nixos/optional/tailscale.nix 与 docs/secrets.md）。
-  sops.secrets.tailscale_auth_key = {
-    sopsFile = ../../secrets/tailscale.yaml;
-    key = "preauth_key";
-  };
-
-  services.tailscale.enable = true;
-
-  launchd.daemons.tailscale-autologin = {
-    # 可执行文件必须经 `command` 交付，不能直接写
-    # `serviceConfig.ProgramArguments`：nix-darwin 只对 `command` 注入
-    # `/bin/wait4path /nix/store` 包装，否则开机时 launchd 会在 /nix 卷
-    # 挂载之前启动本 job，找不到脚本即判定初始化失败（见
-    # modules/mihomo/darwin.nix 中的同一说明）。
-    command = "${tsAutoLogin}";
-
-    serviceConfig = {
-      RunAtLoad = true;
-      # 失败退出后重试，成功退出后不循环。launchd 已经不再支持
-      # NetworkState 键（日志会报"The NetworkState key is no longer
-      # respected"），因此只按退出码重试。
-      KeepAlive = {
-        SuccessfulExit = false;
-      };
-      ThrottleInterval = 30;
-      EnvironmentVariables = {
-        PATH = lib.concatStringsSep ":" [
-          "${pkgs.tailscale}/bin"
-          "${pkgs.jq}/bin"
-          "/usr/sbin"
-          "/sbin"
-          "/usr/bin"
-          "/bin"
-        ];
-      };
-      StandardOutPath = "/var/log/tailscale-autologin.log";
-      StandardErrorPath = "/var/log/tailscale-autologin.log";
+  config = lib.mkIf host.gates.tailscale {
+    # Darwin host 的 tailnet 接入（见 docs/adr/0008-headscale-tailnet.md）。
+    # 与 NixOS 相同，使用共享 sops 文件中的可复用 preauth key 自动注册
+    # （provisioning 见 modules/nixos/optional/tailscale.nix 与 docs/secrets.md）。
+    sops.secrets.tailscale_auth_key = {
+      sopsFile = ../../secrets/tailscale.yaml;
+      key = "preauth_key";
     };
-  };
 
-  # nix-darwin 模块只为 ts.net 写 /etc/resolver；为自定义 MagicDNS
-  # base_domain 补一条，使 *.ts.zineyu.cn 走 quad100 解析。
-  environment.etc."resolver/ts.zineyu.cn" = {
-    text = "nameserver 100.100.100.100";
-    # tailscaled 可能自行创建/改写该文件，记录已知哈希以避免激活冲突。
-    knownSha256Hashes = [
-      "2c28f4fe3b4a958cd86b120e7eb799eee6976daa35b228c885f0630c55ef626c"
-    ];
+    services.tailscale.enable = true;
+
+    launchd.daemons.tailscale-autologin = {
+      # 可执行文件必须经 `command` 交付，不能直接写
+      # `serviceConfig.ProgramArguments`：nix-darwin 只对 `command` 注入
+      # `/bin/wait4path /nix/store` 包装，否则开机时 launchd 会在 /nix 卷
+      # 挂载之前启动本 job，找不到脚本即判定初始化失败（见
+      # modules/mihomo/darwin.nix 中的同一说明）。
+      command = "${tsAutoLogin}";
+
+      serviceConfig = {
+        RunAtLoad = true;
+        # 失败退出后重试，成功退出后不循环。launchd 已经不再支持
+        # NetworkState 键（日志会报"The NetworkState key is no longer
+        # respected"），因此只按退出码重试。
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
+        ThrottleInterval = 30;
+        EnvironmentVariables = {
+          PATH = lib.concatStringsSep ":" [
+            "${pkgs.tailscale}/bin"
+            "${pkgs.jq}/bin"
+            "/usr/sbin"
+            "/sbin"
+            "/usr/bin"
+            "/bin"
+          ];
+        };
+        StandardOutPath = "/var/log/tailscale-autologin.log";
+        StandardErrorPath = "/var/log/tailscale-autologin.log";
+      };
+    };
+
+    # nix-darwin 模块只为 ts.net 写 /etc/resolver；为自定义 MagicDNS
+    # base_domain 补一条，使 *.ts.zineyu.cn 走 quad100 解析。
+    environment.etc."resolver/ts.zineyu.cn" = {
+      text = "nameserver 100.100.100.100";
+      # tailscaled 可能自行创建/改写该文件，记录已知哈希以避免激活冲突。
+      knownSha256Hashes = [
+        "2c28f4fe3b4a958cd86b120e7eb799eee6976daa35b228c885f0630c55ef626c"
+      ];
+    };
   };
 }

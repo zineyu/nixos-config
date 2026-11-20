@@ -1,11 +1,20 @@
 # 桌面环境的系统级部分（NixOS 模块）：greetd/niri/portal、音频、蓝牙、显卡、
 # 输入法、nixpak overlay 与桌面软件清单。
 #
-# 广播-门控：被 modules/nixos/default.nix 无条件导入，只有带 "desktop" tag 的
-# host 才真正拉入第三方模块与下面的文件。第三方模块（dank-greeter、niri、aagl）
-# 的断言与 option 无法在内部关闭，因此必须整棵按 tag 导入，而不是逐文件门控。
+# 广播-门控：被 modules/nixos/default.nix 无条件导入，只有 facts.form = "desktop"
+# 的 host 才真正拉入第三方模块与下面的文件。第三方模块（dank-greeter、niri、aagl）
+# 的断言与 option 无法在模块内部关闭，因此必须整棵按 gate 导入，而不是逐文件门控
+# （ADR-0018 允许树入口门控，理由见下一行的 lint 豁免）。
 # 用户级部分见 modules/desktop/home/。
-{ host, inputs, lib, ... }:
+#
+# lint-allow-imports-gate: 第三方模块（dank-greeter / niri / aagl）的断言与 option
+# 无法在模块体内关闭，只能在入口整棵按 gate 导入。
+{
+  host,
+  inputs,
+  lib,
+  ...
+}:
 {
   imports = lib.optionals host.gates.desktop [
     inputs.dank-greeter.nixosModules.default
