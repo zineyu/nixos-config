@@ -77,7 +77,9 @@ let
       ];
 
       home-manager.users = lib.mkIf fullHost.userEnvironment {
-        zine = import homeFile;
+        # Machine File 是可选的：绝大多数主机没有 user 级差异，不该被迫留一个
+        # 空模块（ADR-0018）。文件不在场等价于没有覆盖。
+        zine = if builtins.pathExists homeFile then import homeFile else { };
       };
     };
 in
