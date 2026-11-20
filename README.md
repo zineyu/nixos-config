@@ -51,9 +51,9 @@ direnv allow
 | 路径 | 说明 |
 |------|------|
 | `flake.nix` | Flake 入口，基于 flake-parts `mkFlake` 声明 inputs、formatter、checks、`packages.nix-conf`、扫描 `package.nix` 得到的自定义包、`nixosConfigurations` 和 `deploy`（开发环境 devShell 由 `devenv.nix` 提供） |
-| `hosts/inventory.nix` | Host inventory：每台机器的 `system` / `kind` / `tags` / `userEnvironment` / `homeStateVersion` / `deploy`。**唯一的 host 差异来源**——模块全部被广播，是否生效由 `tags` 决定（当前为 `tianxuan`、`aliyun-01`、`macbook-air-01`、`work-hp-laptop`） |
+| `hosts/inventory.nix` | Host inventory：每台机器的 `system` / `kind` / `facts`（形态、GPU、显示器，必填）/ `tags`（人的选择）/ `userEnvironment` / `homeStateVersion` / `deploy`。**唯一的 host 差异来源**——模块全部被广播，是否生效由 `facts` 与 `tags` 推导出的 `host.gates` 决定（当前为 `tianxuan`、`aliyun-01`、`macbook-air-01`、`work-hp-laptop`） |
 | `hosts/<hostname>/default.nix` | 该机器的系统事实：导入 `hardware-configuration.nix`，只写引导器、内核、时区、secret 接线等；不写能力开关，也不导入模块树（由 `lib/mkSystem.nix` 广播） |
-| `hosts/<hostname>/home.nix` | Machine File：只放机器专属的 user 级覆盖（字体大小、单机包）。是否存在由 inventory 的 `userEnvironment` 声明，不由文件推断 |
+| `hosts/<hostname>/home.nix` | Machine File（可选）：只允许 `zine.*` knob 赋值，例如字号、布局。程序开关走 `tags`，硬件差异走 `facts`——文件不存在即「这台机没有程度差异」 |
 | `hosts/<hostname>/hardware-configuration.nix` | `nixos-generate-config` 生成的硬件扫描结果 |
 | `programs/<category>/<name>/` | 每个纯软件一个自包含目录：模块自行声明所需能力（`gui`、`desktop`、`host.kind`，或什么都不需要），可选 `package.nix` 共置；按 shell/terminal/dev/gui/misc 分类 |
 | `programs/<...>/package.nix` | 自定义包配方，attr 名 = 目录名（`nix build .#<name>`），供 `nix-update --flake <name>` 与 CI 更新 |
@@ -77,6 +77,7 @@ direnv allow
 ## 新增内容
 
 - **新增 program**：创建 `programs/<category>/<name>/default.nix`，在模块内声明它需要的能力：`lib.mkIf host.gates.gui`、`lib.mkIf (host.kind == "nixos")` 等；**不需要任何能力的就直接写 `config = { … };`**（属于 User Environment 基线）。各层 `default.nix` 通过 `scanPaths` 自动导入，**不在 inventory 里登记**。
+- **新增设备差异**：先问它属于哪条轴（ADR-0018）——缺席（装不装）写 `tags`，事实（形态、GPU、显示器）写 `facts`，程度（字号、布局）加一个 `zine.*` knob 交给 Machine File 覆盖。`python3 scripts/lint-structure.py`（`just lint-structure`）会拒绝写错轴的改动。
 - **新增自定义包**：把 `package.nix` 放进消费它的 program 目录，flake 自动暴露为 `.#<目录名>`；`nix-update` 依 `meta.position` 就地更新。
 - **新增 agent skill**：放入它所属命令的目录，即 `skills/<command>/<name>/SKILL.md`；跨命令的判据进 `principles/`，工具进 `tools/`。`modules/base/agent-skills` 会自动安装，无需注册。改完运行 `just lint-skills`，检查 frontmatter、命名与互引链。
 - **新增命令**：在 `programs/dev/pi/prompts/` 写一个 `<name>.md`，正文第一句声明它调用的技能，再加一张 `## Routing` 表说明什么情况换用哪个技能；同名技能目录随之建立。执行 `darwin-rebuild switch` 后成为 `/<name>`。

@@ -13,30 +13,53 @@ _Avoid_: opt-in modules, feature flags, plugin architecture.
 
 **Host Metadata**:
 The typed projection of a Host Inventory entry, delivered to every module as the `host`
-specialArg (`host.name`, `host.kind`, `host.system`, `host.tags`, `host.gates`,
-`host.userEnvironment`) and mirrored read-only as `zine.host`. Gates read `host.gates`;
-`zine.host` exists for validation, `nix eval` auditing, and cross-tag assertions.
+specialArg. It has exactly two views (ADR-0018): `host.gates` — one boolean per Capability,
+total over the vocabulary — and `host.facts`, the machine's Fact sheet. `host.tags` is *not*
+part of it: tags are input syntax, visible only to the audit projection `zine.host.tags`,
+which exists for validation, `nix eval` auditing, and cross-capability assertions.
 _Avoid_: host config, host vars, machine profile.
 
+**Fact**:
+A machine value that comes from the world instead of from a preference: `facts.form`
+(`desktop` / `laptop` / `server` / `wsl`), `facts.gpu` (vendors, PRIME bus ids), `facts.displays`.
+Facts are written in the Host Inventory, are required, and are typed — a missing fact is an
+evaluation error, never a default. Facts feed Capability derivation and a Knob's default
+value; they are never part of the override chain.
+_Avoid_: host data, hardware vars, properties, attributes.
+
+**Capability**:
+One entry of the Gate vocabulary, either *chosen* (a Tag) or *derived* (computed from Facts:
+`desktop` / `server` / `wsl` from `facts.form`, `nvidia` from `facts.gpu.vendors`). The union
+is total, so `host.gates.<capability>` always exists. A derived capability must never be
+declared as a tag: the enum rejects it.
+_Avoid_: feature, permission, flag.
+
 **Tag**:
-One label in a Host Inventory entry, drawn from the closed vocabulary registered in
-`modules/host-metadata.nix`. A tag must be a property of the machine — machine form
-(`desktop`, `server`, `wsl`), session (`gui`), or system capability (`docker`, `tailscale`,
-`nvidia`, `mihomo`). Software groupings are not admissible: a tag that exists to reproduce
-an old program list is that list with worse ergonomics. An unknown tag fails evaluation.
-`host.gates.<tag>` is its boolean projection, and that is what gates read.
-_Avoid_: flag, label, feature, marker.
+One *chosen* capability in a Host Inventory entry, drawn from the closed vocabulary in
+`lib/host-tags.nix`: `gui`, `docker`, `sshd`, `tailscale`, `mihomo`, `remote-login`,
+`headscale-backup`. A tag is a decision the hardware cannot reveal — machine form and GPU are
+Facts, not tags. Software groupings are not admissible: a tag that exists to reproduce an old
+program list is that list with worse ergonomics.
+_Avoid_: flag, label, feature, marker, profile.
 
 **Gate**:
-The `lib.optionals` / `lib.mkIf` expression that turns a Tag into a decision, written as
-`host.gates.<tag>` — a boolean projection of `host.tags`, total over the vocabulary, so a
-misspelled tag is an evaluation error instead of a silent `false`. A gate may sit at a tree
-entry (`imports`) or inside a leaf module; both read the same specialArg.
-_Avoid_: condition, predicate, enabled flag.
+The `lib.mkIf` expression that turns a Capability into a decision, written as
+`host.gates.<capability>`. It sits inside a module body, never in `imports` — every host
+evaluates every module, so a typo fails on all four hosts at once. Tree entries whose leaves
+cannot deactivate themselves (third-party modules, `scanPaths` subtrees) are the only
+exception and must carry a `lint-allow-imports-gate:` comment.
+_Avoid_: condition, predicate, enabled flag, import switch.
+
+**Knob**:
+A typed option declared by the module that owns the setting, always with a default —
+`zine.programs.kitty.fontSize`, `zine.<area>.<name>`. It is the only place a *degree*
+difference between devices may live: a Machine File assigns knobs, and nothing else. Adding a
+knob is justified only once a second device needs a different value.
+_Avoid_: parameter, override, tweak, setting.
 
 **Host Inventory**:
 The structured mapping in `hosts/inventory.nix` from hostname to host metadata: `system`,
-`kind`, `tags`, `userEnvironment`, optional `homeStateVersion`, optional
+`kind`, `facts` (required), `tags`, `userEnvironment`, optional `homeStateVersion`, optional
 `deploy`. It is the single source of every host difference; `flake.nix` consumes it to build
 one system per host and to generate deploy-rs nodes.
 _Avoid_: host registry, hosts file, list.
@@ -51,16 +74,16 @@ _Avoid_: machine, device, node.
 The Home Manager configuration of the single user `zine`. `lib/mkSystem.nix` wires the Base
 Layer, the Program Modules and the Desktop Layer into `home-manager.users.zine` for every
 host whose Host Inventory entry sets `userEnvironment = true`, importing that host's
-`hosts/<hostname>/home.nix`. Absence is declared in metadata, never inferred from a missing
-file.
+`hosts/<hostname>/home.nix` when it exists. Absence of the User Environment is declared in
+metadata; absence of a Machine File simply means "no degree difference on this host".
 _Avoid_: user entry, profile, `users/<username>/`.
 
 **Machine File**:
-`hosts/<hostname>/home.nix`. A Machine File carries only overrides that are genuinely
-machine-local and expressible nowhere else: a font size, a single package, a workaround.
-Software selection lives in the Program Modules' own gates, not here. An empty Machine
-File is normal; what makes the User Environment exist is `userEnvironment = true`, not the
-file's presence.
+`hosts/<hostname>/home.nix`. The Machine File assigns `zine.*` Knobs only — a font size, a
+layout choice — because those are the differences that can be neither gated nor derived.
+Program selection lives in the Program Modules' own gates, and hardware differences live in
+Facts. The file is optional: hosts without a degree difference have no Machine File at all.
+What makes the User Environment exist is `userEnvironment = true`, not the file's presence.
 _Avoid_: host file, organization file, home module, switch table.
 
 **Program Module**:
@@ -93,8 +116,9 @@ _Avoid_: common home, shared user layer, `modules/home`.
 `modules/desktop/`. Its `home/` half is the user-level Wayland desktop (niri,
 DankMaterialShell, fonts, icon theme, XDG user dirs); its `system/` half is the matching
 NixOS configuration (greetd, portal, audio, bluetooth, graphics, input method, nixpak, Steam).
-Both halves gate on the `desktop` Tag, and the system half is imported wholesale because the
-third-party modules it pulls in cannot deactivate themselves.
+Both halves gate on the `desktop` Capability (derived from `facts.form`), and the system half
+is imported wholesale because the third-party modules it pulls in cannot deactivate
+themselves.
 _Avoid_: DE, WM config, desktop stack.
 
 **System Module**:
@@ -103,9 +127,9 @@ machine, not the user.
 _Avoid_: platform config, host layer.
 
 **System Capability**:
-A module under `modules/nixos/optional/` that is inert unless the Host carries its Tag. It
-declares no option: the gate is `lib.mkIf host.gates.<tag>`, so a capability
-cannot drift from the metadata that decides it. Configuration that every NixOS host needs
+A module under `modules/nixos/optional/` that is inert unless the Host carries its
+Capability. It declares no option: the gate is `lib.mkIf host.gates.<capability>`, so a
+capability cannot drift from the metadata that decides it. Configuration that every NixOS host needs
 belongs in `modules/nixos/common/`, not here.
 _Avoid_: feature flag, addon, plugin.
 

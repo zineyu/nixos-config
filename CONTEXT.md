@@ -24,6 +24,20 @@ follows it.
 > set and no software list to edit. Configuration that every NixOS host needs
 > belongs in `modules/nixos/common/` instead.
 >
+> **Explorer**: The kitty font is too big on this machine. Where do I change it?
+>
+> **Maintainer**: In that host's Machine File, one line:
+> `zine.programs.kitty.fontSize = 12.0;`. The knob, its type and its default live in the
+> kitty module; the Machine File only assigns it. Degree differences never reach into
+> upstream option paths, and `scripts/lint-structure.py` rejects them if they do.
+>
+> **Explorer**: Why can't I just tag a machine `desktop`?
+>
+> **Maintainer**: Because `desktop` is derived from `facts.form`. Machine form, GPU vendors
+> and displays are facts — the world decides them, not you. `tags` holds only choices the
+> hardware cannot reveal, like `docker` or `gui`. Declaring a derived capability is an
+> evaluation error, so the two can never drift apart.
+>
 > **Explorer**: Where does a user-level systemd timer go?
 >
 > **Maintainer**: `modules/base/services/`, gated on a Tag. Nothing in the host
@@ -45,19 +59,18 @@ follows it.
 > vocabulary in `modules/host-metadata.nix`, so a typo is an error rather than a
 > capability that silently never turns on.
 >
-> **Explorer**: Why are there two files per machine?
+> **Explorer**: Why are there two files per machine, and why is one usually missing?
 >
-> **Maintainer**: Because they are two module namespaces, not two copies of
-> anything. `hosts/<hostname>/default.nix` is NixOS or nix-darwin and holds
-> machine facts; `hosts/<hostname>/home.nix` is Home Manager and holds
-> user-level overrides that cannot live anywhere else — usually nothing.
-> Software selection is Host Metadata, in the Host Inventory, and
-> `userEnvironment = true` is what makes a Machine File exist; the file itself
-> is never the signal.
+> **Maintainer**: They are two module namespaces, not two copies of anything.
+> `hosts/<hostname>/default.nix` is NixOS or nix-darwin and holds the machine's boot and
+> hardware wiring; `hosts/<hostname>/home.nix` is Home Manager and holds only `zine.*` knob
+> overrides — usually nothing, because most hosts have no degree difference. Software
+> selection is Host Metadata, in the Host Inventory; `userEnvironment = true` decides whether
+> a User Environment exists, and the file only says whether it deviates.
 
 ```mermaid
 graph TD
-    Inv["hosts/inventory.nix<br/>tags"] --> Mk["lib/mkSystem.nix<br/>specialArgs.host"]
+    Inv["hosts/inventory.nix<br/>facts + tags"] --> Mk["lib/mkSystem.nix<br/>specialArgs.host<br/>gates = chosen ∪ derived"]
     Mk --> Nix["modules/nixos"]
     Mk --> Dar["modules/darwin"]
     Mk --> HM["home-manager.sharedModules<br/>base + programs + desktop/home"]

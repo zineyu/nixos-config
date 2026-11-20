@@ -16,18 +16,39 @@
 
 ### `modules/host-metadata.nix`
 
-广播-门控（ADR-0014）的唯一门控输入。`lib/mkSystem.nix` 把 Host Inventory 的条目
-经 `specialArgs.host` 注入每个模块，本模块把它投影为只读的 `zine.host`：类型化
-`tags` / `programs`、`kind` 与 `system`，并集中声明跨 tag 的一致性断言。
+广播-门控（ADR-0014 / ADR-0018）的唯一门控输入。`lib/mkSystem.nix` 把 Host Inventory
+的条目经 `specialArgs.host` 注入每个模块，本模块把它投影为只读的 `zine.host`
+（`facts` / `gates` / `tags` / `kind` / `system`），并集中声明跨能力的一致性断言。
+
+Host Metadata 只有两个视图，`tags` **不在其中**：
+
+| 视图 | 形状 | 消费方式 |
+|------|------|---------|
+| `host.gates.<capability>` | 布尔，对词表恒存在（未命中为 false） | 模块门控：`lib.mkIf host.gates.gui`；树入口另见 `lint-allow-imports-gate` |
+| `host.facts` | 值：`form` / `gpu{vendors,prime}` / `displays` | 派生能力、喂 knob 的默认值；inventory 必填 |
 
 | 项 | Purpose | Notable |
 |----|---------|---------|
-| `knownTags` | Tag 词表定义在 `lib/host-tags.nix`（单一来源，`mkSystem` 用它派生 `host.gates`） | `types.enum` 使未登记的 tag 在求值期报错 |
-| `zine.host` | 只读元数据投影 | `nix eval .#<host>.config.zine.host` 可审计 |
-| `assertions` | `desktop` 与 `server` 互斥；`gui` 与 `wsl` 互斥；`desktop` 隐含 `gui`；`remote-login` 仅 darwin；`desktop`/`server`/`wsl`/`nvidia` 仅 nixos；`userEnvironment` 必须有 `home.nix` | 非法 tag 组合在求值期失败 |
+| `lib/host-tags.nix` | 能力词表：`chosen`（tags）与 `derived`（facts 派生）两类 | `zine.host.tags` 的 enum 只收 `chosen`，声明派生能力即求值失败 |
+| 派生能力 | `desktop`/`server`/`wsl` ← `facts.form`；`nvidia` ← `facts.gpu.vendors` | 事实与能力不可能漂移（见 `checks.zine-difference-axes`） |
+| `zine.host` | 只读投影，含 `tags` 审计视图 | `nix eval .#<host>.config.zine.host` |
+| `assertions` | 形态与 kind 一致；`desktop` 隐含 `gui`；`gui` 与 `wsl` 互斥；`nvidia` 仅 nixos 且必须有 `facts.gpu.prime`；`remote-login` 仅 darwin | 非法组合在求值期失败 |
 
 门控表达式必须读 `specialArgs.host`，不能读 `config.zine.host`：`imports` 在模块收集
-阶段求值，引用 `config` 会无限递归。
+阶段求值，引用 `config` 会无限递归。反过来，`imports` 保持无条件（ADR-0018）——门控写
+进模块体，这样每台主机都会求值每个模块。
+
+### 差异表达与门禁
+
+| 轴 | 判据 | 出口 | 机检 |
+|----|------|------|------|
+| 事实 | 值来自世界 | `hosts/inventory.nix` 的 `facts` | R5：每个 host 必须有 `form` / `gpu` |
+| 缺席 | 只会说"要不要" | `tags`（chosen）或 facts 派生（derived） | enum；`checks.zine-difference-axes` |
+| 程度 | 有默认值，这台想不一样 | 模块内的 `zine.*` knob | R4：knob 必须有 default；R3：Machine File 只碰 `zine.*` |
+
+`scripts/lint-structure.py`（`just lint-structure`，也挂在 `checks.x86_64-linux.lint`）
+实现 R1–R5：R1 模块禁 hostname 分支、R2 imports 不得引用 host metadata、
+R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory 必须有 facts。
 
 ### `lib/mkSystem.nix` 的广播
 
