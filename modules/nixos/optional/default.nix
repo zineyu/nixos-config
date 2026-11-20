@@ -1,5 +1,5 @@
 # 可插拔的系统能力。每个模块**不声明 option**，而是用
-# `lib.mkIf host.gates.<tag>` 直接门控（见 lib/host-tags.nix 与 ADR-0014），
+# `lib.mkIf (host.hasTag "<tag>")` 直接门控（见 ADR-0014 / ADR-0019），
 # 因此 host 既不在 configuration.nix 里写开关，能力也无法与决定它的 metadata 漂移。
 # 未命中 tag 时该模块不产生任何配置。
 #

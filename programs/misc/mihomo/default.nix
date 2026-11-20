@@ -11,7 +11,7 @@
   ...
 }:
 {
-  config = lib.mkIf host.gates.mihomo {
+  config = lib.mkIf (!host.platform.wsl || !host.form.server) {
     home.packages = [ pkgs.mihomo ];
   };
 }

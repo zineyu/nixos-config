@@ -4,15 +4,16 @@
 与 nixfmt / deadnix / statix 的分工：那三个管语法与死代码，这个管**结构**——
 每条规则对应的都是"差异被写到了错误的轴上"的具体失误。
 
-  R1  模块不得按主机名分支（host.name / hostname ==），一律走 host.gates / host.facts。
-      唯一例外是校验器 modules/host-metadata.nix。
+  R1  模块不得按主机名分支（host.name / hostname ==），一律走 host.hasTag /
+      host.platform / host.form / host.profile / host.facts。唯一例外是校验器
+      modules/host-metadata.nix。
   R2  imports 不得引用 host metadata：门控写在模块体内，imports 保持无条件，
       这样每台主机都会求值每个模块，拼写错误在四台机上同时暴露。
   R3  Machine File（hosts/*/home.nix）只允许 zine.* 赋值。上游 option 路径与
       home.packages 是漂移的发源地：机器差异必须落在有类型、有默认值的 knob 上。
   R4  每个非 readOnly 的 mkOption 必须声明 default —— knob 必须有默认值，
       否则设备文件就成了唯一取值处，差异表达退化。
-  R5  Host Inventory 的每个 host 必须有 facts.form 与 facts.gpu（派生 gate 的输入）。
+  R5  Host Inventory 的每个 host 必须有 platform / form / profile 与 facts.gpu。
 
 用法：python3 scripts/lint-structure.py [--quiet]
 """
@@ -86,7 +87,7 @@ def check_hostname_branches() -> None:
                     path,
                     number,
                     "R1",
-                    "模块按主机名分支；差异应写成 host.gates.<tag>（缺席）或 zine.* knob（程度）",
+                    "模块按主机名分支；差异应写成 host.hasTag \"<tag>\"（缺席）、host.{platform,form,profile}（轴）或 zine.* knob（程度）",
                 )
 
 
@@ -112,7 +113,7 @@ def check_imports_are_unconditional() -> None:
                     break
                 end += 1
             body = text[start:end]
-            if re.search(r"\bhost\.(gates|facts|name)\b", body):
+            if re.search(r"\bhost\.(hasTag|platform|form|profile|facts|name)\b", body):
                 line = text.count("\n", 0, match.start()) + 1
                 fail(
                     path,
@@ -199,7 +200,7 @@ def check_option_defaults() -> None:
 
 
 def check_inventory_facts() -> None:
-    """R5：每个 host 必须有 facts.form 与 facts.gpu。"""
+    """R5：每个 host 必须有 platform / form / profile 与 facts.gpu。"""
     path = ROOT / "hosts" / "inventory.nix"
     text = "\n".join(strip_comment(line) for line in path.read_text(encoding="utf-8").splitlines())
     for match in re.finditer(r"^  ([a-z][\w-]*)\s*=\s*\{", text, re.MULTILINE):
@@ -217,8 +218,12 @@ def check_inventory_facts() -> None:
             end += 1
         body = text[start : end + 1]
         line = text.count("\n", 0, match.start()) + 1
+        if not re.search(r"\bplatform\s*=", body):
+            fail(path, line, "R5", f"host `{name}` 缺少 platform")
         if not re.search(r"\bform\s*=", body):
-            fail(path, line, "R5", f"host `{name}` 缺少 facts.form")
+            fail(path, line, "R5", f"host `{name}` 缺少 form")
+        if not re.search(r"\bprofile\s*=", body):
+            fail(path, line, "R5", f"host `{name}` 缺少 profile")
         if not re.search(r"\bgpu\s*[.=]", body):
             fail(path, line, "R5", f"host `{name}` 缺少 facts.gpu")
 

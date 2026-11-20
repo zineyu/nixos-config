@@ -23,7 +23,7 @@ let
   );
 in
 {
-  config = lib.mkIf host.gates.mihomo {
+  config = lib.mkIf (host.platform.nixos && host.form.pc) {
     sops.secrets.mihomo_proxies = {
       sopsFile = ../../secrets/mihomo.yaml;
       format = "binary";

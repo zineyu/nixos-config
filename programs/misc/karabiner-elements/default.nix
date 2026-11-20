@@ -6,7 +6,7 @@
 }:
 
 {
-  config = lib.mkIf (host.kind == "darwin") {
+  config = lib.mkIf host.platform.darwin {
     assertions = [
       {
         assertion = pkgs.stdenv.hostPlatform.isDarwin;

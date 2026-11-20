@@ -6,6 +6,5 @@
   imports = [
     ./common.nix
     ./agent-skills
-    ./services
   ];
 }

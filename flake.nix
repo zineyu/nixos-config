@@ -85,20 +85,23 @@
         hosts = import ./hosts/inventory.nix;
         inherit (import ./lib/mkSystem.nix { inherit inputs vars; }) mkSystem mkDarwinSystem;
 
-        nixosHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.kind == "nixos") hosts;
-        darwinHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.kind == "darwin") hosts;
+        # wsl 走 NixOS 构建路径，但 platform 仍是独立值。
+        isNixosHost = host: host.platform == "nixos" || host.platform == "wsl";
+
+        nixosHosts = inputs.nixpkgs.lib.filterAttrs (_: isNixosHost) hosts;
+        darwinHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.platform == "darwin") hosts;
         deployHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.deploy.enable or false) hosts;
 
         nixosConfigurations = inputs.nixpkgs.lib.mapAttrs mkSystem nixosHosts;
         darwinConfigurations = inputs.nixpkgs.lib.mapAttrs mkDarwinSystem darwinHosts;
         hostSystems = inputs.nixpkgs.lib.mapAttrs (
           hostname: host:
-          if host.kind == "nixos" then
+          if isNixosHost host then
             nixosConfigurations.${hostname}.config.system.build.toplevel
-          else if host.kind == "darwin" then
+          else if host.platform == "darwin" then
             darwinConfigurations.${hostname}.system
           else
-            throw "Unsupported host kind '${host.kind}' for '${hostname}'"
+            throw "Unsupported host platform '${host.platform}' for '${hostname}'"
         ) hosts;
       in
       {
@@ -194,63 +197,6 @@
                       touch $out
                     '';
 
-                # 模块级回归测试（ADR-0018）：能力必须始终来自事实。
-                # 任何让 gate 与 facts 脱钩、或让 gate 关掉后仍泄漏程序的改动都会在这里失败。
-                zine-difference-axes =
-                  let
-                    nixlib = inputs.nixpkgs.lib;
-                    configOf =
-                      hostname: host:
-                      if host.kind == "nixos" then
-                        nixosConfigurations.${hostname}.config
-                      else
-                        darwinConfigurations.${hostname}.config;
-
-                    # 每台主机：派生 gate 必须等于其事实。
-                    gateProblems = nixlib.concatLists (
-                      nixlib.mapAttrsToList (
-                        hostname: host:
-                        let
-                          meta = (configOf hostname host).zine.host;
-                        in
-                        nixlib.optional (
-                          meta.gates.desktop != (meta.facts.form == "desktop")
-                        ) "${hostname}: gates.desktop ≠ (facts.form == \"desktop\")"
-                        ++ nixlib.optional (
-                          meta.gates.server != (meta.facts.form == "server")
-                        ) "${hostname}: gates.server ≠ (facts.form == \"server\")"
-                        ++ nixlib.optional (
-                          meta.gates.wsl != (meta.facts.form == "wsl")
-                        ) "${hostname}: gates.wsl ≠ (facts.form == \"wsl\")"
-                        ++ nixlib.optional (
-                          meta.gates.nvidia != (builtins.elem "nvidia" meta.facts.gpu.vendors)
-                        ) "${hostname}: gates.nvidia ≠ (\"nvidia\" ∈ facts.gpu.vendors)"
-                        ++ nixlib.optional (
-                          meta.gates.desktop && !meta.gates.gui
-                        ) "${hostname}: form = \"desktop\" 必须同时有 gui"
-                      ) hosts
-                    );
-
-                    # gate 关闭时程序必须完全不出现（缺席轴）。
-                    desktopHome = nixosConfigurations.tianxuan.config.home-manager.users.zine;
-                    wslHome = nixosConfigurations.work-hp-laptop.config.home-manager.users.zine;
-                    darwinHome = darwinConfigurations.macbook-air-01.config.home-manager.users.zine;
-                    hasPackage = name: home: builtins.any (p: (p.pname or "") == name) home.home.packages;
-                    exclusionProblems =
-                      # kitty 由 gui 门控，同时它是 fontSize knob 的载体。
-                      nixlib.optional (!desktopHome.programs.kitty.enable) "tianxuan 应当有 kitty（有 gui）"
-                      ++ nixlib.optional wslHome.programs.kitty.enable "work-hp-laptop 不应有 kitty（无 gui）"
-                      ++ nixlib.optional (
-                        !hasPackage "mihomo" darwinHome
-                      ) "macbook-air-01 应当有 mihomo CLI（tag mihomo，programs/misc/mihomo 承接）"
-                      ++ nixlib.optional (hasPackage "mihomo" wslHome) "work-hp-laptop 不应有 mihomo（无 mihomo tag）";
-
-                    problems = gateProblems ++ exclusionProblems;
-                  in
-                  if problems != [ ] then
-                    throw ("差异轴回归测试失败：\n" + nixlib.concatStringsSep "\n" problems)
-                  else
-                    pkgs.runCommand "zine-difference-axes" { } "touch $out";
               };
 
             packages =

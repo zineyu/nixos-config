@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (refines ADR-0014's Host Metadata and ADR-0016's capability rule)
+Accepted (refines ADR-0014's Host Metadata and ADR-0016's capability rule;
+platform / form / profile 分轴见 ADR-0019)
 
 ## Date
 
@@ -37,13 +38,17 @@ ADR-0014 把主机差异收敛成"模块读 `host.gates` 自门控"，ADR-0016 �
 | 缺席 | 只会说"要不要" | `tags`（chosen）或 facts 推导（derived）→ `host.gates` | 闭集，词表外即求值失败 |
 | 程度 | 有默认值，只是这台想不一样 | 模块内的 `zine.*` option（knob） | 必须有 default |
 
-派生规则：`facts.form` 派生 `desktop` / `server` / `wsl`；`"nvidia" ∈
-facts.gpu.vendors` 派生 `nvidia`。**事实决定的能力不可声明，选择的能力不可推导**：
-`tags` 的 enum 只收 `vocab.chosen`，写进 `desktop` 之类会被 enum 拒绝。
+> ADR-0019 将 `platform` / `form` / `profile` 拆成独立轴；本表继续适用于剩余的
+> 硬件 `facts`、能力 `tags` 与程度 `knob`。
 
-`tags` 退出模块可见面：`specialArgs.host` 只有 `gates`（布尔，对全词表恒存在）与
-`facts`（值）。`zine.host.tags` 保留为审计视图，由 `modules/host-metadata.nix`
-直接从 inventory 读取——模块看不到"来源"，只看得到推导结果。
+派生规则：`"nvidia" ∈ facts.gpu.vendors` 派生 `nvidia`。**事实决定的能力不可
+声明，选择的能力不可推导**：`tags` 的 enum 只收 `vocab.chosen`，写进 `nvidia`
+之类会被 enum 拒绝。
+
+`tags` 退出模块可见面：`specialArgs.host` 只有 `gates`（布尔，对全词表恒存在）、
+`platform` / `form` / `profile`（各自的布尔）与 `facts`（值）。`zine.host.tags`
+保留为审计视图，由 `modules/host-metadata.nix` 直接从 inventory 读取——模块看不到
+"来源"，只看得到推导结果。
 
 优先级不自造，映射到 Nix 既有的格：`mkOption default` < `lib.mkDefault`（tag 派生
 或预设）< 普通赋值（Machine File）< `mkForce`。身份只喂默认值，不参与覆盖链；
@@ -68,6 +73,8 @@ Machine File（`hosts/<hostname>/home.nix`）成为**可选**文件，且只允�
 - 强制手段（`scripts/lint-structure.py`，R1–R5）是本 ADR 的机检部分：
   R1 模块禁 hostname 分支、R2 imports 不得引用 host metadata、R3 Machine File 只
   允许 `zine.*`、R4 knob 必有 default、R5 Inventory 必有 facts。
-- 不做：`profile` / 场景轴（同一台机在工作与个人间切换）、TOML 注册表双解析、
-  golden 快照门禁、free-string tag 词表。理由见 PR 讨论：场景轴无需求；双解析会
-  产生绕过 builder 的第二条读取路径；4 主机的规模下快照的维护成本高于收益。
+- 后续（ADR-0019）：`profile` / 场景轴已经成为独立轴（`host.profile`），不再
+  当作 Tag；`desktop` / `server` / `wsl` 派生 gate 由 `host.form` /
+  `host.platform` 取代。仍然不做：TOML 注册表双解析、golden 快照门禁、
+  free-string tag 词表。理由见 PR 讨论：双解析会产生绕过 builder 的第二条读取
+  路径；4 主机的规模下快照的维护成本高于收益。

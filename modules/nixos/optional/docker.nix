@@ -4,7 +4,7 @@
 # tag 的 host 生效。这里没有 option：能力不可能与决定它的 metadata 漂移。
 { host, lib, ... }:
 {
-  config = lib.mkIf host.gates.docker {
+  config = lib.mkIf (host.hasTag "docker") {
     virtualisation.docker = {
       enable = true;
       enableOnBoot = true;

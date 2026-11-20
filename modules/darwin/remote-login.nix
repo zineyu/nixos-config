@@ -4,11 +4,11 @@
 # nix-darwin 没有对应选项，直接操作系统 com.openssh.sshd LaunchDaemon；
 # zine 的公钥授权经 programs/misc/ssh 写入 ~/.ssh/authorized_keys。
 #
-# 自门控：由 modules/darwin/default.nix 无条件导入，只有 host.gates."remote-login"
+# 自门控：由 modules/darwin/default.nix 无条件导入，只有 host.hasTag "remote-login"
 # 的 host 生效（ADR-0018：imports 保持无条件，门控写进模块体）。
 { host, lib, ... }:
 {
-  config = lib.mkIf host.gates."remote-login" {
+  config = lib.mkIf (host.hasTag "remote-login") {
     system.activationScripts.postActivation.text = ''
       /bin/launchctl enable system/com.openssh.sshd 2>/dev/null || true
       /bin/launchctl bootstrap system /System/Library/LaunchDaemons/ssh.plist 2>/dev/null \

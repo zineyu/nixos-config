@@ -6,7 +6,7 @@
 
 | 目录 | 职责 |
 |------|------|
-| `programs/` | 纯软件：每个程序一个自包含 Home Manager 模块目录，模块自行声明所需能力（`gui`/`desktop`/`host.kind`），无需能力者为基线 |
+| `programs/` | 纯软件：每个程序一个自包含 Home Manager 模块目录，模块自行声明所需条件（`gui`/`form.pc`/`platform.linux`），无需条件者为基线 |
 | `modules/` | 系统侧配置：`nixos/`、`darwin/`（按平台），`desktop/`（桌面子系统，含 `home/` 与 `system/`），`base/`（平台无关 HM 基础） |
 | `hosts/<hostname>/` | 该机器的一切：`default.nix`（系统事实）、`home.nix`（user 级覆盖，可选）、`hardware-configuration.nix` |
 
@@ -16,23 +16,28 @@
 
 ### `modules/host-metadata.nix`
 
-广播-门控（ADR-0014 / ADR-0018）的唯一门控输入。`lib/mkSystem.nix` 把 Host Inventory
+广播-门控（ADR-0014 / ADR-0019）的唯一门控输入。`lib/mkSystem.nix` 把 Host Inventory
 的条目经 `specialArgs.host` 注入每个模块，本模块把它投影为只读的 `zine.host`
-（`facts` / `gates` / `tags` / `kind` / `system`），并集中声明跨能力的一致性断言。
+（`platform` / `form` / `profile` / `facts` / `gates` / `tags` / `system`），并集中声明
+跨轴的一致性断言。
 
-Host Metadata 只有两个视图，`tags` **不在其中**：
+Host Metadata 有四个视图，`tags` **不在其中**：
 
 | 视图 | 形状 | 消费方式 |
 |------|------|---------|
-| `host.gates.<capability>` | 布尔，对词表恒存在（未命中为 false） | 模块门控：`lib.mkIf host.gates.gui`；树入口另见 `lint-allow-imports-gate` |
-| `host.facts` | 值：`form` / `gpu{vendors,prime}` / `displays` | 派生能力、喂 knob 的默认值；inventory 必填 |
+| `host.platform.<值>` | 布尔：`nixos` / `wsl` / `darwin`；`linux` = `nixos ∪ wsl`；`name` 为精确值 | 模块门控：`lib.mkIf host.platform.linux` |
+| `host.form.<值>` | 布尔：`vm` / `laptop` / `pc` / `server`；`name` 为精确值 | 模块门控：`lib.mkIf host.form.pc` |
+| `host.profile.<值>` | 布尔：`work` / `personal`；`name` 为精确值 | 模块门控：`lib.mkIf host.profile.work` |
+| `host.gates.<capability>` | 布尔，对能力词表恒存在（未命中为 false） | 模块门控：`lib.mkIf host.gates.gui`；树入口另见 `lint-allow-imports-gate` |
+| `host.facts` | 值：`gpu{vendors,prime}` / `displays` | 派生能力、喂 knob 的默认值；inventory 必填 |
 
 | 项 | Purpose | Notable |
 |----|---------|---------|
-| `lib/host-tags.nix` | 能力词表：`chosen`（tags）与 `derived`（facts 派生）两类 | `zine.host.tags` 的 enum 只收 `chosen`，声明派生能力即求值失败 |
-| 派生能力 | `desktop`/`server`/`wsl` ← `facts.form`；`nvidia` ← `facts.gpu.vendors` | 事实与能力不可能漂移（见 `checks.zine-difference-axes`） |
+| `lib/host-axes.nix` | 三条轴的词表与布尔投影：`platform` / `form` / `profile` | 新增轴值只改这里；`platform.linux` 为便利谓词 |
+| `lib/host-tags.nix` | 能力词表：`chosen`（tags）与 `derived`（仅 `nvidia`）两类 | `zine.host.tags` 的 enum 只收 `chosen`，声明派生能力即求值失败 |
+| 派生能力 | `nvidia` ← `facts.gpu.vendors` | 事实与能力不可能漂移（见 `checks.zine-difference-axes`） |
 | `zine.host` | 只读投影，含 `tags` 审计视图 | `nix eval .#<host>.config.zine.host` |
-| `assertions` | 形态与 kind 一致；`desktop` 隐含 `gui`；`gui` 与 `wsl` 互斥；`nvidia` 仅 nixos 且必须有 `facts.gpu.prime`；`remote-login` 仅 darwin | 非法组合在求值期失败 |
+| `assertions` | `form.pc` 隐含 `gui`；`form.server` 仅 linux；`gui` 与 `platform.wsl` 互斥；`nvidia` 仅 linux 且必须有 `facts.gpu.prime`；`remote-login` 仅 darwin | 非法组合在求值期失败 |
 
 门控表达式必须读 `specialArgs.host`，不能读 `config.zine.host`：`imports` 在模块收集
 阶段求值，引用 `config` 会无限递归。反过来，`imports` 保持无条件（ADR-0018）——门控写
@@ -42,19 +47,21 @@ Host Metadata 只有两个视图，`tags` **不在其中**：
 
 | 轴 | 判据 | 出口 | 机检 |
 |----|------|------|------|
-| 事实 | 值来自世界 | `hosts/inventory.nix` 的 `facts` | R5：每个 host 必须有 `form` / `gpu` |
-| 缺席 | 只会说"要不要" | `tags`（chosen）或 facts 派生（derived） | enum；`checks.zine-difference-axes` |
+| 平台 / 形态 / 场景 | 机器的固定属性 | `hosts/inventory.nix` 的 `platform` / `form` / `profile` | R5：每个 host 必须写全；`checks.zine-difference-axes` |
+| 事实 | 值来自世界 | `hosts/inventory.nix` 的 `facts` | R5：每个 host 必须有 `facts.gpu` |
+| 缺席 | 只会说"要不要" | `tags`（chosen）或 facts 派生（仅 `nvidia`） | enum；`checks.zine-difference-axes` |
 | 程度 | 有默认值，这台想不一样 | 模块内的 `zine.*` knob | R4：knob 必须有 default；R3：Machine File 只碰 `zine.*` |
 
 `scripts/lint-structure.py`（`just lint-structure`，也挂在 `checks.x86_64-linux.lint`）
 实现 R1–R5：R1 模块禁 hostname 分支、R2 imports 不得引用 host metadata、
-R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory 必须有 facts。
+R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory 必须写全三条轴
+与 `facts.gpu`。
 
 ### `lib/mkSystem.nix` 的广播
 
 | 平台 | 无条件导入 |
 |------|-----------|
-| NixOS | `../modules/host-metadata.nix`、`../hosts/<hostname>`、`../modules/nixos` |
+| NixOS / WSL | `../modules/host-metadata.nix`、`../hosts/<hostname>`、`../modules/nixos` |
 | Darwin | `../modules/host-metadata.nix`、`../hosts/<hostname>`、`../modules/darwin` |
 | Home Manager（两侧共用） | `../modules/base`、`../programs`、`../modules/desktop/home` |
 
@@ -93,16 +100,16 @@ R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory �
 
 ### `modules/nixos/server/`
 
-常驻服务器的系统服务。整棵树被所有 NixOS host 导入，只有带 `server` Tag 的 host
-生效（`default.nix` 内的 `lib.optionals` 门控）。Docker、sshd、tailscale 等可插拔
-能力见 `../optional`，此处不再重复。
+常驻服务器的系统服务。整棵树被所有 NixOS host 导入，只有 `form = "server"` 的 host
+生效（`default.nix` 内的 `lib.optionals host.form.server` 门控）。Docker、sshd、
+tailscale 等可插拔能力见 `../optional`，此处不再重复。
 
 ### `modules/nixos/wsl.nix` 与 `modules/nixos/nvidia.nix`
 
 | File | Purpose | Gate |
 |------|---------|------|
-| `wsl.nix` | 拉入 `nixos-wsl` 模块，设 `wsl.enable` / `defaultUser`，禁用 getty 与 autovt | `wsl` |
-| `nvidia.nix` | NVIDIA Optimus / PRIME offload，PCI bus id 取自 `vars.hosts.<host>.hardware` | `nvidia` |
+| `wsl.nix` | 拉入 `nixos-wsl` 模块，设 `wsl.enable` / `defaultUser`，禁用 getty 与 autovt | `platform.wsl` |
+| `nvidia.nix` | NVIDIA Optimus / PRIME offload，PCI bus id 取自 `facts.gpu.prime` | `gates.nvidia` |
 
 | File | Purpose | Notable |
 |------|---------|---------|
@@ -181,9 +188,9 @@ mihomo（fake-IP TUN 代理）。**一份配置、两个平台的系统级模块
 ### `modules/base/` — 平台无关的 HM 基础层
 
 由 `lib/mkSystem.nix` 通过 `home-manager.sharedModules` 接入每个用户环境。program 的
-启用**不经过这一层**：每个 Program Module 自己声明所需能力（`gui`、`desktop`、
-`host.kind`），无能力需求的直接 `config = { … };` 成为基线。`services/` 下的每个服务按
-Tag 门控，没有开关。`desktop/home` 也由这里广播，按 `desktop` Tag 门控。
+启用**不经过这一层**：每个 Program Module 自己声明所需条件（`gui`、`host.form.pc`、
+`host.platform.linux`），无条件的直接 `config = { … };` 成为基线。`services/` 下的每个服务按
+Tag 门控，没有开关。`desktop/home` 也由这里广播，按 `form.pc` 门控。
 
 | File | Purpose | Notable |
 |------|---------|---------|
@@ -201,7 +208,8 @@ Tag 门控，没有开关。`desktop/home` 也由这里广播，按 `desktop` Ta
 
 ### `modules/desktop/home/` — 用户级桌面层
 
-Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用；具体软件包负责声明平台支持。
+Wayland 桌面环境与合成器配置。本层由 `modules/desktop/home/default.nix` 在
+`host.form.pc` 时整层导入；具体软件包负责声明平台支持。
 
 | File | Purpose | Notable |
 |------|---------|---------|
@@ -218,7 +226,7 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 
 ### `programs/` — 纯软件
 
-仓库根的软件树。每个目录 = 一个程序：模块自己声明所需能力（`lib.mkIf host.gates.gui`、`lib.mkIf (host.kind == "nixos")` 等）；不需要任何能力的程序属于 User Environment 基线，直接写 `config = { … };`，不做门控（ADR-0016）。原生配置文件与可选 `package.nix` 共置。分类只按软件种类，不按平台。
+仓库根的软件树。每个目录 = 一个程序：模块自己声明所需条件（`lib.mkIf host.gates.gui`、`lib.mkIf host.form.pc`、`lib.mkIf host.platform.linux` 等）；不需要任何条件的程序属于 User Environment 基线，直接写 `config = { … };`，不做门控（ADR-0016）。原生配置文件与可选 `package.nix` 共置。分类只按软件种类，不按平台。
 
 各层聚合器：`programs/default.nix` 扫描分类目录，`programs/<category>/default.nix` 扫描程序目录（`extraLibs.scanPaths`）。整棵树由 `lib/mkSystem.nix` 通过 `home-manager.sharedModules` 一次性接入；没有 per-host 软件清单，也没有开关表。
 
@@ -317,8 +325,9 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 | File | Purpose | Consumers |
 |------|---------|-----------|
 | `lib/default.nix` | 暴露 `scanPaths` 辅助函数。 | 各模块的 `default.nix` |
-| `lib/host-tags.nix` | Tag 词表的唯一来源：`host-metadata` 用作 enum，`mkSystem` 用作 `host.gates` 投影。 | 新增 tag 只改这里 |
-| `lib/mkSystem.nix` | 为所有 host 构建 `nixosSystem` / `darwinSystem`，接入 home-manager 与 sops-nix，把 `modules/base` 与 `programs` 加入 `home-manager.sharedModules`，注入 `hostname` / `host` / `homeStateVersion`（含 `host.gates` 投影），并在 `userEnvironment = true` 时导入 `hosts/<hostname>/home.nix` 接线 `home-manager.users.zine`。 | `flake.nix` |
+| `lib/host-axes.nix` | 三条轴的词表与布尔投影：`platform` / `form` / `profile`。 | `host-metadata` 用作 enum，`mkSystem` 用作投影 |
+| `lib/host-tags.nix` | 能力词表的唯一来源：`chosen`（tags）与 `derived`（`nvidia`）。 | `host-metadata` 用作 enum，`mkSystem` 用作 `host.gates` 投影 |
+| `lib/mkSystem.nix` | 为所有 host 构建 `nixosSystem` / `darwinSystem`（WSL 走 NixOS 路径），接入 home-manager 与 sops-nix，把 `modules/base` 与 `programs` 加入 `home-manager.sharedModules`，注入 `hostname` / `host` / `homeStateVersion`（含三元轴与 `host.gates` 投影），并在 `userEnvironment = true` 时导入 `hosts/<hostname>/home.nix` 接线 `home-manager.users.zine`。 | `flake.nix` |
 | `modules/desktop/home/niri/build.nix` | 构建并校验 niri 配置 derivation，包含 `dms/` 片段。 | `modules/desktop/home/niri.nix` |
 | `lib/nix-settings.nix` | 共享 Nix substituters、trusted public keys 与 experimental features。 | `modules/nixos/common/nix.nix`、`flake.nix` |
 | `lib/nixpaks-common.nix` | 通用 nixpak 沙盒策略（GPU、DBus、bubblewrap、字体、portals）。 | `lib/nixpaks-qq.nix`、`lib/nixpaks-wechat.nix` |
@@ -334,7 +343,7 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 | File | Purpose | Notable |
 |------|---------|---------|
 | `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、`hosts.<hostname>.hardware` 等硬件参数 |
-| `hosts/inventory.nix` | 结构化 host inventory，也是**唯一**的 host 差异来源：`system` / `kind`（nixos 或 darwin）/ `tags` / `userEnvironment` / 可选 `homeStateVersion` / 可选 `deploy`。 | `flake.nix` 按 `kind` 生成 `nixosConfigurations` / `darwinConfigurations`，按 `deploy.enable` 生成 deploy-rs nodes；`tags` 由 `specialArgs.host` 送达每个模块 |
+| `hosts/inventory.nix` | 结构化 host inventory，也是**唯一**的 host 差异来源：`system` / `platform`（nixos / wsl / darwin）/ `form`（vm / laptop / pc / server）/ `profile`（work / personal）/ `facts`（GPU、显示器）/ `tags` / `userEnvironment` / 可选 `homeStateVersion` / 可选 `deploy`。 | `flake.nix` 按 `platform` 生成 `nixosConfigurations` / `darwinConfigurations`（wsl 归入 NixOS），按 `deploy.enable` 生成 deploy-rs nodes；`tags` 与三条轴由 `specialArgs.host` 送达每个模块 |
 | `hosts/<hostname>/home.nix` | Machine File：只放机器专属的 user 级覆盖（字体大小、单机包）。 | 是否存在由 inventory 的 `userEnvironment` 声明，不由文件推断；空文件是正常状态 |
 | `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、扫描出的 `package.nix` 包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `hosts/inventory.nix` 注册表构建 |
 
@@ -342,7 +351,7 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 
 ## 辅助函数使用小结
 
-- **`extraLibs.scanPaths`** — 用于 `modules/nixos/{common,optional,server}/default.nix`、`modules/base/services/default.nix`、`programs/default.nix` 与各 `programs/<category>/default.nix`，自动扫描并导入同级模块。`server` 的扫描结果包在 `lib.optionals host.gates.server` 里。
+- **`extraLibs.scanPaths`** — 用于 `modules/nixos/{common,optional,server}/default.nix`、`modules/base/services/default.nix`、`programs/default.nix` 与各 `programs/<category>/default.nix`，自动扫描并导入同级模块。`server` 的扫描结果包在 `lib.optionals host.form.server` 里。
 - **`lib/mkSystem.nix`** — 被 `flake.nix` 使用；负责广播（注入 `host`，无条件导入各平台树与 HM 层），门控由被导入树的 `default.nix` 承担。
 - **`modules/desktop/home/niri/build.nix`** — 被 `modules/desktop/home/niri.nix` 使用，构建并校验 niri 配置 derivation。
 - **`lib/storeLinks.nix`** — 被 `modules/desktop/home/fontconfig`、`programs/gui/kitty` 使用，显式选择 in-store 或 out-of-store 软链接策略。

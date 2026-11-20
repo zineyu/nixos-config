@@ -5,7 +5,7 @@
 }:
 
 {
-  config = lib.mkIf host.gates.gui {
+  config = lib.mkIf (host.hasTag "gui") {
     programs.zed-editor = {
       enable = true;
       mutableUserSettings = false;

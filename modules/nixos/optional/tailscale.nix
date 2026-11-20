@@ -10,7 +10,7 @@
   ...
 }:
 {
-  config = lib.mkIf host.gates.tailscale {
+  config = lib.mkIf (host.hasTag "tailscale") {
     # 接入采用双重授权模型（见 docs/secrets.md「Tailnet（Headscale）」）：
     # repo 管理的 host 使用共享 sops 文件中的可复用 preauth key 自动注册
     # （tailscaled-autoconnect 监听 BackendState，NeedsLogin 时自动 tailscale up，

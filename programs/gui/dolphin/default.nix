@@ -7,7 +7,7 @@
 
 {
   # 缺席轴：KDE 文件管理器，macOS 用 Finder（ADR-0018）。
-  config = lib.mkIf host.gates.desktop {
+  config = lib.mkIf (host.hasTag "gui" && host.platform.nixos) {
     home.packages = [ pkgs.kdePackages.dolphin ];
 
     xdg.mimeApps = {

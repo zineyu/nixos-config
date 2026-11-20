@@ -11,7 +11,7 @@ let
   squirrelApp = "${squirrel}/Library/Input Methods/Squirrel.app";
 in
 {
-  config = lib.mkIf host.gates.desktop {
+  config = lib.mkIf host.form.pc {
     home.packages = [ pkgs.rime-ice ] ++ lib.optionals isDarwin [ squirrel ];
 
     home.file = lib.mkIf isDarwin {

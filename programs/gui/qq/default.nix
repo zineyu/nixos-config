@@ -6,7 +6,7 @@
 }:
 
 {
-  config = lib.mkIf host.gates.desktop {
+  config = lib.mkIf (host.form.pc && host.profile.personal) {
     home.packages = [ pkgs.nixpaks.qq ];
   };
 }
