@@ -6,19 +6,28 @@
 }:
 
 let
+  cfg = config.zine.programs.kitty;
+
   storeLinks = import ../../../lib/storeLinks.nix { inherit config; };
-  kittyConfig =
-    relPath:
-    storeLinks.mkOutOfStoreDotfiles "programs/terminal/kitty/config/${relPath}";
+  kittyConfig = relPath: storeLinks.mkOutOfStoreDotfiles "programs/terminal/kitty/config/${relPath}";
 in
 {
+  options.zine.programs.kitty.fontSize = lib.mkOption {
+    type = lib.types.float;
+    default = 14.0;
+    description = ''
+      字号。默认 14；设备差异只在 hosts/<hostname>/home.nix 里写成
+      `zine.programs.kitty.fontSize = 12.0;`（ADR-0018 的程度轴）。
+    '';
+  };
+
   config = {
     programs.kitty = {
       enable = true;
 
       font = {
         name = "Maple Mono NF CN";
-        size = lib.mkDefault 14.0;
+        size = cfg.fontSize;
       };
 
       themeFile = "Catppuccin-Macchiato";
