@@ -193,6 +193,64 @@
                       python3 scripts/lint-structure.py
                       touch $out
                     '';
+
+                # 模块级回归测试（ADR-0018）：能力必须始终来自事实。
+                # 任何让 gate 与 facts 脱钩、或让 gate 关掉后仍泄漏程序的改动都会在这里失败。
+                zine-difference-axes =
+                  let
+                    nixlib = inputs.nixpkgs.lib;
+                    configOf =
+                      hostname: host:
+                      if host.kind == "nixos" then
+                        nixosConfigurations.${hostname}.config
+                      else
+                        darwinConfigurations.${hostname}.config;
+
+                    # 每台主机：派生 gate 必须等于其事实。
+                    gateProblems = nixlib.concatLists (
+                      nixlib.mapAttrsToList (
+                        hostname: host:
+                        let
+                          meta = (configOf hostname host).zine.host;
+                        in
+                        nixlib.optional (
+                          meta.gates.desktop != (meta.facts.form == "desktop")
+                        ) "${hostname}: gates.desktop ≠ (facts.form == \"desktop\")"
+                        ++ nixlib.optional (
+                          meta.gates.server != (meta.facts.form == "server")
+                        ) "${hostname}: gates.server ≠ (facts.form == \"server\")"
+                        ++ nixlib.optional (
+                          meta.gates.wsl != (meta.facts.form == "wsl")
+                        ) "${hostname}: gates.wsl ≠ (facts.form == \"wsl\")"
+                        ++ nixlib.optional (
+                          meta.gates.nvidia != (builtins.elem "nvidia" meta.facts.gpu.vendors)
+                        ) "${hostname}: gates.nvidia ≠ (\"nvidia\" ∈ facts.gpu.vendors)"
+                        ++ nixlib.optional (
+                          meta.gates.desktop && !meta.gates.gui
+                        ) "${hostname}: form = \"desktop\" 必须同时有 gui"
+                      ) hosts
+                    );
+
+                    # gate 关闭时程序必须完全不出现（缺席轴）。
+                    desktopHome = nixosConfigurations.tianxuan.config.home-manager.users.zine;
+                    wslHome = nixosConfigurations.work-hp-laptop.config.home-manager.users.zine;
+                    darwinHome = darwinConfigurations.macbook-air-01.config.home-manager.users.zine;
+                    hasPackage = name: home: builtins.any (p: (p.pname or "") == name) home.home.packages;
+                    exclusionProblems =
+                      # kitty 属于 User Environment 基线（每台机都装），改用门控过的 firefox 作样本。
+                      nixlib.optional (!desktopHome.programs.firefox.enable) "tianxuan 应当有 firefox（有 gui）"
+                      ++ nixlib.optional wslHome.programs.firefox.enable "work-hp-laptop 不应有 firefox（无 gui）"
+                      ++ nixlib.optional (
+                        !hasPackage "mihomo" darwinHome
+                      ) "macbook-air-01 应当有 mihomo CLI（tag mihomo，programs/misc/mihomo 承接）"
+                      ++ nixlib.optional (hasPackage "mihomo" wslHome) "work-hp-laptop 不应有 mihomo（无 mihomo tag）";
+
+                    problems = gateProblems ++ exclusionProblems;
+                  in
+                  if problems != [ ] then
+                    throw ("差异轴回归测试失败：\n" + nixlib.concatStringsSep "\n" problems)
+                  else
+                    pkgs.runCommand "zine-difference-axes" { } "touch $out";
               };
 
             packages =
