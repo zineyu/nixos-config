@@ -7,32 +7,52 @@ let
   extraLibs = import ../lib { inherit lib; };
   hostTags = import ../lib/host-tags.nix;
 
-  # Host Inventory 的条目 → 注入每个模块的 host metadata。
-  # 缺省值集中在这里，模块不必写 `host.tags or []`。
+  # Host Inventory 的条目 → 注入每个模块的 host metadata（ADR-0018）。
+  #
+  # Host Metadata 只有两个视图，职责正交：
+  #   gates —— 布尔，回答"这台机有没有这个能力"；对词表恒存在，拼错即求值失败。
+  #   facts —— 值，回答"这台机的硬件是什么"；形态与 GPU 等事实由 inventory 必填。
+  # tags 不进入 Host Metadata：它是 inventory 的输入语法，模块看不到"来源"，
+  # 只看得到推导结果（审计视图仍可经 zine.host.tags 查看）。
   mkHost =
     hostname: host:
+    let
+      facts = host.facts or (throw "host `${hostname}`: inventory 缺少 facts 段（facts.form 与 facts.gpu 必填）");
+      tags = host.tags or [ ];
+
+      declared = lib.genAttrs hostTags.chosen (tag: lib.elem tag tags);
+
+      # 推导的能力：事实决定，不可声明。
+      derived = {
+        desktop = facts.form == "desktop";
+        server = facts.form == "server";
+        wsl = facts.form == "wsl";
+        nvidia = lib.elem "nvidia" (facts.gpu.vendors or [ ]);
+      };
+    in
     {
       name = hostname;
-      tags = host.tags or [ ];
-      userEnvironment = host.userEnvironment or false;
       inherit (host) kind system;
+      inherit facts;
+      userEnvironment = host.userEnvironment or false;
       homeStateVersion = host.homeStateVersion or "26.05";
 
-      # 门控投影：host.gates.<tag> 对词表内每个 tag 恒存在（未声明为 false），
-      # 因此模块可以写 lib.mkIf host.gates.gui。拼错 tag 名会在求值期报
-      # "attribute 'giu' missing"，而不是静默为 false。
-      # 它走 specialArgs（不是 option），所以 imports 里引用也安全。
-      gates = lib.genAttrs hostTags (tag: lib.elem tag (host.tags or [ ]));
+      # 门控投影：对词表内每个能力恒存在（未命中为 false），因此模块可以写
+      # lib.mkIf host.gates.gui。拼错会在求值期报 "attribute 'giu' missing"，
+      # 而不是静默为 false。它走 specialArgs（不是 option），所以 imports 里
+      # 引用也安全；但按 ADR-0018，imports 保持无条件，门控写进模块体。
+      gates = declared // derived;
     };
 
   # NixOS 与 nix-darwin 共享的 Home Manager 集成配置。
   #
   # 广播-门控：这里无条件接入 base、programs 与桌面层，机器差异全部由
-  # specialArgs.host 的 tags 在各模块内部决定。
+  # specialArgs.host 的 gates 与 facts 在各模块内部决定。
   #
   # 一台机器的一切都在 hosts/<hostname>/ 之下：default.nix 是系统事实，
-  # home.nix 是 user 级覆盖。是否存在 User Environment 由 inventory 的
-  # userEnvironment 声明，而不是由文件是否在场推断（ADR-0015）。
+  # home.nix 是可选的 user 级 knob 覆盖（不存在即无覆盖）。是否存在
+  # User Environment 由 inventory 的 userEnvironment 声明，不由文件是否在场推断
+  # （ADR-0015 / ADR-0018）。
   mkHomeManagerModule =
     hostname: host:
     let
@@ -67,7 +87,12 @@ in
     inputs.nixpkgs.lib.nixosSystem {
       inherit (host) system;
       specialArgs = {
-        inherit inputs vars extraLibs hostname;
+        inherit
+          inputs
+          vars
+          extraLibs
+          hostname
+          ;
         host = mkHost hostname host;
       };
       modules = [
@@ -86,7 +111,12 @@ in
     inputs.darwin.lib.darwinSystem {
       inherit (host) system;
       specialArgs = {
-        inherit inputs vars extraLibs hostname;
+        inherit
+          inputs
+          vars
+          extraLibs
+          hostname
+          ;
         host = mkHost hostname host;
       };
       modules = [
