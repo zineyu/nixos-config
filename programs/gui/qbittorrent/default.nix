@@ -6,7 +6,8 @@
 }:
 
 {
-  config = lib.mkIf host.gates.gui {
+  # 缺席轴：Qt/KDE 下载器，macOS 上不存在 .desktop 关联（ADR-0018）。
+  config = lib.mkIf host.gates.desktop {
     home.packages = [ pkgs.qbittorrent ];
 
     # 配置由 qBittorrent 自己在 ~/.config/qBittorrent/qBittorrent.conf 里维护
