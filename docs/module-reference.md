@@ -235,7 +235,6 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 | Directory | Purpose | Notable |
 |-----------|---------|---------|
 | `atuin/` | Shell 历史同步（自托管 `atuin.zineyu.cn`），集成 fish；加密密钥经 sops-nix 软链到数据目录。 | `programs.atuin`；`sops.secrets.atuin_key`（`secrets/atuin.yaml`） |
-| `kitty/` | Kitty 终端，含主题与自定义配置。 | 使用 `lib/storeLinks.nix`（`mkOutOfStoreDotfiles`，指向 `programs/terminal/kitty/config/`） |
 | `yazi/` | 终端文件管理器，配置拆分为 settings/keymap/theme。 | `programs.yazi` |
 | `zellij/` | 终端复用器，生成 KDL 设置。 | `programs.zellij`；`settings.nix` |
 | `zoxide/` | 智能目录跳转。 | `programs.zoxide` |
@@ -271,6 +270,7 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 | `dbx-desktop/` | DBX Desktop（自定义配方 + FOD hash 更新脚本）。 | `package.nix`、`update.sh` → `.#dbx-desktop` |
 | `dolphin/` | KDE Dolphin 安装与默认目录关联。 | `xdg.mimeApps` |
 | `firefox/` | Firefox。 | `programs.firefox` |
+| `kitty/` | Kitty 图形终端，含主题与自定义配置；`zine.programs.kitty.fontSize` 是程度轴 knob。 | `programs.kitty`；`lib/storeLinks.nix`（`mkOutOfStoreDotfiles`，指向 `programs/gui/kitty/config/`） |
 | `qbittorrent/` | qBittorrent（GUI BitTorrent 客户端），接管磁力链接与 `.torrent` 默认打开方式。 | `home.packages`；`xdg.mimeApps`（配置由应用自身维护在 `~/.config/qBittorrent/`） |
 | `qq/` | QQ（nixpak 沙盒，消费 `modules/desktop/system/nixpak.nix` 的 overlay）。 | `pkgs.nixpaks.qq` |
 | `thunderbird/` | Thunderbird。 | `programs.thunderbird` |
@@ -325,7 +325,7 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 | `lib/nixpaks-qq.nix` | 腾讯 QQ 的 nixpak 包装器。 | `modules/desktop/system/nixpak.nix` |
 | `lib/nixpaks-wechat.nix` | 微信的 nixpak 包装器。 | `modules/desktop/system/nixpak.nix` |
 | `lib/scanPaths.nix` | 返回路径下所有 `.nix` 文件与子目录（排除 `default.nix`）。 | 所有 `default.nix` 模块聚合器 |
-| `lib/storeLinks.nix` | 显式 in-store / out-of-store 软链接辅助函数（`mkInStore`、`mkOutOfStore`、`mkOutOfStoreDotfiles`）。 | `modules/desktop/home/fontconfig`、`programs/terminal/kitty` |
+| `lib/storeLinks.nix` | 显式 in-store / out-of-store 软链接辅助函数（`mkInStore`、`mkOutOfStore`、`mkOutOfStoreDotfiles`）。 | `modules/desktop/home/fontconfig`、`programs/gui/kitty` |
 
 ---
 
@@ -345,6 +345,6 @@ Wayland 桌面环境与合成器配置。机器文件显式导入本层即启用
 - **`extraLibs.scanPaths`** — 用于 `modules/nixos/{common,optional,server}/default.nix`、`modules/base/services/default.nix`、`programs/default.nix` 与各 `programs/<category>/default.nix`，自动扫描并导入同级模块。`server` 的扫描结果包在 `lib.optionals host.gates.server` 里。
 - **`lib/mkSystem.nix`** — 被 `flake.nix` 使用；负责广播（注入 `host`，无条件导入各平台树与 HM 层），门控由被导入树的 `default.nix` 承担。
 - **`modules/desktop/home/niri/build.nix`** — 被 `modules/desktop/home/niri.nix` 使用，构建并校验 niri 配置 derivation。
-- **`lib/storeLinks.nix`** — 被 `modules/desktop/home/fontconfig`、`programs/terminal/kitty` 使用，显式选择 in-store 或 out-of-store 软链接策略。
+- **`lib/storeLinks.nix`** — 被 `modules/desktop/home/fontconfig`、`programs/gui/kitty` 使用，显式选择 in-store 或 out-of-store 软链接策略。
 - **`lib/nixpaks-*.nix`** — 被 `modules/desktop/system/nixpak.nix` 使用，通过 nixpak 沙盒运行 QQ 与微信。
 - **`lib/nix-settings.nix`** — 被 `modules/nixos/common/nix.nix` 与 `flake.nix` 使用，统一 Nix 缓存与实验特性配置。

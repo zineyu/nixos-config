@@ -1,5 +1,6 @@
 {
   config,
+  host,
   lib,
   pkgs,
   ...
@@ -9,7 +10,7 @@ let
   cfg = config.zine.programs.kitty;
 
   storeLinks = import ../../../lib/storeLinks.nix { inherit config; };
-  kittyConfig = relPath: storeLinks.mkOutOfStoreDotfiles "programs/terminal/kitty/config/${relPath}";
+  kittyConfig = relPath: storeLinks.mkOutOfStoreDotfiles "programs/gui/kitty/config/${relPath}";
 in
 {
   options.zine.programs.kitty.fontSize = lib.mkOption {
@@ -21,7 +22,8 @@ in
     '';
   };
 
-  config = {
+  # 缺席轴：kitty 是图形终端，没有图形会话的 host（server / WSL）不装。
+  config = lib.mkIf host.gates.gui {
     programs.kitty = {
       enable = true;
 

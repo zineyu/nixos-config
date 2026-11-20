@@ -237,9 +237,9 @@
                     darwinHome = darwinConfigurations.macbook-air-01.config.home-manager.users.zine;
                     hasPackage = name: home: builtins.any (p: (p.pname or "") == name) home.home.packages;
                     exclusionProblems =
-                      # kitty 属于 User Environment 基线（每台机都装），改用门控过的 firefox 作样本。
-                      nixlib.optional (!desktopHome.programs.firefox.enable) "tianxuan 应当有 firefox（有 gui）"
-                      ++ nixlib.optional wslHome.programs.firefox.enable "work-hp-laptop 不应有 firefox（无 gui）"
+                      # kitty 由 gui 门控，同时它是 fontSize knob 的载体。
+                      nixlib.optional (!desktopHome.programs.kitty.enable) "tianxuan 应当有 kitty（有 gui）"
+                      ++ nixlib.optional wslHome.programs.kitty.enable "work-hp-laptop 不应有 kitty（无 gui）"
                       ++ nixlib.optional (
                         !hasPackage "mihomo" darwinHome
                       ) "macbook-air-01 应当有 mihomo CLI（tag mihomo，programs/misc/mihomo 承接）"
