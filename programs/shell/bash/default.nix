@@ -1,16 +1,9 @@
 {
-  config,
-  lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.bash;
-in
 {
-  options.zine.programs.bash.enable = lib.mkEnableOption "bash";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     programs.bash = {
       enable = true;
 

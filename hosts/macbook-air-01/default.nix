@@ -10,13 +10,8 @@ in
 {
   # nix-darwin host entry for macbook-air-01.
 
-  imports = [
-    ../../modules/darwin/sops.nix
-    ../../modules/darwin/tailscale.nix
-    ../../modules/darwin/remote-login.nix
-    ../../modules/mihomo/darwin.nix
-  ];
-
+  # Darwin 模块树由 modules/darwin/default.nix 广播，sops 恒启用，
+  # tailscale / remote-login / mihomo 由 hosts/inventory.nix 的 tags 门控。
   networking.hostName = hostname;
 
   system.primaryUser = "zine";

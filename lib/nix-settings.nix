@@ -1,4 +1,4 @@
-# 共享 Nix daemon 设置，被 `modules/nixos/nix.nix` 和 CI 的 `packages.nix-conf` 共用。
+# 共享 Nix daemon 设置，被 `modules/nixos/common/nix.nix` 和 CI 的 `packages.nix-conf` 共用。
 {
   substituters = [
     "https://zineyu.cachix.org"

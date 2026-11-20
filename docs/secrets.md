@@ -106,7 +106,7 @@ Overlay 网络已由 WireGuard 切换为自托管 Headscale tailnet（见 `docs/
 Headscale 自身的状态（`/var/lib/headscale` 的 SQLite 与 noise 私钥）**丢失会导致全网节点需要重新注册**，因此有每日快照 + `tianxuan` 拉取的备份链路（见 `modules/nixos/server/headscale.nix` 与 `modules/base/services/headscale-backup-pull.nix`），恢复步骤见 `headscale.nix` 头部注释的 runbook。
 ## 新增一台 host
 
-1. 在 `hosts/default.nix` 注册 host 并创建对应的 host 模块。
+1. 在 `hosts/inventory.nix` 注册 host 并创建对应的 host 模块。
 2. 在 `vars/default.nix` 创建同名 `hosts.<hostname>` 项（无条目时可先留空）。
 3. 获取目标机器的 age recipient。服务器通常使用 SSH host key：
 

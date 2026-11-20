@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   pkgs,
   ...
 }:
@@ -16,13 +14,9 @@
 #   git diff main...HEAD | fabric -p my_pr_description
 #   echo "给登录页加上验证码" | fabric -p my_branch_name
 #   jj diff --git | fabric -p my_pr_bundle   # 一次输出分支名 + commit + PR 描述
-let
-  cfg = config.zine.programs.fabric;
-in
-{
-  options.zine.programs.fabric.enable = lib.mkEnableOption "fabric AI";
 
-  config = lib.mkIf cfg.enable {
+{
+  config = {
     home.packages = [ pkgs.fabric-ai ];
 
     xdg.configFile = {

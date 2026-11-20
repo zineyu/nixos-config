@@ -1,21 +1,16 @@
 {
-  config,
+  host,
   lib,
   pkgs,
   ...
 }:
 
-let
-  cfg = config.zine.programs.karabiner-elements;
-in
 {
-  options.zine.programs.karabiner-elements.enable = lib.mkEnableOption "Karabiner-Elements 用户配置";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf (host.kind == "darwin") {
     assertions = [
       {
         assertion = pkgs.stdenv.hostPlatform.isDarwin;
-        message = "zine.programs.karabiner-elements is only supported on Darwin";
+        message = "program \"karabiner-elements\" is only supported on Darwin";
       }
     ];
 

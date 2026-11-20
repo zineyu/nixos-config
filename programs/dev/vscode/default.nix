@@ -1,16 +1,11 @@
 {
-  config,
+  host,
   lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.vscode;
-in
 {
-  options.zine.programs.vscode.enable = lib.mkEnableOption "VS Code";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     programs.vscode.enable = true;
   };
 }

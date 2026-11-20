@@ -31,8 +31,8 @@ in
 
   xdg.configFile = {
     "DankMaterialShell/settings.json".source = jsonFormat.generate "dms-settings.json" (
-      import ./DankMaterialShell/settings.nix
+      import ./dank-material-shell/settings.nix
     );
-    "DankMaterialShell/zen.css".source = ./DankMaterialShell/zen.css;
+    "DankMaterialShell/zen.css".source = ./dank-material-shell/zen.css;
   };
 }

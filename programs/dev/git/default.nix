@@ -1,22 +1,16 @@
 {
-  config,
-  lib,
+  vars,
   ...
 }:
 
-let
-  cfg = config.zine.programs.git;
-in
 {
-  options.zine.programs.git.enable = lib.mkEnableOption "git";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     programs.git = {
       enable = true;
       settings = {
         user = {
-          email = "zine.xlws@gmail.com";
-          name = "zine yu";
+          email = vars.git.email;
+          name = vars.git.name;
           signingKey = "23D4E0D603C3F90E";
         };
 

@@ -1,16 +1,11 @@
 {
-  config,
+  host,
   lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.dbeaver;
-in
 {
-  options.zine.programs.dbeaver.enable = lib.mkEnableOption "DBeaver";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     programs.dbeaver.enable = true;
   };
 }

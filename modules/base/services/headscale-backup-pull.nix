@@ -1,18 +1,10 @@
+# 从 aliyun-01 拉取 Headscale 状态快照。
+#
+# 广播-门控：被 modules/base/services/default.nix 无条件导入，只有带
+# "headscale-backup" tag 的 host 生效。
+{ host, lib, pkgs, ... }:
 {
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-
-let
-  cfg = config.zine.services.headscale-backup-pull;
-in
-{
-  options.zine.services.headscale-backup-pull.enable =
-    lib.mkEnableOption "从 aliyun-01 拉取 Headscale 状态快照";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates."headscale-backup" {
     # Headscale 状态备份：每日从 aliyun-01 拉取快照目录（快照由服务器侧
     # headscale-backup timer 生成，见 modules/nixos/server/headscale.nix）。
     # SSH 走 programs/misc/ssh 的 aliyun-01 alias（root@aliyun-01，复用 deploy 的密钥）。

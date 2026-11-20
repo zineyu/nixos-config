@@ -1,18 +1,15 @@
 {
-  config,
+  host,
   lib,
   pkgs,
   ...
 }:
 
 let
-  cfg = config.zine.programs.cursor;
   breezex-cursor = pkgs.callPackage ../breezex-cursor/package.nix { };
 in
 {
-  options.zine.programs.cursor.enable = lib.mkEnableOption "BreezeX 光标主题";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     home.pointerCursor = {
       enable = true;
       name = "BreezeX-Light";

@@ -1,16 +1,9 @@
 {
-  config,
-  lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.starship;
-in
 {
-  options.zine.programs.starship.enable = lib.mkEnableOption "starship";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     programs.starship = {
       enable = true;
       enableFishIntegration = true;

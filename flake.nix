@@ -3,6 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
+    nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
 
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
@@ -80,7 +82,7 @@
     inputs.flake-parts.lib.mkFlake { inherit inputs; } (
       let
         vars = import ./vars;
-        hosts = import ./hosts;
+        hosts = import ./hosts/inventory.nix;
         inherit (import ./lib/mkSystem.nix { inherit inputs vars; }) mkSystem mkDarwinSystem;
 
         nixosHosts = inputs.nixpkgs.lib.filterAttrs (_: host: host.kind == "nixos") hosts;
@@ -219,7 +221,7 @@
           inherit nixosConfigurations darwinConfigurations;
 
           # 由 host inventory 中 deploy.enable = true 的条目生成 deploy-rs nodes，
-          # 新增远程主机只需在 hosts/default.nix 中补充 deploy 元数据。
+          # 新增远程主机只需在 hosts/inventory.nix 中补充 deploy 元数据。
           deploy.nodes = inputs.nixpkgs.lib.mapAttrs (hostname: host: {
             inherit (host.deploy) hostname sshUser;
             profiles.system = {

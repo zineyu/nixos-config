@@ -1,17 +1,12 @@
 {
-  config,
+  host,
   lib,
   pkgs,
   ...
 }:
 
-let
-  cfg = config.zine.programs.ccache;
-in
 {
-  options.zine.programs.ccache.enable = lib.mkEnableOption "ccache 编译缓存";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf (host.kind == "nixos") {
     home.packages = [ pkgs.ccache ];
   };
 }

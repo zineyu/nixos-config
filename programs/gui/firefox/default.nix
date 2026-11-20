@@ -1,16 +1,11 @@
 {
-  config,
+  host,
   lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.firefox;
-in
 {
-  options.zine.programs.firefox.enable = lib.mkEnableOption "Firefox";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     programs.firefox.enable = true;
   };
 }

@@ -1,13 +1,8 @@
 {
-  config,
   inputs,
-  lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.nixvim;
-in
 {
   imports = [
     inputs.nixvim.homeModules.nixvim
@@ -15,9 +10,7 @@ in
     ./plugins
   ];
 
-  options.zine.programs.nixvim.enable = lib.mkEnableOption "Neovim (nixvim)";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     programs.nixvim.enable = true;
   };
 }

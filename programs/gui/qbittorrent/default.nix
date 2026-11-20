@@ -1,17 +1,12 @@
 {
-  config,
+  host,
   lib,
   pkgs,
   ...
 }:
 
-let
-  cfg = config.zine.programs.qbittorrent;
-in
 {
-  options.zine.programs.qbittorrent.enable = lib.mkEnableOption "qBittorrent（GUI BitTorrent 客户端）";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     home.packages = [ pkgs.qbittorrent ];
 
     # 配置由 qBittorrent 自己在 ~/.config/qBittorrent/qBittorrent.conf 里维护

@@ -7,13 +7,12 @@
 
 let
   storeLinks = import ../../../lib/storeLinks.nix { inherit config; };
-  kittyConfig = relPath: storeLinks.mkOutOfStoreDotfiles "programs/terminal/kitty/config/${relPath}";
-  cfg = config.zine.programs.kitty;
+  kittyConfig =
+    relPath:
+    storeLinks.mkOutOfStoreDotfiles "programs/terminal/kitty/config/${relPath}";
 in
 {
-  options.zine.programs.kitty.enable = lib.mkEnableOption "kitty 终端";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     programs.kitty = {
       enable = true;
 

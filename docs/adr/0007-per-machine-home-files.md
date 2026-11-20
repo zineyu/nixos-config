@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (updates ADR-0004; builds on ADR-0006)
+Superseded by ADR-0015. Was: Accepted (updates ADR-0004; builds on ADR-0006)
 
 ## Date
 

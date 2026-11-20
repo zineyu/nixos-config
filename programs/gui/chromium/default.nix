@@ -1,16 +1,11 @@
 {
-  config,
+  host,
   lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.chromium;
-in
 {
-  options.zine.programs.chromium.enable = lib.mkEnableOption "Chromium";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     programs.chromium.enable = true;
   };
 }

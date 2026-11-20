@@ -1,17 +1,12 @@
 {
-  config,
+  host,
   lib,
   pkgs,
   ...
 }:
 
-let
-  cfg = config.zine.programs.localsend;
-in
 {
-  options.zine.programs.localsend.enable = lib.mkEnableOption "LocalSend 局域网传输";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     home.packages = [ pkgs.localsend ];
   };
 }

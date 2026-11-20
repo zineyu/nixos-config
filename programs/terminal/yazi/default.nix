@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   pkgs,
   ...
 }:
@@ -13,12 +11,9 @@ let
     name = "Catppuccin-macchiato.tmTheme";
     hash = "sha256-EQCQ9lW5cOVp2C+zeAwWF2m1m6I0wpDQA5wejEm7WgY=";
   };
-  cfg = config.zine.programs.yazi;
 in
 {
-  options.zine.programs.yazi.enable = lib.mkEnableOption "yazi 文件管理器";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     programs.yazi = {
       enable = true;
       # Converted from the previous TOML files; each file is verified

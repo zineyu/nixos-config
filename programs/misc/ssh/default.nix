@@ -1,17 +1,11 @@
 {
   config,
-  lib,
   vars,
   ...
 }:
 
-let
-  cfg = config.zine.programs.ssh;
-in
 {
-  options.zine.programs.ssh.enable = lib.mkEnableOption "SSH 客户端配置";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     programs.ssh.enable = true;
 
     # 本机（桌面）解密并生成 SSH alias 配置。

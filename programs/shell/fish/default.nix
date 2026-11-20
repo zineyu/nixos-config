@@ -1,16 +1,10 @@
 {
   config,
-  lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.fish;
-in
 {
-  options.zine.programs.fish.enable = lib.mkEnableOption "fish";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     programs.fish = {
       enable = true;
 

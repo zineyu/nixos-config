@@ -10,7 +10,8 @@
   # 非敏感元数据：各 host 用其授权 tailnet 内互信登录。
   ssh.zinePublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG9FM2h9+ysNfpHf0p2714ZijVYCPJyjiRwhhrc0BDKe openpgp:0xF933CFED";
 
-  # Per-host values, keyed by hostname.
+  # Per-host values, keyed by hostname. Only hosts that need machine-specific
+  # values (e.g. NVIDIA PCI bus ids) appear here.
   hosts = {
     tianxuan = {
       hardware = {
@@ -18,7 +19,5 @@
         nvidiaBusId = "PCI:1:0:0";
       };
     };
-
-    aliyun-01 = { };
   };
 }

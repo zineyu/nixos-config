@@ -6,8 +6,6 @@
 }:
 
 let
-  cfg = config.zine.programs.gpg;
-
   signingKey = "23D4E0D603C3F90E";
   authKeygrip = "84C651B9903AAD75F84998E29EF4E65DD4264F6F";
   primaryFingerprint = "B6F9CB026D8DE746C15944E8DDA2A8ACF741A8CD";
@@ -41,9 +39,7 @@ let
   '';
 in
 {
-  options.zine.programs.gpg.enable = lib.mkEnableOption "GnuPG";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     sops = {
       age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
       defaultSopsFile = ../../../secrets/gnupg.yaml;

@@ -1,17 +1,12 @@
 {
-  config,
+  host,
   lib,
   pkgs,
   ...
 }:
 
-let
-  cfg = config.zine.programs.dolphin;
-in
 {
-  options.zine.programs.dolphin.enable = lib.mkEnableOption "Dolphin 文件管理器";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     home.packages = [ pkgs.kdePackages.dolphin ];
 
     xdg.mimeApps = {

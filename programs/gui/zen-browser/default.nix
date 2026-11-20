@@ -1,5 +1,5 @@
 {
-  config,
+  host,
   inputs,
   lib,
   pkgs,
@@ -7,8 +7,6 @@
 }:
 
 let
-  cfg = config.zine.programs.zen-browser;
-
   zenPolicies = {
     DisableAppUpdate = true;
     DisableFeedbackCommands = true;
@@ -83,9 +81,7 @@ in
 {
   imports = [ inputs.zen-browser.homeModules.default ];
 
-  options.zine.programs.zen-browser.enable = lib.mkEnableOption "Zen Browser";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     programs.zen-browser = {
       enable = true;
       setAsDefaultBrowser = false;

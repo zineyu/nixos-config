@@ -1,16 +1,9 @@
 {
-  config,
-  lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.jujutsu;
-in
 {
-  options.zine.programs.jujutsu.enable = lib.mkEnableOption "jujutsu";
-
-  config = lib.mkIf cfg.enable {
+  config = {
     programs.jujutsu = {
       enable = true;
       settings = {

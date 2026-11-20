@@ -11,7 +11,7 @@ in
   #
   # 节点接入采用双重授权模型：
   #   - repo 管理的 host：sops 中的可复用 preauth key 自动注册
-  #     （见 modules/nixos/common/tailscale.nix、modules/darwin/tailscale.nix）
+  #     （见 modules/nixos/optional/tailscale.nix、modules/darwin/tailscale.nix）
   #   - 其余设备：客户端生成密钥对 + 服务端手动授权，无预共享密钥
   #     客户端: tailscale up --login-server=https://hs.zineyu.cn  （输出 mkey:xxx）
   #     服务端: headscale nodes register --user zine --key mkey:xxx

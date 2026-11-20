@@ -1,16 +1,11 @@
 {
-  config,
+  host,
   lib,
   ...
 }:
 
-let
-  cfg = config.zine.programs.zed-editor;
-in
 {
-  options.zine.programs.zed-editor.enable = lib.mkEnableOption "Zed 编辑器";
-
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf host.gates.gui {
     programs.zed-editor = {
       enable = true;
       mutableUserSettings = false;

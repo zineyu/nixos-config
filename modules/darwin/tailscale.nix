@@ -43,7 +43,7 @@ in
 {
   # Darwin host 的 tailnet 接入（见 docs/adr/0008-headscale-tailnet.md）。
   # 与 NixOS 相同，使用共享 sops 文件中的可复用 preauth key 自动注册
-  # （provisioning 见 modules/nixos/common/tailscale.nix 与 docs/secrets.md）。
+  # （provisioning 见 modules/nixos/optional/tailscale.nix 与 docs/secrets.md）。
   sops.secrets.tailscale_auth_key = {
     sopsFile = ../../secrets/tailscale.yaml;
     key = "preauth_key";
