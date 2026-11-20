@@ -1,5 +1,5 @@
 .pi-subagents/
-result
+result*
 __pycache__/
 *.pyc
 .direnv
