@@ -82,22 +82,12 @@ in
   imports = [ inputs.zen-browser.homeModules.default ];
 
   config = lib.mkMerge [
-    (lib.mkIf (host.form.pc) {
+    (lib.mkIf (host.hasTag "gui") {
       programs.zen-browser = {
         enable = true;
         setAsDefaultBrowser = false;
         unwrappedPackage = stableZenUnwrapped;
         policies = zenPolicies;
-
-        # Workaround for upstream breakage (0xc000022070/zen-browser-flake#403):
-        # the module's signed-Darwin assertion reads
-        # programs.zen-browser.enableGnomeExtensions, which recent home-manager
-        # removed (now a throwing stub), so any Darwin evaluation fails.
-        # "wrapped" makes isSignedDarwin = false, short-circuiting the assertion
-        # before its `used` value (the removed option) is forced. The wrapped
-        # bundle loses the upstream signature, which the resignZenBrowser
-        # activation below re-signs ad-hoc anyway.
-        darwin.packageMode = "wrapped";
 
         profiles."f03mub95.Default (release)" = {
           id = 0;
@@ -196,15 +186,10 @@ in
         };
       };
 
-      # The bundle copied by Home Manager can fail LaunchServices validation on
-      # Darwin with kLSNoExecutableErr even though Contents/MacOS/zen runs. Always
-      # replace the upstream signature after the application has been copied:
-      # checking it immediately after rsync can incorrectly report it as valid.
-      home.activation.resignZenBrowser = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
+      home.activation.registerZenBrowser = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
         lib.hm.dag.entryAfter [ "linkGeneration" ] ''
           zen_app="$HOME/Applications/Home Manager Apps/Zen Browser.app"
           if [[ -d "$zen_app" ]]; then
-            run /usr/bin/codesign --force --deep --sign - "$zen_app"
             run /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
               -f "$zen_app"
           fi
@@ -214,8 +199,6 @@ in
       home.sessionVariables.BROWSER = "zen-stable";
     })
 
-    # 缺席轴：xdg.mimeApps（默认浏览器关联）只对 Linux 有效，macOS 走 LaunchServices。
-    # zen-browser 本身跨平台，只有这一段按 host.platform.linux 排除（ADR-0018）。
     (lib.mkIf (host.form.pc && host.platform.nixos) {
       xdg.mimeApps = {
         associations.added = lib.genAttrs browserMimeTypes (_: lib.mkDefault defaultBrowser);

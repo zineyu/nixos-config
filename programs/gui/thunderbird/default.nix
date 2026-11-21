@@ -5,7 +5,7 @@
 }:
 
 {
-  config = lib.mkIf (host.form.pc) {
+  config = lib.mkIf host.form.pc {
     programs.thunderbird.enable = true;
   };
 }

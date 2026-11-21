@@ -22,8 +22,7 @@ in
     '';
   };
 
-  # 缺席轴：kitty 是图形终端，没有图形会话的 host（server / WSL）不装。
-  config = lib.mkIf (host.form.pc) {
+  config = lib.mkIf (host.hasTag "gui") {
     programs.kitty = {
       enable = true;
 

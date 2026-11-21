@@ -6,7 +6,7 @@
 }:
 
 {
-  config = lib.mkIf (host.form.pc) {
+  config = lib.mkIf host.form.pc {
     home.packages = [ (pkgs.callPackage ./package.nix { }) ];
   };
 }
