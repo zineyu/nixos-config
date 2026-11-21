@@ -16,11 +16,12 @@ follows it.
 > does it go?
 >
 > **Maintainer**: If it is software the user runs, create a Program Module under
-> `programs/<category>/<name>/` and let the module state the capability it
-> needs — `gui`, `host.form.pc`, or `host.platform.linux`; a program that needs
-> none joins the baseline and is not gated. If it is an optional system service, create a
-> System Capability under `modules/nixos/optional/` gated on a Tag, register the
-> Tag in `modules/host-metadata.nix`, and tag the host. There is no switch to
+> `programs/<category>/<name>/` and let the module test the prerequisite it
+> needs — the `gui` label, `host.form.pc`, or `host.platform.linux`; a program with no
+> prerequisite joins the baseline and is not gated. If it is an optional system service, create a
+> System Capability under `modules/<name>/` and have it test
+> `host.hasTag "<tag>"`; add that label to the host's `tags` in
+> `hosts/inventory.nix`. There is no switch to
 > set and no software list to edit. Configuration that every NixOS host needs
 > belongs in `modules/nixos/common/` instead.
 >
@@ -35,19 +36,19 @@ follows it.
 >
 > **Maintainer**: Because machine form is an axis of its own: `host.form.pc`, not a Tag.
 > Platform, form and profile (`host.platform` / `host.form` / `host.profile`) are separate
-> typed axes; `tags` holds only capability choices the hardware cannot reveal, like
-> `docker` or `gui`. A typo in `host.form.pcc` fails at evaluation instead of silently
-> doing nothing.
+> typed axes; `tags` holds only labels the axes and facts cannot express, like `gui`. A typo
+> in `host.form.pcc` fails at evaluation instead of silently doing nothing.
 >
 > **Explorer**: Where does a user-level systemd timer go?
 >
-> **Maintainer**: `modules/base/services/`, gated on a Tag. Nothing in the host
-> files changes.
+> **Maintainer**: `modules/base/services/`, and the module tests the host metadata it needs.
+> Nothing in the host files changes.
 >
-> **Explorer**: How do I turn Docker off for one host?
+> **Explorer**: How do I turn Docker off on one host?
 >
-> **Maintainer**: Remove the `docker` Tag from that host. There is no switch to
-> flip: the gate *is* the metadata.
+> **Maintainer**: You cannot — `virtualisation.docker` is part of the NixOS baseline, because
+> every host needs it. A per-host exception would have to be a new axis value or fact, not a
+> switch.
 >
 > **Explorer**: Why is `ccache` only installed on `tianxuan` and `work-hp-laptop`?
 >
@@ -56,9 +57,9 @@ follows it.
 >
 > **Explorer**: What happens if I tag a host with something that does not exist?
 >
-> **Maintainer**: Evaluation fails. `tags` is typed as an enum over the
-> vocabulary in `modules/host-metadata.nix`, so a typo is an error rather than a
-> capability that silently never turns on.
+> **Maintainer**: Nothing happens. `tags` is a free-form string list in
+> `hosts/inventory.nix`; only `host.hasTag` reads it, so a misspelled tag is
+> a label no module recognises.
 >
 > **Explorer**: Why are there two files per machine, and why is one usually missing?
 >
@@ -71,7 +72,7 @@ follows it.
 
 ```mermaid
 graph TD
-    Inv["hosts/inventory.nix<br/>platform + form + profile<br/>facts + tags"] --> Mk["lib/mkSystem.nix<br/>specialArgs.host<br/>axes + gates = chosen ∪ nvidia"]
+    Inv["hosts/inventory.nix<br/>platform + form + profile<br/>facts + tags"] --> Mk["lib/mkSystem.nix<br/>specialArgs.host<br/>axes + hasTag + facts"]
     Mk --> Nix["modules/nixos"]
     Mk --> Dar["modules/darwin"]
     Mk --> HM["home-manager.sharedModules<br/>base + programs + desktop/home"]
@@ -79,9 +80,9 @@ graph TD
     Nix --> G2["optional: per tag"]
     Nix --> G3["server: form.server"]
     Nix --> G4["desktop/system: form.pc"]
-    Nix --> G5["wsl: platform.wsl<br/>nvidia / mihomo: tag"]
+    Nix --> G5["wsl: platform.wsl<br/>nvidia: facts<br/>mihomo: pc"]
     Dar --> G6["sops: always"]
-    Dar --> G7["tailscale / remote-login / mihomo: tag"]
-    HM --> G8["programs/*: each declares its capability"]
+    Dar --> G7["tailscale / sshd: profile.personal<br/>mihomo: platform.darwin"]
+    HM --> G8["programs/*: each tests its prerequisite"]
     HM --> G9["desktop/home: form.pc"]
 ```

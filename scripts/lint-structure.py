@@ -5,10 +5,9 @@
 每条规则对应的都是"差异被写到了错误的轴上"的具体失误。
 
   R1  模块不得按主机名分支（host.name / hostname ==），一律走 host.hasTag /
-      host.platform / host.form / host.profile / host.facts。唯一例外是校验器
-      modules/host-metadata.nix。
+      host.platform / host.form / host.profile / host.facts。
   R2  imports 不得引用 host metadata：门控写在模块体内，imports 保持无条件，
-      这样每台主机都会求值每个模块，拼写错误在四台机上同时暴露。
+      这样每台主机都会求值每个模块，轴谓词的拼写错误在四台机上同时暴露。
   R3  Machine File（hosts/*/home.nix）只允许 zine.* 赋值。上游 option 路径与
       home.packages 是漂移的发源地：机器差异必须落在有类型、有默认值的 knob 上。
   R4  每个非 readOnly 的 mkOption 必须声明 default —— knob 必须有默认值，
@@ -25,12 +24,12 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-HOSTNAME_BRANCH_ALLOWLIST = {"modules/host-metadata.nix"}
+# R1 无例外：所有模块都受 hostname 分支禁令约束。
+HOSTNAME_BRANCH_ALLOWLIST = set()
 
-# R4 例外：modules/host-metadata.nix 声明的是**校验投影**（zine.host.*），由 config
-# 赋值、由 inventory 提供，本就不该有默认值。knob 只允许出现在 programs/ 与
-# modules/ 的程序模块里。
-OPTION_DEFAULT_SKIP = {"modules/host-metadata.nix"}
+# R4 例外：只读投影里的子选项由 config 赋值，本就不该有默认值（见下方的 read_only
+# 分支）。knob 只允许出现在 programs/ 与 modules/ 的程序模块里。
+OPTION_DEFAULT_SKIP = set()
 
 violations: list[str] = []
 
@@ -153,7 +152,7 @@ def check_machine_files() -> None:
                             path,
                             number,
                             "R3",
-                            f"Machine File 写了 `{key}`；只允许 zine.* knob（程序开关走 tag，参数走 knob）",
+                            f"Machine File 写了 `{key}`；只允许 zine.* knob（软件归属看 host 的标签，参数走 knob）",
                         )
                     continue
                 if not in_string and char in ";" and depth == 1:
@@ -191,7 +190,7 @@ def check_option_defaults() -> None:
         for offset, start, end, read_only, body in blocks:
             if read_only:
                 continue
-            # 校验投影里的子选项（zine.host.*）由 config 赋值，不需要 default。
+            # 只读投影里的子选项由 config 赋值，不需要 default。
             if any(start > ro_start and end < ro_end for ro_start, ro_end in read_only_spans):
                 continue
             if not re.search(r"\bdefault(Text)?\s*=", body):

@@ -39,6 +39,49 @@ lint-skills:
 lint-structure:
     python3 scripts/lint-structure.py
 
+# List the Home Manager program modules each host enables.
+[script]
+programs:
+    set -uo pipefail
+    probe='u: let
+      lower = n: builtins.match "[a-z0-9-]+" n != null;
+      on = n: let r = builtins.tryEval (u.programs.${n}.enable or false); in r.success && r.value == true;
+    in builtins.filter (n: lower n && on n) (builtins.attrNames u.programs)'
+    for h in $(nix eval --json '.#nixosConfigurations' --apply builtins.attrNames | tr -d '[]" ' | tr ',' ' '); do
+      printf '%-18s' "$h"
+      if out=$(nix eval --json ".#nixosConfigurations.$h.config.home-manager.users.zine" --apply "$probe" 2>/dev/null); then
+        printf ' %s\n' "$(echo "$out" | python3 -c 'import json,sys; print(", ".join(sorted(json.load(sys.stdin))) or "-")')"
+      else
+        printf ' -（无 User Environment）\n'
+      fi
+    done
+    for h in $(nix eval --json '.#darwinConfigurations' --apply builtins.attrNames | tr -d '[]" ' | tr ',' ' '); do
+      printf '%-18s %s\n' "$h" '-（Home Manager 求值目前坏在 DMS niri）'
+    done
+
+# Print what each host derives: docker / tailscale / mihomo / nvidia / sshd.
+[script]
+table:
+    set -euo pipefail
+    probe='hosts: builtins.mapAttrs (_: h: {
+      docker = h.config.virtualisation.docker.enable or null;
+      tailscale = h.config.services.tailscale.enable or null;
+      mihomo = h.config.services.mihomo.enable or null;
+      nvidia = h.config.hardware.nvidia.prime.offload.enable or null;
+      sshd = h.config.services.openssh.enable or null;
+    }) hosts'
+    nixos=$(nix eval --json .#nixosConfigurations --apply "$probe")
+    darwin=$(nix eval --json .#darwinConfigurations --apply "$probe")
+    python3 - "$nixos" "$darwin" <<'PY'
+    import json, sys
+    keys = ("docker", "tailscale", "mihomo", "nvidia", "sshd")
+    print(f"{'host':<18}" + "".join(f"{k:<10}" for k in keys))
+    for blob in sys.argv[1:]:
+        for host, flags in sorted(json.loads(blob).items()):
+            cells = "".join(f"{('-' if flags[k] is None else str(flags[k]).lower()):<10}" for k in keys)
+            print(f"{host:<18}{cells}")
+    PY
+
 # Update flake inputs; nixpkgs pinned to the nixos-unstable channel rev (see scripts/update-flake.sh)
 update:
     ./scripts/update-flake.sh

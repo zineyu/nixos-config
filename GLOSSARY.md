@@ -14,50 +14,45 @@ _Avoid_: opt-in modules, feature flags, plugin architecture.
 **Host Metadata**:
 The typed projection of a Host Inventory entry, delivered to every module as the `host`
 specialArg. It has these views (ADR-0019): `host.platform`, `host.form` and `host.profile` —
-each an Axis with a `name` and one boolean per vocabulary value; `host.gates` — one boolean
-per Capability, total over the vocabulary; and `host.facts`, the machine's hardware Fact
-sheet. `host.tags` is *not* part of it: tags are input syntax, visible only to the audit
-projection `zine.host.tags`, which exists for validation, `nix eval` auditing, and
-cross-axis assertions.
+each an Axis with a `name` and one boolean per vocabulary value; `host.facts`, the machine's
+hardware Fact sheet; and `host.hasTag` — the predicate over the entry's `tags`. Tags are
+input syntax: free-form strings with no vocabulary of their own.
 _Avoid_: host config, host vars, machine profile.
 
 **Axis**:
-One of `platform` (`nixos` / `wsl` / `darwin`), `form` (`vm` / `laptop` / `pc` / `server`) or
+One of `platform` (`nixos` / `wsl` / `darwin`), `form` (`vm` / `pc` / `server`) or
 `profile` (`work` / `personal`). The vocabulary lives in `lib/host-axes.nix`; each axis
 projects to `{ name = "<value>"; <value> = <bool>; }`, total over its vocabulary, so a module
 writes `host.form.pc` rather than comparing strings. `platform.linux` is a convenience
 predicate for `nixos` or `wsl`. Axes are declared top-level in the Host Inventory and are
-never Tags; they are independent of Capabilities.
+never Tags; a Tag cannot stand in for an Axis.
 _Avoid_: kind, host type, machine profile, dimension.
 
 **Fact**:
 A machine value that comes from the world instead of from a preference, stored in the Host
 Inventory's `facts`: `facts.gpu` (vendors, PRIME bus ids) and `facts.displays`. Facts are
 required and typed — a missing fact is an evaluation error, never a default. Hardware facts
-feed Capability derivation and a Knob's default value; they are never part of the override
-chain. Machine form, platform and profile are not in `facts`; they are Axes.
+feed a Knob's default value; they are never part of the override chain. Machine form,
+platform and profile are not in `facts`; they are Axes.
 _Avoid_: host data, hardware vars, properties, attributes.
 
-**Capability**:
-One entry of the Gate vocabulary, either *chosen* (a Tag) or *derived* (`nvidia`, computed
-from `facts.gpu.vendors`). The union is total, so `host.gates.<capability>` always exists. A
-derived capability must never be declared as a tag: the enum rejects it.
-_Avoid_: feature, permission, flag.
-
 **Tag**:
-One *chosen* capability in a Host Inventory entry, drawn from the closed vocabulary in
-`lib/host-tags.nix`: `gui`, `docker`, `sshd`, `tailscale`, `mihomo`, `remote-login`,
-`headscale-backup`. A tag is a decision the hardware cannot reveal — platform, form, profile
-and GPU are not tags. Software groupings are not admissible: a tag that exists to reproduce
-an old program list is that list with worse ergonomics.
-_Avoid_: flag, label, feature, marker, profile.
+A descriptive label on a Host: one free-form string in the Host Inventory entry's `tags`,
+stating what the machine *is* — `gui` means this Host has a graphical session. A tag is
+not a feature switch and never tells a module to turn something on; the module reads the
+tag to test its own prerequisite (`host.hasTag "gui"` means "this Host has a graphical
+session"). There is no vocabulary file, so a misspelled tag is a label no module recognises
+and that module simply stays inert. Platform, form and profile are Axes with their own
+fields; hardware belongs to Facts. Software groupings are not admissible: a tag that exists
+to reproduce an old program list is that list with worse ergonomics.
+_Avoid_: capability, flag, feature, switch, marker, option.
 
 **Gate**:
-The `lib.mkIf` expression that turns a Capability into a decision, written as
-`host.gates.<capability>`. It sits inside a module body, never in `imports` — every host
-evaluates every module, so a typo fails on all four hosts at once. Axis predicates
-(`host.form.pc`, `host.platform.linux`) follow the same rule but read their own Axis, not
-`gates`. Tree entries whose leaves cannot deactivate themselves (third-party modules,
+The `lib.mkIf` expression through which a module tests its own prerequisite, written as
+`lib.mkIf (host.hasTag "<tag>")` or `lib.mkIf host.form.pc`. It reads tags and Axes; it
+never switches software on from outside. It sits inside a module body, never in `imports` —
+every host evaluates every module, so a misspelled Axis predicate fails on all hosts at
+once. Tree entries whose leaves cannot deactivate themselves (third-party modules,
 `scanPaths` subtrees) are the only exception and must carry a
 `lint-allow-imports-gate:` comment.
 _Avoid_: condition, predicate, enabled flag, import switch.
@@ -80,7 +75,7 @@ _Avoid_: host registry, hosts file, list.
 **Host**:
 A single machine configuration, represented by `hosts/<hostname>/`: `default.nix` for system
 facts, an optional `home.nix` for User Environment overrides, and
-`hardware-configuration.nix`. It holds no capability decisions, because those are Tags, and
+`hardware-configuration.nix`. It carries no labels — those live in the Host Inventory entry — and
 no axis decisions, because those are Host Inventory fields.
 _Avoid_: machine, device, node.
 
@@ -95,16 +90,16 @@ _Avoid_: user entry, profile, `users/<username>/`.
 **Machine File**:
 `hosts/<hostname>/home.nix`. The Machine File assigns `zine.*` Knobs only — a font size, a
 layout choice — because those are the differences that can be neither gated nor derived.
-Program selection lives in the Program Modules' own gates, and hardware differences live in
-Facts. The file is optional: hosts without a degree difference have no Machine File at all.
+Whether a program belongs to a host follows from that Host's labels and Axes, tested inside
+the Program Module itself; hardware differences live in Facts. The file is optional: hosts without a degree difference have no Machine File at all.
 What makes the User Environment exist is `userEnvironment = true`, not the file's presence.
 _Avoid_: host file, organization file, home module, switch table.
 
 **Program Module**:
 A self-contained directory `programs/<category>/<name>/`. It owns that program's installation
-and configuration, and it decides for itself whether to activate by declaring the capability
-it needs: `lib.mkIf host.gates.gui`, `lib.mkIf host.platform.linux`, `lib.mkIf host.form.pc`,
-and so on. A program that needs no capability is part of the User Environment baseline and
+and configuration, and it decides for itself whether it belongs by testing the prerequisite
+it needs: `lib.mkIf (host.hasTag "gui")`, `lib.mkIf host.platform.linux`, `lib.mkIf host.form.pc`,
+and so on. A program with no prerequisite is part of the User Environment baseline and
 is not gated at all (`config = { … };`). Native configuration files and an optional
 `package.nix` live in the same directory. Nothing lists programs per host.
 _Avoid_: package config, app config, install side, entry.
@@ -140,10 +135,12 @@ machine, not the user.
 _Avoid_: platform config, host layer.
 
 **System Capability**:
-A module under `modules/nixos/optional/` that is inert unless the Host carries its
-Capability. It declares no option: the gate is `lib.mkIf host.gates.<capability>`, so a
-capability cannot drift from the metadata that decides it. Configuration that every NixOS host needs
-belongs in `modules/nixos/common/`, not here.
+A module that is inert unless the Host metadata satisfies its precondition —
+`modules/tailscale/`, `modules/sshd.nix`, `modules/nixos/nvidia.nix`. It declares no
+option: the gate is `lib.mkIf (host.hasTag "<tag>")`, `lib.mkIf host.profile.personal`
+or `lib.mkIf host.form.server`, so the module cannot drift from the metadata it tests.
+Configuration that every host of a platform needs belongs in `modules/nixos/common/`,
+not here.
 _Avoid_: feature flag, addon, plugin.
 
 **Command**:
