@@ -65,7 +65,7 @@ direnv allow
 | `programs/dev/pi/prompts/` | pi 的 prompt 模板源目录：一个 `.md` 就是一个 `/命令`，经 Home Manager 链接到 `~/.pi/agent/prompts/` |
 | `overlays/` | overlay 函数：`nixpaks.nix`（`pkgs.nixpaks.*`）与它的 manifest 目录 `nixpaks/`（`common.nix`、`qq.nix`、`wechat.nix`） |
 | `lib/` | 可复用 Nix 函数（`mkSystem.nix`、`host-axes.nix`、`nix-settings.nix`、`storeLinks.nix`、`scanPaths.nix`） |
-| `vars/default.nix` | 共享变量（`git` 身份）与按 host 组织的变量（`hosts.<hostname>.*`） |
+| `vars/default.nix` | 共享身份：`git` 身份与 `ssh.zinePublicKey`。机器事实属于 `inventory.nix` 的 `facts` |
 | `docs/adr/` | 架构决策记录（ADRs） |
 | `docs/module-reference.md` | 模块与辅助函数速查表 |
 | `docs/secrets.md` | sops-nix 与 secret 管理说明 |

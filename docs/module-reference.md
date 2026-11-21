@@ -349,7 +349,7 @@ overlay 函数与它的 manifest 分开放：`overlays/` 只放 overlay 函数�
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、`hosts.<hostname>.hardware` 等硬件参数 |
+| `vars/default.nix` | 共享身份：`git` 身份与 zine 的 SSH 公钥。 | `git.*`、`ssh.zinePublicKey`；机器事实属于 `inventory.nix` 的 `facts` |
 | `inventory.nix` | 结构化 host inventory（仓库根），也是**唯一**的 host 差异来源：`system` / `platform`（nixos / wsl / darwin）/ `form`（vm / pc / server）/ `profile`（work / personal）/ `facts`（GPU、显示器）/ `tags` / `userEnvironment` / 可选 `homeStateVersion` / 可选 `deploy`。 | `flake.nix` 按 `platform` 生成 `nixosConfigurations` / `darwinConfigurations`（wsl 归入 NixOS），按 `deploy.enable` 生成 deploy-rs nodes；`tags` 与三条轴由 `specialArgs.host` 送达每个模块 |
 | `hosts/<hostname>/home.nix` | Machine File：只放机器专属的 user 级覆盖（字体大小、单机包）。 | 是否存在由 inventory 的 `userEnvironment` 声明，不由文件推断；空文件是正常状态 |
 | `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、扫描出的 `package.nix` 包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `inventory.nix` 注册表构建 |
