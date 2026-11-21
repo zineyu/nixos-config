@@ -24,9 +24,6 @@ The dev environment is `devenv.nix` (enter with `direnv allow`). Do not add a
 `just programs` prints the Home Manager program modules each host enables. Run them after
 changing a gate instead of evaluating hosts one option at a time.
 
-`macbook-air-01`'s Home Manager evaluation currently fails on DMS's niri module on
-Darwin (`attribute 'niri' missing`), so only its system-level options evaluate.
-
 ## Layout
 
 | Path | Role |

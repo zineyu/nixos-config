@@ -47,16 +47,15 @@ programs:
       lower = n: builtins.match "[a-z0-9-]+" n != null;
       on = n: let r = builtins.tryEval (u.programs.${n}.enable or false); in r.success && r.value == true;
     in builtins.filter (n: lower n && on n) (builtins.attrNames u.programs)'
-    for h in $(nix eval --json '.#nixosConfigurations' --apply builtins.attrNames | tr -d '[]" ' | tr ',' ' '); do
-      printf '%-18s' "$h"
-      if out=$(nix eval --json ".#nixosConfigurations.$h.config.home-manager.users.zine" --apply "$probe" 2>/dev/null); then
-        printf ' %s\n' "$(echo "$out" | python3 -c 'import json,sys; print(", ".join(sorted(json.load(sys.stdin))) or "-")')"
-      else
-        printf ' -（无 User Environment）\n'
-      fi
-    done
-    for h in $(nix eval --json '.#darwinConfigurations' --apply builtins.attrNames | tr -d '[]" ' | tr ',' ' '); do
-      printf '%-18s %s\n' "$h" '-（Home Manager 求值目前坏在 DMS niri）'
+    for set in nixosConfigurations darwinConfigurations; do
+      for h in $(nix eval --json ".#$set" --apply builtins.attrNames | tr -d '[]" ' | tr ',' ' '); do
+        printf '%-18s' "$h"
+        if out=$(nix eval --json ".#$set.$h.config.home-manager.users.zine" --apply "$probe" 2>/dev/null); then
+          printf ' %s\n' "$(echo "$out" | python3 -c 'import json,sys; print(", ".join(sorted(json.load(sys.stdin))) or "-")')"
+        else
+          printf ' -（无 User Environment 或求值失败）\n'
+        fi
+      done
     done
 
 # Print what each host derives: docker / tailscale / mihomo / nvidia / sshd.
