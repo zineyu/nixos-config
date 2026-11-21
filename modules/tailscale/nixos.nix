@@ -1,8 +1,7 @@
 # Headscale tailnet 接入（hs.zineyu.cn）。
 #
-# 广播-门控：被 modules/nixos/optional/default.nix 无条件导入，只有带
-# "tailscale" tag 的 host 生效。这里没有 option：能力不可能与决定它的 metadata
-# 漂移；不想要 tailnet 的 host 不打这个 tag。
+# 广播-门控：被 modules/nixos/default.nix 无条件导入，只有 profile.personal 的 host
+# 生效（工作机不进个人 tailnet）。
 {
   config,
   host,
@@ -10,7 +9,7 @@
   ...
 }:
 {
-  config = lib.mkIf (host.hasTag "tailscale") {
+  config = lib.mkIf host.profile.personal {
     # 接入采用双重授权模型（见 docs/secrets.md「Tailnet（Headscale）」）：
     # repo 管理的 host 使用共享 sops 文件中的可复用 preauth key 自动注册
     # （tailscaled-autoconnect 监听 BackendState，NeedsLogin 时自动 tailscale up，
@@ -28,7 +27,7 @@
     #   1. fake-ip-filter 加入 hs.zineyu.cn（返回真实 IP 直连）
     #   2. nameserver-policy 把 +.ts.zineyu.cn 指向 100.100.100.100（MagicDNS 解析）
     sops.secrets.tailscale_auth_key = {
-      sopsFile = ../../../secrets/tailscale.yaml;
+      sopsFile = ../../secrets/tailscale.yaml;
       key = "preauth_key";
       mode = "0400";
       # key 更新（轮换）后重新触发自动注册。

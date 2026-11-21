@@ -11,7 +11,7 @@ in
   # nix-darwin host entry for macbook-air-01.
 
   # Darwin 模块树由 modules/darwin/default.nix 广播，sops 恒启用，
-  # tailscale / remote-login / mihomo 由 hosts/inventory.nix 的 tags 门控。
+  # tailscale / sshd 走 host.profile.personal，mihomo 按 platform 自门控。
   networking.hostName = hostname;
 
   system.primaryUser = "zine";

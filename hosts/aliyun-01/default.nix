@@ -1,6 +1,7 @@
 # Host module for the `aliyun-01` machine（常驻服务器）。
 #
-# 服务器模块树与 Docker/sshd/Tailscale 由 hosts/inventory.nix 的 tags 门控；本文件
+# 服务器模块树由 form.server 门控，Docker 是每台 NixOS host 的基线，Tailscale 与
+# sshd 由 profile（personal）门控；本文件
 # 只写机器事实、服务参数、secret 接线与部署 workaround。该 host 没有
 # User Environment（未置 userEnvironment），因此没有 ./home.nix。
 {
