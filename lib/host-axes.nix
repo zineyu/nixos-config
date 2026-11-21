@@ -2,13 +2,13 @@
 #
 #   platform —— 构建路径：nixos / wsl / darwin。决定用 nixosSystem 还是
 #               darwinSystem；wsl 走 NixOS 构建路径，但仍是独立平台值。
-#   form     —— 机器形态：vm / laptop / pc / server。
+#   form     —— 机器形态：vm / pc / server（笔记本与台机同为 pc）。
 #   profile  —— 使用场景：work / personal。
 #
 # 每条轴都投影成“值的字符串 + 一组恒存在的布尔”，例如：
 #
 #   host.platform = { name = "nixos"; nixos = true; wsl = false; darwin = false; linux = true; };
-#   host.form     = { name = "pc"; vm = false; laptop = false; pc = true; server = false; };
+#   host.form     = { name = "pc"; vm = false; pc = true; server = false; };
 #   host.profile  = { name = "personal"; work = false; personal = true; };
 #
 # 模块一律写 host.platform.nixos / host.form.pc / host.profile.work，不写字符串
