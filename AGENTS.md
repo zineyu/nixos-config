@@ -28,17 +28,16 @@ changing a gate instead of evaluating hosts one option at a time.
 
 | Path | Role |
 |---|---|
-| `hosts/inventory.nix` | Host Inventory: the single source of host differences (`system`, `platform` (nixos/wsl/darwin), `form` (vm/pc/server), `profile` (work/personal), `facts` (required: `gpu`), `tags`, `userEnvironment`, optional `homeStateVersion`, optional `deploy`). |
+| `inventory.nix` | Host Inventory: the single source of host differences (`system`, `platform` (nixos/wsl/darwin), `form` (vm/pc/server), `profile` (work/personal), `facts` (required: `gpu`), `tags`, `userEnvironment`, optional `homeStateVersion`, optional `deploy`). |
 | `hosts/<hostname>/default.nix` | Machine facts only: boot loader, kernel, timezone, secret wiring. Imports `hardware-configuration.nix`; never module trees. |
 | `hosts/<hostname>/home.nix` | Optional Machine File: `zine.*` knob assignments only. Most hosts have none; `userEnvironment = true` decides whether a User Environment exists. |
-| `modules/nixos/` | NixOS system modules: `common/` (baseline), `server/`, `nvidia.nix`, `wsl.nix`. |
-| `modules/darwin/` | nix-darwin system modules. |
-| `modules/desktop/{system,home}/` | The desktop subsystem, gated on `host.hasTag "gui"` and `host.platform.linux`. |
-| `modules/base/` | Platform-independent Home Manager base layer, wired by `lib/mkSystem.nix`. |
-| `modules/mihomo/` | Cross-platform proxy: shared config plus `nixos.nix` / `darwin.nix`. |
-| `modules/tailscale/` | Cross-platform tailnet join: `nixos.nix` / `darwin.nix`, both on `host.profile.personal`. |
+| `modules/nixos/` | NixOS system modules: `common/` (baseline), `hardware/` (`nvidia.nix`), `platform/` (`wsl.nix`, `wsl-config.nix`), `desktop/` (the system half of the desktop, on `host.hasTag "gui"`), `server/` (on `host.form.server`). |
+| `modules/darwin/` | nix-darwin system modules: `sops.nix`. |
+| `modules/home-manager/` | Home Manager modules: `common/` (state version, `agent-skills/`) and `desktop/` (the user half of the desktop, on `gui` + `platform.linux`). |
+| `modules/shared/` | Cross-platform leaves: `sshd.nix`, `tailscale/{nixos,darwin}.nix`, `mihomo/{config.yaml,nixos,darwin}.nix`. |
 | `programs/<category>/<name>/` | One self-contained program: `default.nix`, optional `package.nix`, native config files. Categories: `shell`, `terminal`, `dev`, `gui`, `misc`. |
-| `lib/` | Generic helpers (`mkSystem`, `scanPaths`, `storeLinks`, `nix-settings`, `host-axes`) and nixpak wrappers (`nixpaks-*`). |
+| `overlays/` | Overlay functions: `nixpaks.nix` (the `pkgs.nixpaks.*` overlay) plus its manifests in `nixpaks/` (`common.nix`, `qq.nix`, `wechat.nix`). |
+| `lib/` | Generic helpers (`mkSystem`, `scanPaths`, `storeLinks`, `nix-settings`, `host-axes`). |
 | `vars/` | Shared identity only (`git`, `ssh`). Machine facts belong to the Host Inventory's `facts`. |
 | `secrets/` | sops-nix encrypted secrets (see `docs/secrets.md`). |
 | `scripts/` | Linters that enforce structure: `lint-skills.py`, `lint-structure.py` (difference axes, ADR-0018). |
@@ -74,21 +73,22 @@ Before writing a gate or changing how a host differs, read the **Tag**, **Gate**
   knob overridden from `hosts/<hostname>/home.nix`. Never branch on `host.name`.
 - **New custom package**: put `package.nix` in the consuming program (or system
   module) directory; the flake exposes it as `.#<directory-name>`.
-- **New host**: add an entry to `hosts/inventory.nix` with `platform`, `form`,
+- **New host**: add an entry to `inventory.nix` with `platform`, `form`,
   `profile` and `facts` (`gpu` is required), then create
   `hosts/<hostname>/default.nix` with machine wiring only. Set
   `userEnvironment = true` when it needs a User Environment; add
   `hosts/<hostname>/home.nix` only if it also has a degree difference.
 - **New Tag**: add the label to the host's `tags` list in
-  `hosts/inventory.nix` and let the module test it with
+  `inventory.nix` and let the module test it with
   `lib.mkIf (host.hasTag "<tag>")`. A tag describes what the host *is*; it is
   not a switch — platform, form and profile are separate axes; GPU is a fact.
   There is no tag vocabulary file, so nothing rejects a typo: a tag no module
   reads is a label nobody recognises, and nothing happens. Keep `imports`
   unconditional.
 - **New system capability**: a module that only some hosts need goes in the tree
-  its precondition names — `modules/<name>/` when both platforms share it,
-  `modules/nixos/` or `modules/darwin/` when one does — and tests that
+  its precondition names — `modules/shared/` when both platforms share it,
+  `modules/nixos/` (or its `common/`, `hardware/`, `platform/`, `desktop/`,
+  `server/` subtree) or `modules/darwin/` when one does — and tests that
   precondition in its body. `modules/nixos/common/` holds only what every NixOS
   host needs.
 - Keep native config files next to the module that installs them.

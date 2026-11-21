@@ -19,9 +19,9 @@ follows it.
 > `programs/<category>/<name>/` and let the module test the prerequisite it
 > needs — the `gui` label, `host.form.pc`, or `host.platform.linux`; a program with no
 > prerequisite joins the baseline and is not gated. If it is an optional system service, create a
-> System Capability under `modules/<name>/` and have it test
+> System Capability under `modules/shared/` (both platforms) and have it test
 > `host.hasTag "<tag>"`; add that label to the host's `tags` in
-> `hosts/inventory.nix`. There is no switch to
+> `inventory.nix`. There is no switch to
 > set and no software list to edit. Configuration that every NixOS host needs
 > belongs in `modules/nixos/common/` instead.
 >
@@ -41,7 +41,7 @@ follows it.
 >
 > **Explorer**: Where does a user-level systemd timer go?
 >
-> **Maintainer**: `modules/base/services/`, and the module tests the host metadata it needs.
+> **Maintainer**: `modules/home-manager/common/`, and the module tests the host metadata it needs.
 > Nothing in the host files changes.
 >
 > **Explorer**: How do I turn Docker off on one host?
@@ -58,7 +58,7 @@ follows it.
 > **Explorer**: What happens if I tag a host with something that does not exist?
 >
 > **Maintainer**: Nothing happens. `tags` is a free-form string list in
-> `hosts/inventory.nix`; only `host.hasTag` reads it, so a misspelled tag is
+> `inventory.nix`; only `host.hasTag` reads it, so a misspelled tag is
 > a label no module recognises.
 >
 > **Explorer**: Why are there two files per machine, and why is one usually missing?
@@ -72,17 +72,18 @@ follows it.
 
 ```mermaid
 graph TD
-    Inv["hosts/inventory.nix<br/>platform + form + profile<br/>facts + tags"] --> Mk["lib/mkSystem.nix<br/>specialArgs.host<br/>axes + hasTag + facts"]
+    Inv["inventory.nix<br/>platform + form + profile<br/>facts + tags"] --> Mk["lib/mkSystem.nix<br/>specialArgs.host<br/>axes + hasTag + facts"]
     Mk --> Nix["modules/nixos"]
     Mk --> Dar["modules/darwin"]
-    Mk --> HM["home-manager.sharedModules<br/>base + programs + desktop/home"]
+    Mk --> HM["home-manager.sharedModules<br/>home-manager/common + programs + home-manager/desktop"]
     Nix --> G1["common: always"]
-    Nix --> G2["optional: per tag"]
+    Nix --> G2["hardware/nvidia: facts.gpu"]
     Nix --> G3["server: form.server"]
-    Nix --> G4["desktop/system: gui"]
-    Nix --> G5["wsl: platform.wsl<br/>nvidia: facts<br/>mihomo: pc"]
+    Nix --> G4["desktop: gui"]
+    Nix --> G5["platform/wsl: platform.wsl<br/>shared/sshd + tailscale: profile.personal<br/>shared/mihomo: pc"]
     Dar --> G6["sops: always"]
-    Dar --> G7["tailscale / sshd: profile.personal<br/>mihomo: platform.darwin"]
+    Dar --> G7["shared/tailscale + sshd: profile.personal<br/>shared/mihomo: platform.darwin"]
     HM --> G8["programs/*: each tests its prerequisite"]
-    HM --> G9["desktop/home: gui"]
+    HM --> G9["home-manager/common: always"]
+    HM --> G10["home-manager/desktop: gui + linux"]
 ```

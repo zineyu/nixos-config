@@ -65,7 +65,7 @@ knob is justified only once a second device needs a different value.
 _Avoid_: parameter, override, tweak, setting.
 
 **Host Inventory**:
-The structured mapping in `hosts/inventory.nix` from hostname to host metadata: `system`,
+The structured mapping in `inventory.nix` (repo root) from hostname to host metadata: `system`,
 `platform`, `form`, `profile`, `facts` (required), `tags`, `userEnvironment`, optional
 `homeStateVersion`, optional `deploy`. It is the single source of every host difference;
 `flake.nix` consumes it to build one system per host (WSL uses the NixOS build path) and to
@@ -116,17 +116,18 @@ also the name `nix-update --flake <name>` uses.
 _Avoid_: custom package, pkgs entry, derivation file.
 
 **Base Layer**:
-`modules/base/`, the platform-independent Home Manager layer: state version, agent skills and
-user-level services, each gated on a Tag. `lib/mkSystem.nix` adds it to every User
-Environment, so hosts and Machine Files never import it.
+`modules/home-manager/common/`, the platform-independent Home Manager layer: state version and
+agent skills, both ungated baseline. `lib/mkSystem.nix` adds `modules/home-manager/` to every
+User Environment, so hosts and Machine Files never import it.
 _Avoid_: common home, shared user layer, `modules/home`.
 
 **Desktop Layer**:
-`modules/desktop/`. Its `home/` half is the user-level Wayland desktop (niri,
-DankMaterialShell, fonts, icon theme, XDG user dirs); its `system/` half is the matching
-NixOS configuration (greetd, portal, audio, bluetooth, graphics, input method, nixpak, Steam).
-Both halves gate on `host.form.pc`, and the system half is imported wholesale because the
-third-party modules it pulls in cannot deactivate themselves.
+The desktop subsystem, one half per layer: `modules/home-manager/desktop/` is the user-level
+Wayland desktop (niri, DankMaterialShell, fonts, icon theme, XDG user dirs) and
+`modules/nixos/desktop/` is the matching NixOS configuration (greetd, portal, audio,
+bluetooth, graphics, input method, nixpak, Steam). Both halves gate on `host.hasTag "gui"`
+(plus `host.platform.linux` for the user half), and the system half is imported wholesale
+because the third-party modules it pulls in cannot deactivate themselves.
 _Avoid_: DE, WM config, desktop stack.
 
 **System Module**:
@@ -136,7 +137,7 @@ _Avoid_: platform config, host layer.
 
 **System Capability**:
 A module that is inert unless the Host metadata satisfies its precondition —
-`modules/tailscale/`, `modules/sshd.nix`, `modules/nixos/nvidia.nix`. It declares no
+`modules/shared/tailscale/`, `modules/shared/sshd.nix`, `modules/nixos/hardware/nvidia.nix`. It declares no
 option: the gate is `lib.mkIf (host.hasTag "<tag>")`, `lib.mkIf host.profile.personal`
 or `lib.mkIf host.form.server`, so the module cannot drift from the metadata it tests.
 Configuration that every host of a platform needs belongs in `modules/nixos/common/`,

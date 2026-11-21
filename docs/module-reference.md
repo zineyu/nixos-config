@@ -7,7 +7,10 @@
 | 目录 | 职责 |
 |------|------|
 | `programs/` | 纯软件：每个程序一个自包含 Home Manager 模块目录，模块自己测试所需前提（`gui` 标签 / `form.pc` / `platform.linux`），无需前提者为基线 |
-| `modules/` | 系统侧配置：`nixos/`、`darwin/`（按平台），`desktop/`（桌面子系统，含 `home/` 与 `system/`），`base/`（平台无关 HM 基础） |
+| `modules/` | 系统侧与 user 侧配置：`nixos/`、`darwin/`（按平台），`home-manager/`（平台无关 HM 层，含 `common/` 与 `desktop/`），`shared/`（跨平台叶子） |
+| `overlays/` | overlay 函数：`nixpaks.nix`（`pkgs.nixpaks.*`）与其 manifest 目录 `nixpaks/` |
+| `lib/` | 通用辅助函数（`mkSystem`、`host-axes`、`scanPaths`、`storeLinks`、`nix-settings`） |
+| `inventory.nix` | Host Inventory：**唯一**的 host 差异来源（见 [Registry & Entry Points](#registry--entry-points)） |
 | `hosts/<hostname>/` | 该机器的一切：`default.nix`（系统事实）、`home.nix`（user 级覆盖，可选）、`hardware-configuration.nix` |
 
 ---
@@ -36,8 +39,8 @@
 
 | 轴 | 判据 | 出口 | 机检 |
 |----|------|------|------|
-| 平台 / 形态 / 场景 | 机器的固定属性 | `hosts/inventory.nix` 的 `platform` / `form` / `profile` | R5：每个 host 必须写全 |
-| 事实 | 值来自世界 | `hosts/inventory.nix` 的 `facts` | R5：每个 host 必须有 `facts.gpu` |
+| 平台 / 形态 / 场景 | 机器的固定属性 | `inventory.nix` 的 `platform` / `form` / `profile` | R5：每个 host 必须写全 |
+| 事实 | 值来自世界 | `inventory.nix` 的 `facts` | R5：每个 host 必须有 `facts.gpu` |
 | 标签 | 这台机是什么（描述，不是开关） | `tags`（自由字符串） | `host.hasTag "<tag>"` |
 | 程度 | 有默认值，这台想不一样 | 模块内的 `zine.*` knob | R4：knob 必须有 default；R3：Machine File 只碰 `zine.*` |
 
@@ -52,7 +55,7 @@ R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory �
 |------|-----------|
 | NixOS / WSL | `../hosts/<hostname>`、`../modules/nixos` |
 | Darwin | `../hosts/<hostname>`、`../modules/darwin` |
-| Home Manager（两侧共用） | `../modules/base`、`../programs`、`../modules/desktop/home` |
+| Home Manager（两侧共用） | `../modules/home-manager`（`common/` + `desktop/`）、`../programs` |
 
 ## NixOS System Modules
 
@@ -82,13 +85,6 @@ R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory �
 生效（`default.nix` 内的 `lib.optionals host.form.server` 门控）。tailscale 与 sshd
 见 [Cross-platform System Modules](#cross-platform-system-modules)。
 
-### `modules/nixos/wsl.nix` 与 `modules/nixos/nvidia.nix`
-
-| File | Purpose | Gate |
-|------|---------|------|
-| `wsl.nix` | 拉入 `nixos-wsl` 模块，设 `wsl.enable` / `defaultUser`，禁用 getty 与 autovt | `platform.wsl` |
-| `nvidia.nix` | NVIDIA Optimus / PRIME offload，PCI bus id 取自 `facts.gpu.prime` | gate: `facts.gpu.vendors` 含 `nvidia` |
-
 | File | Purpose | Notable |
 |------|---------|---------|
 | `default.nix` | 通过 `scanPaths` 自动导入同级 `.nix` 文件。 | `extraLibs.scanPaths` |
@@ -101,15 +97,22 @@ R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory �
 | `networking.nix` | 服务器防火墙，允许 SSH 与 HTTP/HTTPS 端口及 Headscale STUN。 | `allowedTCPPorts = [ 22 80 443 ]`、`allowedUDPPorts = [ 3478 ]` |
 | `nginx.nix` | 反向代理与 ACME 证书配置。 | `services.nginx`、`security.acme` |
 | `postgresql.nix` | 独立管理的 PostgreSQL 17 实例，供本机服务复用。 | `services.postgresql`；仅 unix socket；大版本升级需手动迁移 |
-| `ssh.nix` | 启用 OpenSSH 并限制 root 仅密钥登录。 | `services.openssh` |
 | `vaultwarden.nix` | Vaultwarden 密码管理服务（pgsql 后端 + Nginx + ACME）。 | `services.vaultwarden`；`sops.secrets.vaultwarden`（ADMIN_TOKEN） |
 
-### `modules/desktop/system/`
+### `modules/nixos/platform/` 与 `modules/nixos/hardware/`
+
+| File | Purpose | Gate |
+|------|---------|------|
+| `platform/wsl.nix` | 拉入 `nixos-wsl` 模块 | `platform.wsl` |
+| `platform/wsl-config.nix` | 设 `wsl.enable` / `defaultUser`，禁用 getty 与 autovt；只随 `nixos-wsl` 模块一起导入 | 由 `platform/wsl.nix` 条件导入 |
+| `hardware/nvidia.nix` | NVIDIA Optimus / PRIME offload，PCI bus id 取自 `facts.gpu.prime` | `facts.gpu.vendors` 含 `nvidia` |
+
+### `modules/nixos/desktop/`
 
 桌面子系统的系统级部分（NixOS 模块）。整棵树被 `modules/nixos/default.nix` 无条件
 导入，只有带 `gui` 标签的 host 才真正拉入第三方模块与下列文件；第三方模块
 （dank-greeter、`niri`、`aagl`）的断言无法内部关闭，因此整棵按 gate 导入而不是逐文件
-门控。用户级部分见 `modules/desktop/home/`。
+门控。用户级部分见 `modules/home-manager/desktop/`。
 
 | File | Purpose | Notable |
 |------|---------|---------|
@@ -120,7 +123,7 @@ R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory �
 | `graphics.nix` | NVIDIA 专有驱动设置。 | `hardware.nvidia`、modesetting、powerManagement |
 | `input-method.nix` | 启用 Fcitx5 + Rime 输入法，含小鹤音形方案。 | `fcitx5-rime`、`rime-ice`、`rime-flypy/package.nix`、wayland 前端 |
 | `networking.nix` | 桌面网络管理器与防火墙配置。 | `networking.networkmanager`；防火墙已关闭 |
-| `nixpak.nix` | 用 nixpak 构建 `nixpaks.qq` 与 `nixpaks.wechat` overlay，供 `programs/gui/{qq,wechat}` 消费。 | `inputs.nixpak.lib.nixpak`；依赖 Home Manager 作为 NixOS 模块集成（`useGlobalPkgs`） |
+| `nixpak.nix` | 把 `overlays/nixpaks.nix` 挂进 `nixpkgs.overlays`，产出 `pkgs.nixpaks.{qq,wechat}`，供 `programs/gui/{qq,wechat}` 消费。 | `nixpkgs.overlays`；overlay 本体与 manifest 在 `overlays/`；依赖 Home Manager 作为 NixOS 模块集成（`useGlobalPkgs`） |
 | `packages.nix` | 桌面系统级软件清单：Steam、An Anime Game Launcher、KDE Connect。 | `programs.steam`、`programs.anime-game-launcher`、`programs.kdeconnect` |
 | `rime-flypy/package.nix` | 小鹤音形 Rime 挂接配方（`.#rime-flypy`）。 | 与消费它的 `input-method.nix` 同目录 |
 | `steam.nix` | Steam 与 gamescope 的图形支持。 | `hardware.graphics.enable32Bit`；防火墙整体禁用，未单独开放端口 |
@@ -136,14 +139,14 @@ Darwin host 的系统级模块。整棵树被 `lib/mkSystem.nix` 无条件导入
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `default.nix` | 广播入口：无条件导入 `sops.nix` 与其余子树，由各模块自行门控。 | `tailscale`（profile）、`sshd`（profile）、`mihomo`（platform） |
+| `default.nix` | 广播入口：无条件导入 `sops.nix` 与 `../shared/` 的 Darwin 叶子，由各叶子自行门控。 | `../shared/tailscale/darwin.nix`（profile）、`../shared/sshd.nix`（profile）、`../shared/mihomo/darwin.nix`（platform） |
 | `sops.nix` | Darwin host 的 sops-nix 基础配置（age identity rootfs 副本）。 | `/var/lib/sops-nix/key.txt` |
 
 ---
 
 ## Cross-platform System Modules
 
-### `modules/sshd.nix`
+### `modules/shared/sshd.nix`
 
 OpenSSH 服务端只有一个实现：`modules/nixos/default.nix` 与 `modules/darwin/default.nix`
 都无条件导入它，由模块体按 `host.profile.personal` 门控。两个平台的 `services.openssh`
@@ -155,9 +158,9 @@ OpenSSH 服务端只有一个实现：`modules/nixos/default.nix` 与 `modules/d
 NixOS 把 `extraConfig` 接在 `settings` 之后，`Match` 因此位于文件末尾；nix-darwin 把它写进
 `/etc/ssh/sshd_config.d/100-nix-darwin.conf`，由 macOS 自带的 `sshd_config` 引入。
 
-### `modules/mihomo/`
+### `modules/shared/mihomo/`
 
-mihomo（fake-IP TUN 代理）。**一份配置、两个平台的系统级模块**：配置内容只维护 `config.yaml`，平台差异（launchd vs systemd、状态目录、凭据挂载方式）留在各自的 `.nix` 里。两个平台的叶子都由各自的平台树导入，并按 `host.platform` + `host.form.pc` 自门控。
+mihomo（fake-IP TUN 代理）。**一份配置、两个平台的系统级模块**：配置内容只维护 `config.yaml`，平台差异（launchd vs systemd、状态目录、凭据挂载方式）留在各自的 `.nix` 里。两个叶子都在 `modules/shared/` 下，由各自的平台树（`modules/nixos/default.nix` / `modules/darwin/default.nix`）导入，并按 `host.platform` + `host.form.pc` 自门控。
 
 | File | Purpose | Notable |
 |------|---------|---------|
@@ -167,13 +170,13 @@ mihomo（fake-IP TUN 代理）。**一份配置、两个平台的系统级模块
 
 两机共用同一份 `config.yaml`：`hs.zineyu.cn` 必须在 `fake-ip-filter` 内（tailscaled 控制面直连，见 ADR-0008），tailnet 流量（`100.64.0.0/10`）通过 `route-exclude-address` 绕开 TUN。
 
-**nix-darwin 的 LaunchDaemon 可执行文件必须经 `command`（或 `script`）交付。** nix-darwin 只对这两个选项注入 `/bin/wait4path /nix/store` 包装。直接写 `serviceConfig.ProgramArguments` 会生成指向 `/nix/store` 的裸路径；开机时 launchd 启动 job 的时刻早于 `/nix` 卷挂载完成的时刻，于是报 `Missing executable detected`，把 job 置为 `service inactive`，`KeepAlive` 不再重试，服务直到手工启动之前都保持停止。`modules/mihomo/darwin.nix` 与 `modules/tailscale/darwin.nix` 都遵循这条约束。
+**nix-darwin 的 LaunchDaemon 可执行文件必须经 `command`（或 `script`）交付。** nix-darwin 只对这两个选项注入 `/bin/wait4path /nix/store` 包装。直接写 `serviceConfig.ProgramArguments` 会生成指向 `/nix/store` 的裸路径；开机时 launchd 启动 job 的时刻早于 `/nix` 卷挂载完成的时刻，于是报 `Missing executable detected`，把 job 置为 `service inactive`，`KeepAlive` 不再重试，服务直到手工启动之前都保持停止。`modules/shared/mihomo/darwin.nix` 与 `modules/shared/tailscale/darwin.nix` 都遵循这条约束。
 
 
-### `modules/tailscale/`
+### `modules/shared/tailscale/`
 
 Headscale tailnet 接入（`hs.zineyu.cn`，见 ADR-0008）。**一份前提、两个平台的系统级模块**：
-两个叶子都按 `host.profile.personal` 自门控，工作机不进个人 tailnet。
+`modules/shared/` 下的两个叶子都按 `host.profile.personal` 自门控，工作机不进个人 tailnet。
 
 | File | Purpose | Notable |
 |------|---------|---------|
@@ -187,31 +190,23 @@ Headscale tailnet 接入（`hs.zineyu.cn`，见 ADR-0008）。**一份前提、�
 
 ## Home Manager Modules
 
-### `modules/base/` — 平台无关的 HM 基础层
+### `modules/home-manager/common/` — 平台无关的 HM 基础层
 
-由 `lib/mkSystem.nix` 通过 `home-manager.sharedModules` 接入每个用户环境。program 是否
+`modules/home-manager/default.nix` 是整棵 HM 树的入口，导入 `common/` 与 `desktop/`；
+它由 `lib/mkSystem.nix` 通过 `home-manager.sharedModules` 接入每个用户环境。program 是否
 生效**不经过这一层**：每个 Program Module 自己测试所需的前提（`gui` 标签、`host.form.pc`、
-`host.platform.linux`），无条件的直接 `config = { … };` 成为基线。`services/` 下的每个服务
-自己读它需要的标签。`desktop/home` 也由这里广播，按 `gui` 标签与 `platform.linux` 门控。
+`host.platform.linux`），无条件的直接 `config = { … };` 成为基线。
 
 | File | Purpose | Notable |
 |------|---------|---------|
-| `default.nix` | 基础层聚合器：导入 `common.nix`、`agent-skills`、`services`。 | 由 `lib/mkSystem.nix` 自动接入 |
+| `default.nix` | 基础层聚合器：导入 `common.nix` 与 `agent-skills`。 | 由 `modules/home-manager/default.nix` 无条件导入 |
 | `common.nix` | Home Manager 基础状态与自启用。 | `programs.home-manager.enable`；`home.stateVersion` 由 host inventory 注入 |
 | `agent-skills/` | 自动发现仓库根目录 `skills/<command>/<name>/` 并逐项安装 agent skills。 | 每个目录必须包含 `SKILL.md`；目录名即命令，`principles/`、`tools/`、`references/` 除外；目标为 `~/.agents/skills/<name>` |
-| `services/` | 用户级 systemd 服务与定时任务，按 Tag 门控。 | 见下表 |
 
-#### `modules/base/services/`
+### `modules/home-manager/desktop/` — 用户级桌面层
 
-| File | Purpose | Notable |
-|------|---------|---------|
-| `default.nix` | 通过 `scanPaths` 自动导入。 | `extraLibs.scanPaths` |
-| `headscale-backup-pull.nix` | 每日从 `aliyun-01` 拉取 Headscale 状态快照。 | `systemd.user.services` / `timers`；走 `programs/misc/ssh` 的 alias |
-
-### `modules/desktop/home/` — 用户级桌面层
-
-Wayland 桌面环境与合成器配置。本层由 `modules/desktop/home/default.nix` 在
-`host.form.pc` 时整层导入；具体软件包负责声明平台支持。
+Wayland 桌面环境与合成器配置。本层由 `modules/home-manager/desktop/default.nix` 在
+`host.hasTag "gui" && host.platform.linux` 时整层导入；具体软件包负责声明平台支持。
 
 | File | Purpose | Notable |
 |------|---------|---------|
@@ -282,7 +277,7 @@ Wayland 桌面环境与合成器配置。本层由 `modules/desktop/home/default
 | `firefox/` | Firefox。 | `programs.firefox` |
 | `kitty/` | Kitty 图形终端，含主题与自定义配置；`zine.programs.kitty.fontSize` 是程度轴 knob。 | `programs.kitty`；`lib/storeLinks.nix`（`mkOutOfStoreDotfiles`，指向 `programs/gui/kitty/config/`） |
 | `qbittorrent/` | qBittorrent（GUI BitTorrent 客户端），接管磁力链接与 `.torrent` 默认打开方式。 | `home.packages`；`xdg.mimeApps`（配置由应用自身维护在 `~/.config/qBittorrent/`） |
-| `qq/` | QQ（nixpak 沙盒，消费 `modules/desktop/system/nixpak.nix` 的 overlay）。 | `pkgs.nixpaks.qq` |
+| `qq/` | QQ（nixpak 沙盒，消费 `overlays/nixpaks.nix` 经 `modules/nixos/desktop/nixpak.nix` 挂上的 `pkgs.nixpaks`）。 | `pkgs.nixpaks.qq` |
 | `thunderbird/` | Thunderbird。 | `programs.thunderbird` |
 | `wechat/` | 微信（nixpak 沙盒）。 | `pkgs.nixpaks.wechat` |
 | `zen-browser/` | Zen Browser，使用自定义 unwrapped 包与策略。 | `inputs.zen-browser.homeModules.default`；Darwin 上重签名 |
@@ -305,7 +300,7 @@ Wayland 桌面环境与合成器配置。本层由 `modules/desktop/home/default
 
 ## Package Recipes
 
-自定义包不再是集中目录，而是与消费它的模块共置的 `package.nix`。`flake.nix` 扫描 `programs/` 与 `modules/desktop/`，**attr 名 = 目录名**。
+自定义包不再是集中目录，而是与消费它的模块共置的 `package.nix`。`flake.nix` 扫描 `programs/` 与 `modules/nixos/desktop/`，**attr 名 = 目录名**。
 
 | Recipe | Flake attr | 消费方 |
 |--------|-----------|--------|
@@ -314,28 +309,39 @@ Wayland 桌面环境与合成器配置。本层由 `modules/desktop/home/default
 | `programs/gui/breezex-cursor/package.nix` | `#breezex-cursor` | `programs/gui/{breezex-cursor,cursor}` |
 | `programs/gui/dbx-desktop/package.nix` | `#dbx-desktop` | `programs/gui/dbx-desktop/default.nix` |
 | `programs/misc/rime-ice/squirrel/package.nix` | `#squirrel` | `programs/misc/rime-ice/default.nix` |
-| `modules/desktop/system/rime-flypy/package.nix` | `#rime-flypy` | `modules/desktop/system/input-method.nix` |
+| `modules/nixos/desktop/rime-flypy/package.nix` | `#rime-flypy` | `modules/nixos/desktop/input-method.nix` |
 
 `nix-update --flake <attr>` 依 `meta.position` 定位配方文件，移动目录无需改脚本。`codegraph` 与 `dbx-desktop` 的更新逻辑无法由 nix-update 表达，各自带 `update.sh`；`updateScript` 会被复制进 `/nix/store`，因此脚本用 git 索引按目录名定位配方，而不是靠自身路径。
 
 ---
 
+## Overlays
+
+overlay 函数与它的 manifest 分开放：`overlays/` 只放 overlay 函数，`modules/` 只负责把它
+挂进 `nixpkgs.overlays`，因此 `lib/` 不再持有任何包配方。
+
+| File | Purpose | Consumers |
+|------|---------|-----------|
+| `overlays/nixpaks.nix` | overlay 函数：绑定 `mkNixPak`、把 `qq` 覆盖为 3.2.32，再 `callPackage` 两个 manifest，产出 `pkgs.nixpaks.{qq,wechat}`。 | `modules/nixos/desktop/nixpak.nix` |
+| `overlays/nixpaks/common.nix` | 通用 nixpak 沙盒策略（GPU、DBus、bubblewrap、字体、portals）。 | `overlays/nixpaks/qq.nix`、`overlays/nixpaks/wechat.nix` |
+| `overlays/nixpaks/qq.nix` | 腾讯 QQ 的 nixpak 包装器。 | `overlays/nixpaks.nix`（`pkgs.nixpaks.qq` → `programs/gui/qq`） |
+| `overlays/nixpaks/wechat.nix` | 微信的 nixpak 包装器。 | `overlays/nixpaks.nix`（`pkgs.nixpaks.wechat` → `programs/gui/wechat`） |
+
+---
+
 ## Library Helpers
 
-可复用的 Nix 函数与构造器。
+可复用的 Nix 函数与构造器。overlay 见 [Overlays](#overlays)。
 
 | File | Purpose | Consumers |
 |------|---------|-----------|
 | `lib/default.nix` | 暴露 `scanPaths` 辅助函数。 | 各模块的 `default.nix` |
 | `lib/host-axes.nix` | 三条轴的词表与布尔投影：`platform` / `form` / `profile`。 | `mkSystem` 用作投影 |
-| `lib/mkSystem.nix` | 为所有 host 构建 `nixosSystem` / `darwinSystem`（WSL 走 NixOS 路径），接入 home-manager 与 sops-nix，把 `modules/base` 与 `programs` 加入 `home-manager.sharedModules`，注入 `hostname` / `host` / `homeStateVersion`（含三元轴投影与 `host.hasTag`），并在 `userEnvironment = true` 时导入 `hosts/<hostname>/home.nix` 接线 `home-manager.users.zine`。 | `flake.nix` |
-| `modules/desktop/home/niri/build.nix` | 构建并校验 niri 配置 derivation，包含 `dms/` 片段。 | `modules/desktop/home/niri.nix` |
+| `lib/mkSystem.nix` | 为所有 host 构建 `nixosSystem` / `darwinSystem`（WSL 走 NixOS 路径），接入 home-manager 与 sops-nix，把 `modules/home-manager` 与 `programs` 加入 `home-manager.sharedModules`，注入 `hostname` / `host` / `homeStateVersion`（含三元轴投影与 `host.hasTag`），并在 `userEnvironment = true` 时导入 `hosts/<hostname>/home.nix` 接线 `home-manager.users.zine`。 | `flake.nix` |
+| `modules/home-manager/desktop/niri/build.nix` | 构建并校验 niri 配置 derivation，包含 `dms/` 片段。 | `modules/home-manager/desktop/niri.nix` |
 | `lib/nix-settings.nix` | 共享 Nix substituters、trusted public keys 与 experimental features。 | `modules/nixos/common/nix.nix`、`flake.nix` |
-| `lib/nixpaks-common.nix` | 通用 nixpak 沙盒策略（GPU、DBus、bubblewrap、字体、portals）。 | `lib/nixpaks-qq.nix`、`lib/nixpaks-wechat.nix` |
-| `lib/nixpaks-qq.nix` | 腾讯 QQ 的 nixpak 包装器。 | `modules/desktop/system/nixpak.nix` |
-| `lib/nixpaks-wechat.nix` | 微信的 nixpak 包装器。 | `modules/desktop/system/nixpak.nix` |
 | `lib/scanPaths.nix` | 返回路径下所有 `.nix` 文件与子目录（排除 `default.nix`）。 | 所有 `default.nix` 模块聚合器 |
-| `lib/storeLinks.nix` | 显式 in-store / out-of-store 软链接辅助函数（`mkInStore`、`mkOutOfStore`、`mkOutOfStoreDotfiles`）。 | `modules/desktop/home/fontconfig`、`programs/gui/kitty` |
+| `lib/storeLinks.nix` | 显式 in-store / out-of-store 软链接辅助函数（`mkInStore`、`mkOutOfStore`、`mkOutOfStoreDotfiles`）。 | `modules/home-manager/desktop/fontconfig`、`programs/gui/kitty` |
 
 ---
 
@@ -344,17 +350,17 @@ Wayland 桌面环境与合成器配置。本层由 `modules/desktop/home/default
 | File | Purpose | Notable |
 |------|---------|---------|
 | `vars/default.nix` | 共享变量与按 host 组织的变量。 | `git.*`、`hosts.<hostname>.hardware` 等硬件参数 |
-| `hosts/inventory.nix` | 结构化 host inventory，也是**唯一**的 host 差异来源：`system` / `platform`（nixos / wsl / darwin）/ `form`（vm / pc / server）/ `profile`（work / personal）/ `facts`（GPU、显示器）/ `tags` / `userEnvironment` / 可选 `homeStateVersion` / 可选 `deploy`。 | `flake.nix` 按 `platform` 生成 `nixosConfigurations` / `darwinConfigurations`（wsl 归入 NixOS），按 `deploy.enable` 生成 deploy-rs nodes；`tags` 与三条轴由 `specialArgs.host` 送达每个模块 |
+| `inventory.nix` | 结构化 host inventory（仓库根），也是**唯一**的 host 差异来源：`system` / `platform`（nixos / wsl / darwin）/ `form`（vm / pc / server）/ `profile`（work / personal）/ `facts`（GPU、显示器）/ `tags` / `userEnvironment` / 可选 `homeStateVersion` / 可选 `deploy`。 | `flake.nix` 按 `platform` 生成 `nixosConfigurations` / `darwinConfigurations`（wsl 归入 NixOS），按 `deploy.enable` 生成 deploy-rs nodes；`tags` 与三条轴由 `specialArgs.host` 送达每个模块 |
 | `hosts/<hostname>/home.nix` | Machine File：只放机器专属的 user 级覆盖（字体大小、单机包）。 | 是否存在由 inventory 的 `userEnvironment` 声明，不由文件推断；空文件是正常状态 |
-| `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、扫描出的 `package.nix` 包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `hosts/inventory.nix` 注册表构建 |
+| `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、扫描出的 `package.nix` 包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `inventory.nix` 注册表构建 |
 
 ---
 
 ## 辅助函数使用小结
 
-- **`extraLibs.scanPaths`** — 用于 `modules/nixos/{common,server}/default.nix`、`modules/base/services/default.nix`、`programs/default.nix` 与各 `programs/<category>/default.nix`，自动扫描并导入同级模块。`server` 的扫描结果包在 `lib.optionals host.form.server` 里。
+- **`extraLibs.scanPaths`** — 用于 `modules/nixos/{common,server}/default.nix`、`programs/default.nix` 与各 `programs/<category>/default.nix`，自动扫描并导入同级模块。`server` 的扫描结果包在 `lib.optionals host.form.server` 里。
 - **`lib/mkSystem.nix`** — 被 `flake.nix` 使用；负责广播（注入 `host`，无条件导入各平台树与 HM 层），门控由被导入树的 `default.nix` 承担。
-- **`modules/desktop/home/niri/build.nix`** — 被 `modules/desktop/home/niri.nix` 使用，构建并校验 niri 配置 derivation。
-- **`lib/storeLinks.nix`** — 被 `modules/desktop/home/fontconfig`、`programs/gui/kitty` 使用，显式选择 in-store 或 out-of-store 软链接策略。
-- **`lib/nixpaks-*.nix`** — 被 `modules/desktop/system/nixpak.nix` 使用，通过 nixpak 沙盒运行 QQ 与微信。
+- **`modules/home-manager/desktop/niri/build.nix`** — 被 `modules/home-manager/desktop/niri.nix` 使用，构建并校验 niri 配置 derivation。
+- **`lib/storeLinks.nix`** — 被 `modules/home-manager/desktop/fontconfig`、`programs/gui/kitty` 使用，显式选择 in-store 或 out-of-store 软链接策略。
+- **`overlays/nixpaks.nix`** — 被 `modules/nixos/desktop/nixpak.nix` 挂进 `nixpkgs.overlays`，通过 nixpak 沙盒运行 QQ 与微信。
 - **`lib/nix-settings.nix`** — 被 `modules/nixos/common/nix.nix` 与 `flake.nix` 使用，统一 Nix 缓存与实验特性配置。

@@ -26,7 +26,7 @@
 - `secrets/aliyun-01.yaml` 保存 `luogo_checkin` 环境变量、Vaultwarden `ADMIN_TOKEN`、Gotify 初始管理员密码和 Headplane cookie 签名密钥（`headplane_cookie_secret`）。
 - `secrets/ssh-hosts.yaml` 保存 `aliyun-01` 的真实 SSH 地址，由 `programs/misc/ssh` 解密并渲染 SSH alias。
 - `aliyun-01` 使用 `/etc/ssh/ssh_host_ed25519_key` 解密系统 secret。
-- `secrets/mihomo.yaml` 以 sops **binary** 格式保存 mihomo 的 `proxies:` 文档，解密为 `/run/secrets/mihomo_proxies`，被当作 proxy-provider 文件消费。仓库里共用的 `modules/mihomo/config.yaml` 只保留非敏感部分（DNS、`fake-ip-filter`、规则），`@proxies_file@` 由平台模块替换：macOS 直接指向 sops 路径并靠 `SAFE_PATHS` 授权；NixOS 把配置与凭据一并经 `LoadCredential` 挂到 `/run/credentials/mihomo.service`。更新代理：`sops secrets/mihomo.yaml`，再按主机执行 `sudo darwin-rebuild switch --flake .#macbook-air-01` 或 `sudo nixos-rebuild switch --flake .#tianxuan`。
+- `secrets/mihomo.yaml` 以 sops **binary** 格式保存 mihomo 的 `proxies:` 文档，解密为 `/run/secrets/mihomo_proxies`，被当作 proxy-provider 文件消费。仓库里共用的 `modules/shared/mihomo/config.yaml` 只保留非敏感部分（DNS、`fake-ip-filter`、规则），`@proxies_file@` 由平台模块替换：macOS 直接指向 sops 路径并靠 `SAFE_PATHS` 授权；NixOS 把配置与凭据一并经 `LoadCredential` 挂到 `/run/credentials/mihomo.service`。更新代理：`sops secrets/mihomo.yaml`，再按主机执行 `sudo darwin-rebuild switch --flake .#macbook-air-01` 或 `sudo nixos-rebuild switch --flake .#tianxuan`。
 - `tianxuan` 与 `macbook-air-01` 的系统级 sops-nix 使用 `/var/lib/sops-nix/key.txt`。这是管理员 age identity 的 rootfs 副本，recipient 仍是 `zine_desktop`；系统激活早于用户 home 可用，因此不能依赖用户 home 中的 key。`/home/zine/.config/sops/age/keys.txt`（Mac 上为 `/Users/zine/.config/sops/age/keys.txt`）继续用于管理员操作和 Home Manager secret。
 
 ## GitHub Actions secrets
@@ -103,10 +103,10 @@ Overlay 网络已由 WireGuard 切换为自托管 Headscale tailnet（见 `docs/
   ```
 
   手机在 Tailscale App 中将 control server 设为 `https://hs.zineyu.cn`，登录后同样在服务器上 `headscale nodes register` 批准。
-Headscale 自身的状态（`/var/lib/headscale` 的 SQLite 与 noise 私钥）**丢失会导致全网节点需要重新注册**，因此有每日快照 + `tianxuan` 拉取的备份链路（见 `modules/nixos/server/headscale.nix` 与 `modules/base/services/headscale-backup-pull.nix`），恢复步骤见 `headscale.nix` 头部注释的 runbook。
+Headscale 自身的状态（`/var/lib/headscale` 的 SQLite 与 noise 私钥）**丢失会导致全网节点需要重新注册**，因此有每日状态快照（见 `modules/nixos/server/headscale.nix` 的 `headscale-backup` timer），恢复步骤见 `headscale.nix` 头部注释的 runbook。
 ## 新增一台 host
 
-1. 在 `hosts/inventory.nix` 注册 host 并创建对应的 host 模块。
+1. 在 `inventory.nix` 注册 host 并创建对应的 host 模块。
 2. 在 `vars/default.nix` 创建同名 `hosts.<hostname>` 项（无条目时可先留空）。
 3. 获取目标机器的 age recipient。服务器通常使用 SSH host key：
 

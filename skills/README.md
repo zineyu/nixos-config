@@ -6,7 +6,7 @@
 `principles/` 与 `tools/` 不在命令序列上，前者是被各层点名引用的判据，后者是跨阶段的工具。
 `references/` 放被多个技能共用的清单，不是技能分类。
 
-`modules/base/agent-skills` 递归扫描本目录，把每个 skill 扁平链接到 `~/.agents/skills/<name>`，
+`modules/home-manager/common/agent-skills` 递归扫描本目录，把每个 skill 扁平链接到 `~/.agents/skills/<name>`，
 因此分类只影响仓库布局，不影响 agent 侧的技能名与触发方式。
 
 | 分类 | 数量 | 对应命令 | 范围 |
