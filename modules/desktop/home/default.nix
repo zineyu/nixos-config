@@ -1,8 +1,8 @@
 # 用户级桌面环境层（niri、DankMaterialShell、字体、图标等）。
 #
 # 广播-门控：被 lib/mkSystem.nix 无条件加入 home-manager.sharedModules，
-# 只有 form = "pc" 且 platform = linux（nixos / wsl）的 host 生效；
-# niri 与 DankMaterialShell 是 Wayland 桌面，macOS 上求值不了也不需要。
+# 只有带 "gui" 标签的 Linux host 生效：niri 与 DankMaterialShell 是 Wayland
+# 桌面，macOS 上求值不了，WSL 上也没有要接管的图形会话。
 {
   host,
   lib,
@@ -10,7 +10,7 @@
   ...
 }:
 let
-  desktop = host.form.pc && host.platform.linux;
+  desktop = host.hasTag "gui" && host.platform.linux;
 in
 {
   imports = lib.optionals desktop [

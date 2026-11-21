@@ -5,7 +5,7 @@
 #   子树                    生效条件
 #   ./common                无条件（真基线）
 #   ./server                host.form.server，整棵子树入口门控（lint-allow-imports-gate）
-#   ../desktop/system       host.form.pc，整棵子树入口门控（lint-allow-imports-gate）
+#   ../desktop/system       host.hasTag "gui"，整棵子树入口门控（lint-allow-imports-gate）
 #   ./wsl.nix               host.platform.wsl
 #   ./nvidia.nix            facts.gpu.vendors 含 nvidia
 #   ../sshd.nix             host.profile.personal（跨平台叶子，自行门控）

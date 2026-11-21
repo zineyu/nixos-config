@@ -61,8 +61,8 @@ direnv allow
 | `modules/darwin/` | nix-darwin 系统模块：`default.nix` 广播，sops 恒启用，tailscale 与 sshd 按 `host.profile.personal`，mihomo 按 `host.platform.darwin` |
 | `modules/mihomo/` | mihomo 代理：跨平台系统模块，`config.yaml` 一份配置 + `darwin.nix`（launchd）/ `nixos.nix`（systemd），各自按 `host.platform` 与 `host.form.pc` 自门控 |
 | `modules/tailscale/` | 跨平台 tailnet 接入：`nixos.nix`（systemd）/ `darwin.nix`（launchd），两个叶子都按 `host.profile.personal` 自门控 |
-| `modules/desktop/home/` | 用户级桌面层（niri、DankMaterialShell、环境变量、fontconfig、图标主题、XDG 用户目录等），被广播，按 `form.pc` 生效 |
-| `modules/desktop/system/` | 桌面层的系统级部分（greetd/portal、音频、蓝牙、显卡、输入法、nixpak overlay、Steam），被广播，按 `form.pc` 生效 |
+| `modules/desktop/home/` | 用户级桌面层（niri、DankMaterialShell、环境变量、fontconfig、图标主题、XDG 用户目录等），被广播，按 `gui` 标签 + `platform.linux` 生效 |
+| `modules/desktop/system/` | 桌面层的系统级部分（greetd/portal、音频、蓝牙、显卡、输入法、nixpak overlay、Steam），被广播，按 `gui` 标签生效 |
 | `modules/base/` | 平台无关的 Home Manager 基础层：`common.nix`、`agent-skills/`、用户级 `services/`（按 Tag 门控），由 `lib/mkSystem.nix` 自动接入 |
 | `skills/<command>/<name>/` | Agent skill 源目录，目录名即命令：`/refactor` 路由到 `skills/refactor/` 里的技能。`principles/` 与 `tools/` 不属于任何命令，`references/` 放共享清单。每个 skill 经 Home Manager 扁平安装到 `~/.agents/skills/<name>` |
 | `programs/dev/pi/prompts/` | pi 的 prompt 模板源目录：一个 `.md` 就是一个 `/命令`，经 Home Manager 链接到 `~/.pi/agent/prompts/` |

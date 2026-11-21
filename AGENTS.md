@@ -33,7 +33,7 @@ changing a gate instead of evaluating hosts one option at a time.
 | `hosts/<hostname>/home.nix` | Optional Machine File: `zine.*` knob assignments only. Most hosts have none; `userEnvironment = true` decides whether a User Environment exists. |
 | `modules/nixos/` | NixOS system modules: `common/` (baseline), `server/`, `nvidia.nix`, `wsl.nix`. |
 | `modules/darwin/` | nix-darwin system modules. |
-| `modules/desktop/{system,home}/` | The desktop subsystem, gated on `host.form.pc`. |
+| `modules/desktop/{system,home}/` | The desktop subsystem, gated on `host.hasTag "gui"` and `host.platform.linux`. |
 | `modules/base/` | Platform-independent Home Manager base layer, wired by `lib/mkSystem.nix`. |
 | `modules/mihomo/` | Cross-platform proxy: shared config plus `nixos.nix` / `darwin.nix`. |
 | `modules/tailscale/` | Cross-platform tailnet join: `nixos.nix` / `darwin.nix`, both on `host.profile.personal`. |

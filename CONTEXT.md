@@ -79,10 +79,10 @@ graph TD
     Nix --> G1["common: always"]
     Nix --> G2["optional: per tag"]
     Nix --> G3["server: form.server"]
-    Nix --> G4["desktop/system: form.pc"]
+    Nix --> G4["desktop/system: gui"]
     Nix --> G5["wsl: platform.wsl<br/>nvidia: facts<br/>mihomo: pc"]
     Dar --> G6["sops: always"]
     Dar --> G7["tailscale / sshd: profile.personal<br/>mihomo: platform.darwin"]
     HM --> G8["programs/*: each tests its prerequisite"]
-    HM --> G9["desktop/home: form.pc"]
+    HM --> G9["desktop/home: gui"]
 ```

@@ -107,7 +107,7 @@ R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory �
 ### `modules/desktop/system/`
 
 桌面子系统的系统级部分（NixOS 模块）。整棵树被 `modules/nixos/default.nix` 无条件
-导入，只有 `form = "pc"` 的 host 才真正拉入第三方模块与下列文件；第三方模块
+导入，只有带 `gui` 标签的 host 才真正拉入第三方模块与下列文件；第三方模块
 （dank-greeter、`niri`、`aagl`）的断言无法内部关闭，因此整棵按 gate 导入而不是逐文件
 门控。用户级部分见 `modules/desktop/home/`。
 
@@ -192,7 +192,7 @@ Headscale tailnet 接入（`hs.zineyu.cn`，见 ADR-0008）。**一份前提、�
 由 `lib/mkSystem.nix` 通过 `home-manager.sharedModules` 接入每个用户环境。program 是否
 生效**不经过这一层**：每个 Program Module 自己测试所需的前提（`gui` 标签、`host.form.pc`、
 `host.platform.linux`），无条件的直接 `config = { … };` 成为基线。`services/` 下的每个服务
-自己读它需要的标签。`desktop/home` 也由这里广播，按 `form.pc` 门控。
+自己读它需要的标签。`desktop/home` 也由这里广播，按 `gui` 标签与 `platform.linux` 门控。
 
 | File | Purpose | Notable |
 |------|---------|---------|
