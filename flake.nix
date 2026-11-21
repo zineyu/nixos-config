@@ -118,7 +118,7 @@
             # update*.sh（nix-update 依 meta.position 定位文件）与 `nix build .#<name>` 使用。
             packageRoots = [
               ./programs
-              ./modules/desktop
+              ./modules/nixos/desktop
             ];
             customPkgs = builtins.listToAttrs (
               map

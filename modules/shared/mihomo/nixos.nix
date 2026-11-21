@@ -1,5 +1,5 @@
 # mihomo（fake-IP TUN 代理）的系统级部分：NixOS（systemd 服务）。
-# 配置与 nix-darwin 侧共用 ../config.yaml，代理凭据由 sops 注入。
+# 配置与 nix-darwin 侧共用 ./config.yaml，代理凭据由 sops 注入。
 {
   config,
   host,
@@ -25,7 +25,7 @@ in
 {
   config = lib.mkIf (host.platform.nixos && host.form.pc) {
     sops.secrets.mihomo_proxies = {
-      sopsFile = ../../secrets/mihomo.yaml;
+      sopsFile = ../../../secrets/mihomo.yaml;
       format = "binary";
     };
 

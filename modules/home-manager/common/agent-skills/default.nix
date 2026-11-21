@@ -1,7 +1,7 @@
 { lib, ... }:
 
 let
-  skillsRoot = ../../../skills;
+  skillsRoot = ../../../../skills;
 
   directoriesIn = dir: lib.filterAttrs (_: type: type == "directory") (builtins.readDir dir);
 

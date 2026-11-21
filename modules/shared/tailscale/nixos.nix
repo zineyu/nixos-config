@@ -27,7 +27,7 @@
     #   1. fake-ip-filter 加入 hs.zineyu.cn（返回真实 IP 直连）
     #   2. nameserver-policy 把 +.ts.zineyu.cn 指向 100.100.100.100（MagicDNS 解析）
     sops.secrets.tailscale_auth_key = {
-      sopsFile = ../../secrets/tailscale.yaml;
+      sopsFile = ../../../secrets/tailscale.yaml;
       key = "preauth_key";
       mode = "0400";
       # key 更新（轮换）后重新触发自动注册。

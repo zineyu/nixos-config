@@ -1,8 +1,9 @@
 # 用户级桌面环境层（niri、DankMaterialShell、字体、图标等）。
 #
-# 广播-门控：被 lib/mkSystem.nix 无条件加入 home-manager.sharedModules，
-# 只有带 "gui" 标签的 Linux host 生效：niri 与 DankMaterialShell 是 Wayland
-# 桌面，macOS 上求值不了，WSL 上也没有要接管的图形会话。
+# 广播-门控：被 modules/home-manager/default.nix 无条件导入（lib/mkSystem.nix 把
+# 整棵树接入 home-manager.sharedModules），只有带 "gui" 标签的 Linux host 生效：
+# niri 与 DankMaterialShell 是 Wayland 桌面，macOS 上求值不了，WSL 上也没有要接管的
+# 图形会话。
 {
   host,
   lib,

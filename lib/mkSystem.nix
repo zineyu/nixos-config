@@ -44,8 +44,9 @@ let
 
   # NixOS 与 nix-darwin 共享的 Home Manager 集成配置。
   #
-  # 广播-门控：这里无条件接入 base、programs 与桌面层，机器差异全部由
-  # specialArgs.host 的 tags / platform / form / profile 与 facts 在各模块内部决定。
+  # 广播-门控：这里无条件接入 modules/home-manager（common + desktop）与 programs，
+  # 机器差异全部由 specialArgs.host 的 tags / platform / form / profile 与 facts
+  # 在各模块内部决定。
   #
   # 一台机器的一切都在 hosts/<hostname>/ 之下：default.nix 是系统事实，
   # home.nix 是可选的 user 级 knob 覆盖（不存在即无覆盖）。是否存在
@@ -68,9 +69,8 @@ let
       };
       home-manager.sharedModules = [
         inputs.sops-nix.homeManagerModules.sops
-        ../modules/base
+        ../modules/home-manager
         ../programs
-        ../modules/desktop/home
       ];
 
       home-manager.users = lib.mkIf fullHost.userEnvironment {

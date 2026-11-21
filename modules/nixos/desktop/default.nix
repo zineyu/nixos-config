@@ -5,7 +5,7 @@
 # 才真正拉入第三方模块与下面的文件。第三方模块（dank-greeter、niri、aagl）
 # 的断言与 option 无法在模块内部关闭，因此必须整棵按 gate 导入，而不是逐文件门控
 # （ADR-0018 允许树入口门控，理由见下一行的 lint 豁免）。
-# 用户级部分见 modules/desktop/home/。
+# 用户级部分见 modules/home-manager/desktop/。
 #
 # lint-allow-imports-gate: 第三方模块（dank-greeter / niri / aagl）的断言与 option
 # 无法在模块体内关闭，只能在入口整棵按 gate 导入。

@@ -1,6 +1,6 @@
 # NixOS-WSL 专属设置。
 #
-# 只在 modules/nixos/wsl.nix 命中 platform = "wsl" 时与 nixos-wsl 模块一起导入，因此
+# 只在 modules/nixos/platform/wsl.nix 命中 platform = "wsl" 时与 nixos-wsl 模块一起导入，因此
 # `wsl.*` 选项总是有声明（原因见 wsl.nix 的注释）。
 { lib, ... }:
 {

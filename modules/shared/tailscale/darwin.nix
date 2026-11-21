@@ -45,9 +45,9 @@ in
   config = lib.mkIf host.profile.personal {
     # Darwin host 的 tailnet 接入（见 docs/adr/0008-headscale-tailnet.md）。
     # 与 NixOS 相同，使用共享 sops 文件中的可复用 preauth key 自动注册
-    # （provisioning 见 modules/tailscale/nixos.nix 与 docs/secrets.md）。
+    # （provisioning 见 modules/shared/tailscale/nixos.nix 与 docs/secrets.md）。
     sops.secrets.tailscale_auth_key = {
-      sopsFile = ../../secrets/tailscale.yaml;
+      sopsFile = ../../../secrets/tailscale.yaml;
       key = "preauth_key";
     };
 
@@ -58,7 +58,7 @@ in
       # `serviceConfig.ProgramArguments`：nix-darwin 只对 `command` 注入
       # `/bin/wait4path /nix/store` 包装，否则开机时 launchd 会在 /nix 卷
       # 挂载之前启动本 job，找不到脚本即判定初始化失败（见
-      # modules/mihomo/darwin.nix 中的同一说明）。
+      # modules/shared/mihomo/darwin.nix 中的同一说明）。
       command = "${tsAutoLogin}";
 
       serviceConfig = {
