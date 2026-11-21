@@ -18,7 +18,7 @@ in
   #
   # 恢复 runbook（状态丢失时）：
   #   1. systemctl stop headscale
-  #   2. 从 tianxuan 的 ~/backups/headscale/ 拷回 db.sqlite 与
+  #   2. 从本机快照目录 /var/lib/headscale-backup/ 拷回 db.sqlite 与
   #      noise_private.key 到 /var/lib/headscale/（owner headscale:headscale，0600）
   #   3. systemctl start headscale；所有节点无需重新注册
   services.headscale = {
@@ -68,8 +68,6 @@ in
     };
   };
 
-  # tianxuan 的备份 timer 通过 ssh（root@aliyun-01）rsync 拉取快照目录。
-  environment.systemPackages = [ pkgs.rsync ];
   # tailnet 的唯一用户，幂等创建（用户已存在时跳过）。
   systemd.services.headscale-user-zine = {
     description = "Ensure headscale user 'zine' exists";
