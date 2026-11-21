@@ -67,6 +67,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # pi 官方 flake（stable 分支），只取其中的 `packages.pi`。
+    pi = {
+      url = "github:earendil-works/pi/stable";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixpak = {
       url = "github:nixpak/nixpak";
       inputs.nixpkgs.follows = "nixpkgs";

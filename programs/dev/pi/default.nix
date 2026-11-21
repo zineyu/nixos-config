@@ -5,16 +5,9 @@
 }:
 
 let
-  llmAgents = inputs.llm-agents-nix.packages.${pkgs.stdenv.hostPlatform.system};
-
-  # pi 扩展源目录：单文件扩展直接放 .ts 文件，目录扩展放含 index.ts 的子目录。
-  # 新增扩展只需放入该目录，无需修改本文件。
   extensionsDir = ./extensions;
-
-  # pi prompt 模板源目录：每个 .md 是一个 /命令，文件名即命令名。
   promptsDir = ./prompts;
 
-  # 把源目录中的每个文件链接到目标前缀下
   linkDir =
     targetPrefix: dir:
     builtins.listToAttrs (
@@ -23,11 +16,11 @@ let
         value.source = dir + "/${name}";
       }) (builtins.attrNames (builtins.readDir dir))
     );
+  piPackage = inputs.pi.packages.${pkgs.stdenv.hostPlatform.system}.pi;
 in
 {
   config = {
-    home.packages = [ llmAgents.pi ];
-
     home.file = linkDir ".pi/agent/extensions" extensionsDir // linkDir ".pi/agent/prompts" promptsDir;
+    home.packages = [ piPackage ];
   };
 }
