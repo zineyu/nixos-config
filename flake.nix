@@ -82,7 +82,7 @@
     inputs.flake-parts.lib.mkFlake { inherit inputs; } (
       let
         vars = import ./vars;
-        hosts = import ./hosts/inventory.nix;
+        hosts = import ./inventory.nix;
         inherit (import ./lib/mkSystem.nix { inherit inputs vars; }) mkSystem mkDarwinSystem;
 
         # wsl 走 NixOS 构建路径，但 platform 仍是独立值。
@@ -227,7 +227,7 @@
           inherit nixosConfigurations darwinConfigurations;
 
           # 由 host inventory 中 deploy.enable = true 的条目生成 deploy-rs nodes，
-          # 新增远程主机只需在 hosts/inventory.nix 中补充 deploy 元数据。
+          # 新增远程主机只需在 inventory.nix 中补充 deploy 元数据。
           deploy.nodes = inputs.nixpkgs.lib.mapAttrs (hostname: host: {
             inherit (host.deploy) hostname sshUser;
             profiles.system = {

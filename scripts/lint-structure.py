@@ -200,7 +200,7 @@ def check_option_defaults() -> None:
 
 def check_inventory_facts() -> None:
     """R5：每个 host 必须有 platform / form / profile 与 facts.gpu。"""
-    path = ROOT / "hosts" / "inventory.nix"
+    path = ROOT / "inventory.nix"
     text = "\n".join(strip_comment(line) for line in path.read_text(encoding="utf-8").splitlines())
     for match in re.finditer(r"^  ([a-z][\w-]*)\s*=\s*\{", text, re.MULTILINE):
         name = match.group(1)

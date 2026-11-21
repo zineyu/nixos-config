@@ -37,7 +37,7 @@ let
     config =
       { ... }:
       {
-        imports = [ ./nixpaks-common.nix ];
+        imports = [ ./common.nix ];
         app.package = qq-wrapped;
         flatpak = { inherit appId; };
         dbus = {

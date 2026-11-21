@@ -20,7 +20,7 @@ argument-hint: "<主机> [check]"
 - `/ship <主机> check` 构建并验证，不改动任何机器。这是测试路径。
 - `/ship <主机>` 执行激活。那是生产，没有回滚就无法撤销。
 
-`$1` 必须出现在 `hosts/inventory.nix` 中。不要臆造环境名：带 `deploy.enable` 的主机通过网络到达，其余主机就地切换。
+`$1` 必须出现在 `inventory.nix` 中。不要臆造环境名：带 `deploy.enable` 的主机通过网络到达，其余主机就地切换。
 
 ## 配方
 

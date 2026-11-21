@@ -11,5 +11,5 @@
   ssh.zinePublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG9FM2h9+ysNfpHf0p2714ZijVYCPJyjiRwhhrc0BDKe openpgp:0xF933CFED";
 
   # 机器事实（GPU bus id 之类）不在这里：它们属于 Host Inventory 的 facts 段
-  # （hosts/inventory.nix），由 host.facts 注入模块（ADR-0018）。
+  # （inventory.nix），由 host.facts 注入模块（ADR-0018）。
 }

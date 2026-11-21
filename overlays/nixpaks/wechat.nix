@@ -37,7 +37,7 @@ let
     config =
       { sloth, ... }:
       {
-        imports = [ ./nixpaks-common.nix ];
+        imports = [ ./common.nix ];
         app.package = wechat-wrapped;
         flatpak = { inherit appId; };
         dbus = {

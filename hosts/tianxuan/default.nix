@@ -1,7 +1,7 @@
 # Host module for the `tianxuan` machine.
 #
 # 本文件只写这台机器的系统事实。模块树由 lib/mkSystem.nix 广播、由
-# hosts/inventory.nix 的 tags 门控；user 级覆盖见 ./home.nix。
+# inventory.nix 的 tags 门控；user 级覆盖见 ./home.nix。
 { hostname, pkgs, ... }:
 {
   imports = [

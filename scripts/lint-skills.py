@@ -3,7 +3,7 @@
 
 A skill is ``skills/<category>/<name>/SKILL.md``. The layout rules (one
 directory per category, one SKILL.md per skill, unique names) live in
-modules/base/agent-skills/default.nix as Nix assertions. This script covers
+modules/home-manager/common/agent-skills/default.nix as Nix assertions. This script covers
 what an assertion cannot read cheaply: the content of the frontmatter and the
 links between skills.
 
