@@ -12,7 +12,7 @@
 }:
 
 let
-  version = "1.6.3";
+  version = "1.6.4";
 
   # Upstream publishes self-contained per-platform bundles (bundled Node.js
   # runtime + JS lib + native Rust kernel addon).
@@ -27,10 +27,10 @@ let
       or (throw "codegraph: unsupported system ${stdenvNoCC.hostPlatform.system}");
 
   hashes = {
-    darwin-arm64 = "sha256-1AvDBNHePTdNcLRrDkCV3RJKDGuBAQrNL0m3tPvelIM=";
-    darwin-x64 = "sha256-ZYAZ8Tfn9HwqPrHfI0NbZfTMlsJZiYvJckOfSmiCY1c=";
-    linux-arm64 = "sha256-i6KeBK+i+4W2cYlm31UApjPjEDtv+YcmB15lnzXdYho=";
-    linux-x64 = "sha256-q/bntBHGzvHdVd1BsfNBL6lgEwB5PoZ4cPhcIm7sZYc=";
+    darwin-arm64 = "sha256-2qkUJzLu/tW20YeqgqLKnE8+vOENOU+3nPbEWzZ2GMw=";
+    darwin-x64 = "sha256-8WpW5d83WhZS7XF86L0PtGZyXmS1KlPcAHDW6MKBNjw=";
+    linux-arm64 = "sha256-6c0r67Kc5qqDtEiXVfdqNvPiJli+rF6+8CO4dL58/OE=";
+    linux-x64 = "sha256-hHfzhBy6asjEWEfULrUlTx8tf7wwRbrzM+HL6SJnAi0=";
   };
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
