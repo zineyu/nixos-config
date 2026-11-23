@@ -6,6 +6,7 @@
 
 let
   extensionsDir = ./extensions;
+  # promptsDir = ./prompts;
 
   linkDir =
     targetPrefix: dir:
@@ -19,6 +20,7 @@ let
 in
 {
   config = {
+    # home.file = linkDir ".pi/agent/extensions" extensionsDir // linkDir ".pi/agent/prompts" promptsDir;
     home.file = linkDir ".pi/agent/extensions" extensionsDir;
     home.packages = [ piPackage ];
   };
