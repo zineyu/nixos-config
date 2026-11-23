@@ -2311,17 +2311,28 @@ export default function subagentsExtension(pi: ExtensionAPI) {
 
   // /subagent command — spawn a subagent by name
   pi.registerCommand("subagent", {
-    description: "Spawn a subagent: /subagent <agent> <task>",
+    description: "Spawn a subagent: /subagent [fork] <agent> <task>",
     handler: async (args, ctx) => {
-      const trimmed = args.trim();
-      if (!trimmed) {
-        ctx.ui.notify("Usage: /subagent <agent> [task]", "warning");
+      const usage = "Usage: /subagent [fork] <agent> [task]";
+      let rest = args.trim();
+      if (!rest) {
+        ctx.ui.notify(usage, "warning");
         return;
       }
 
-      const spaceIdx = trimmed.indexOf(" ");
-      const agentName = spaceIdx === -1 ? trimmed : trimmed.slice(0, spaceIdx);
-      const task = spaceIdx === -1 ? "" : trimmed.slice(spaceIdx + 1).trim();
+      // A leading `fork` names the session mode, not an agent: it seeds the child
+      // with this conversation instead of an empty session.
+      const forkArg = /^fork\b\s*/i.exec(rest);
+      const fork = forkArg !== null;
+      if (forkArg) rest = rest.slice(forkArg[0].length);
+
+      const spaceIdx = rest.indexOf(" ");
+      const agentName = spaceIdx === -1 ? rest : rest.slice(0, spaceIdx);
+      const task = spaceIdx === -1 ? "" : rest.slice(spaceIdx + 1).trim();
+      if (!agentName) {
+        ctx.ui.notify(usage, "warning");
+        return;
+      }
 
       const defs = loadAgentDefaults(agentName);
       if (!defs) {
@@ -2334,7 +2345,8 @@ export default function subagentsExtension(pi: ExtensionAPI) {
 
       const taskText = task || `You are the ${agentName} agent. Wait for instructions.`;
       const displayName = agentName[0].toUpperCase() + agentName.slice(1);
-      const toolCall = `Use subagent with agent: "${agentName}", name: "${displayName}", task: ${JSON.stringify(taskText)}`;
+      const forkArgText = fork ? ", fork: true" : "";
+      const toolCall = `Use subagent with agent: "${agentName}", name: "${displayName}"${forkArgText}, task: ${JSON.stringify(taskText)}`;
       pi.sendUserMessage(toolCall);
     },
   });
