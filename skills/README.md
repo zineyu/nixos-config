@@ -22,9 +22,9 @@
 | [`gate`](#gate) | 4 | /gate | 门槛 — 把质量与安全写成可执行的门槛并守住。 |
 | [`ship`](#ship) | 3 | /ship | 交付 — 部署、观测、描述改动。 |
 | [`principles`](#principles) | 20 | — | 判据 — 跨阶段复用的判断标准，被上面各层点名引用。 |
-| [`tools`](#tools) | 18 | — | 工具 — 跨阶段的工具与这个技能集自身的维护。 |
+| [`tools`](#tools) | 19 | — | 工具 — 跨阶段的工具与这个技能集自身的维护。 |
 
-合计 **78** 个技能。另有 `references/` 存放被多个技能共用的清单，不是技能分类。
+合计 **79** 个技能。另有 `references/` 存放被多个技能共用的清单，不是技能分类。
 
 <a id="spec"></a>
 
@@ -195,6 +195,7 @@
 |---|---|
 | [`ask-skills`](./tools/ask-skills/SKILL.md) | 不知道该用哪个技能时，让它来路由。（手动 /skill: 调用） |
 | [`automate-me`](./tools/automate-me/SKILL.md) | 把你的口味与工作方式沉淀成一个 `-mode` 技能。（手动 /skill: 调用） |
+| [`btw`](./tools/btw/SKILL.md) | 用 `/btw` 开一条并行旁路对话，不打断主 agent。（手动 /btw 调用） |
 | [`find-skill`](./tools/find-skill/SKILL.md) | 发现并安装现成的技能。 |
 | [`handoff`](./tools/handoff/SKILL.md) | 把当前对话压缩成交接文档，让另一个 agent 接着干。（手动 /skill: 调用） |
 | [`html-report`](./tools/html-report/SKILL.md) | 生成给人类看的单文件 HTML 报告：摘要先行、卡片同构、图表并排。 |
