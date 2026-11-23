@@ -259,7 +259,7 @@ Wayland 桌面环境与合成器配置。本层由 `modules/home-manager/desktop
 | `mise/` | mise 运行时管理器，集成 fish。 | `programs.mise` |
 | `nixvim/` | Neovim 编辑器（nixvim），核心与插件配置拆分。 | `inputs.nixvim.homeModules.nixvim`；`core.nix`、`plugins/` |
 | `npm/` | npm prefix 配置。 | `programs.npm` |
-| `pi/` | pi 编码 Agent | `inputs.pi` |
+| `pi/` | pi 编码 Agent；扩展与提示词是仓库内源码（`extensions/`、`prompts/`），逐个链接进 `~/.pi/agent/`。 | `inputs.pi`、`home.file`；`extensions/pi-vcc/` 取自上游 `sting8k/pi-vcc` |
 | `vscode/` | VS Code。 | `programs.vscode` |
 | `zed/` | Zed 编辑器，含 GLM 模型与 vim 键位。 | `programs.zed-editor` |
 
