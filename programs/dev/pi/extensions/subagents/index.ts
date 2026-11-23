@@ -352,7 +352,11 @@ function resolveSubagentPaths(
 
 function getDefaultSessionDirFor(cwd: string, agentDir: string): string {
   const safePath = `--${cwd.replace(/^[/\\]/, "").replace(/[/\\:]/g, "-")}--`;
-  const sessionDir = join(agentDir, "sessions", safePath);
+  // 子代理会话放在项目会话目录下一层：`/resume` 与 `--continue` 只读顶层
+  // `.jsonl`，所以 spawn 出来的 agent 不会出现在可恢复会话列表里。会话文件仍以
+  // 绝对路径传给子进程（`--session`），子进程的 sessionDir 从文件父目录推导，
+  // 按名字 / 按 id resume 都不受影响。
+  const sessionDir = join(agentDir, "sessions", safePath, "subagents");
   if (!existsSync(sessionDir)) {
     mkdirSync(sessionDir, { recursive: true });
   }
