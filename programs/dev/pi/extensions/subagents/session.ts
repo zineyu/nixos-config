@@ -30,8 +30,6 @@ export interface MessageEntry extends SessionEntry {
   };
 }
 
-export type SeededSubagentSessionMode = "lineage-only" | "fork";
-
 function getForkContentLines(parentSessionFile: string): string[] {
   const raw = readFileSync(parentSessionFile, "utf8");
   const lines = raw.split("\n").filter((line) => line.trim());
@@ -58,8 +56,14 @@ function getForkContentLines(parentSessionFile: string): string[] {
   });
 }
 
+/**
+ * Write the child's session file as a fork of the parent's.
+ *
+ * The parent's entries up to (but excluding) its last user message become the
+ * child's history, so the child continues the conversation instead of reading
+ * a task description; the new header records `parentSession` for lineage.
+ */
 export function seedSubagentSessionFile(params: {
-  mode: SeededSubagentSessionMode;
   parentSessionFile: string;
   childSessionFile: string;
   childCwd: string;
@@ -72,8 +76,7 @@ export function seedSubagentSessionFile(params: {
     cwd: params.childCwd,
     parentSession: params.parentSessionFile,
   };
-  const contentLines =
-    params.mode === "fork" ? getForkContentLines(params.parentSessionFile) : [];
+  const contentLines = getForkContentLines(params.parentSessionFile);
   const lines = [JSON.stringify(header), ...contentLines];
 
   mkdirSync(dirname(params.childSessionFile), { recursive: true });

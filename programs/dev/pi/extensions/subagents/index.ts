@@ -111,8 +111,7 @@ const SubagentParams = Type.Object({
       description:
         "Start the sub-agent from this conversation's history instead of an empty session. Decide per " +
         "spawn: true when the work needs what this session already discussed, read or changed; false for " +
-        "independent work, where a fresh context is cheaper and unbiased. Omit it to accept the agent's " +
-        "own `session-mode` default.",
+        "independent work, where a fresh context is cheaper and unbiased. Omitted means fresh.",
     }),
   ),
   cwd: Type.Optional(
@@ -122,8 +121,6 @@ const SubagentParams = Type.Object({
     }),
   ),
 });
-
-type SubagentSessionMode = "standalone" | "lineage-only" | "fork";
 
 interface AgentDefaults {
   model?: string;
@@ -140,7 +137,6 @@ interface AgentDefaults {
   autoExit?: boolean;
   interactive?: boolean;
   systemPromptMode?: "append" | "replace";
-  sessionMode?: SubagentSessionMode;
   cwd?: string;
   cli?: string;
   body?: string;
@@ -275,13 +271,6 @@ function parseCommaList(value: string | undefined): string[] | undefined {
   return list.length > 0 ? list : undefined;
 }
 
-function parseSessionMode(value: string | undefined): SubagentSessionMode | undefined {
-  if (value === "standalone" || value === "lineage-only" || value === "fork") {
-    return value;
-  }
-  return undefined;
-}
-
 function parseAgentDefinition(content: string, fallbackName: string): AgentDefinition | null {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
@@ -306,7 +295,6 @@ function parseAgentDefinition(content: string, fallbackName: string): AgentDefin
     subagentAgents: parseCommaList(getFrontmatterValue(frontmatter, "subagent_agents")),
     autoExit: parseOptionalBoolean(getFrontmatterValue(frontmatter, "auto-exit")),
     interactive: parseOptionalBoolean(getFrontmatterValue(frontmatter, "interactive")),
-    sessionMode: parseSessionMode(getFrontmatterValue(frontmatter, "session-mode")),
     cwd: getFrontmatterValue(frontmatter, "cwd"),
     cli: getFrontmatterValue(frontmatter, "cli"),
     body: body || undefined,
@@ -372,33 +360,17 @@ function getDefaultSessionDirFor(cwd: string, agentDir: string): string {
   return sessionDir;
 }
 
-function resolveEffectiveSessionMode(
-  params: Static<typeof SubagentParams>,
-  agentDefs: AgentDefaults | null,
-): SubagentSessionMode {
-  // The caller owns the fork/fresh decision: an explicit flag beats the agent
-  // definition, which only supplies a default when the call says nothing.
-  if (params.fork !== undefined) return params.fork ? "fork" : "standalone";
-  return agentDefs?.sessionMode ?? "standalone";
-}
-
-function resolveLaunchBehavior(
-  params: Static<typeof SubagentParams>,
-  agentDefs: AgentDefaults | null,
-): {
-  sessionMode: SubagentSessionMode;
-  seededSessionMode: "lineage-only" | "fork" | null;
-  inheritsConversationContext: boolean;
+/**
+ * The caller owns the fork/fresh decision: a forked child is seeded with this
+ * session's history and receives the task as a plain prompt; a fresh child gets
+ * the wrapper instructions and an artifact-backed handoff instead.
+ */
+function resolveLaunchBehavior(params: Static<typeof SubagentParams>): {
+  fork: boolean;
   taskDelivery: "direct" | "artifact";
 } {
-  const sessionMode = resolveEffectiveSessionMode(params, agentDefs);
-  const inheritsConversationContext = sessionMode === "fork";
-  return {
-    sessionMode,
-    seededSessionMode: sessionMode === "standalone" ? null : sessionMode,
-    inheritsConversationContext,
-    taskDelivery: inheritsConversationContext ? "direct" : "artifact",
-  };
+  const fork = params.fork === true;
+  return { fork, taskDelivery: fork ? "direct" : "artifact" };
 }
 
 /**
@@ -794,7 +766,7 @@ function updateWidget() {
 /**
  * Build the positional prompt args for a Pi CLI subagent launch.
  *
- * In artifact-backed launches (lineage-only, standalone), Pi's buildInitialMessage()
+ * In artifact-backed launches (a fresh session), Pi's buildInitialMessage()
  * concatenates @file content with messages[0] into one initial prompt. That breaks
  * /skill: expansion because the message no longer starts with "/skill:". Only
  * messages[1..] are sent as separate follow-up prompts where /skill: is recognized.
@@ -1143,7 +1115,6 @@ export const __test__ = {
   renderSubagentWidgetLines,
   loadAgentDefaults,
   discoverAgentDefinitions,
-  resolveEffectiveSessionMode,
   resolveLaunchBehavior,
   resolveEffectiveInteractive,
   buildSubagentToolAllowlist,
@@ -1227,11 +1198,10 @@ async function launchSubagent(
     await new Promise<void>((resolve) => setTimeout(resolve, getShellReadyDelayMs()));
   }
 
-  const launchBehavior = resolveLaunchBehavior(params, agentDefs);
+  const launchBehavior = resolveLaunchBehavior(params);
 
-  if (launchBehavior.seededSessionMode) {
+  if (launchBehavior.fork) {
     seedSubagentSessionFile({
-      mode: launchBehavior.seededSessionMode,
       parentSessionFile: sessionFile,
       childSessionFile: subagentSessionFile,
       childCwd: targetCwdForSession,
@@ -1240,11 +1210,10 @@ async function launchSubagent(
 
   const activityFile = getSubagentActivityFile(artifactDir, id);
   mkdirSync(dirname(activityFile), { recursive: true });
-  const { inheritsConversationContext } = launchBehavior;
 
   // Build the task message
-  // Only full-context fork mode inherits prior conversation state.
-  // Blank-session modes need the wrapper instructions and artifact-backed handoff.
+  // A forked child already holds the prior conversation.
+  // A fresh session needs the wrapper instructions and artifact-backed handoff.
   const modeHint = agentDefs?.autoExit
     ? "Complete your task autonomously. When you are finished, simply stop — your session ends automatically."
     : "Complete your task. The user can interact with you at any time, and the session ends when the user exits the pane.";
@@ -1258,7 +1227,7 @@ async function launchSubagent(
   const systemPromptMode = agentDefs?.systemPromptMode;
   const identityInSystemPrompt = systemPromptMode && identity;
   const roleBlock = identity && !identityInSystemPrompt ? `\n\n${identity}` : "";
-  const fullTask = inheritsConversationContext
+  const fullTask = launchBehavior.fork
     ? params.task
     : `${roleBlock}\n\n${modeHint}\n\n${params.task}\n\n${summaryInstruction}`;
   // ── Claude Code CLI path ──
