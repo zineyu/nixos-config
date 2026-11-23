@@ -1,0 +1,298 @@
+/**
+ * pi-notify — desktop notifications and sounds for Pi.
+ *
+ * Fires when the agent finishes a turn, errors, or asks the user a question.
+ * Cross-platform, zero deps:
+ *   - macOS:    `osascript` (notification center) + `afplay` (sound)
+ *   - Linux:    `notify-send` (libnotify) + `paplay`/`aplay` (sound)
+ *   - Windows:  PowerShell toast + `[console]::beep` (sound)
+ *   - Terminal: OSC 777 (Ghostty/iTerm2/WezTerm/rxvt) + OSC 99 (Kitty) as a
+ *               portable fallback that needs no binary.
+ *
+ * Config (settings.json): `"notify": { "onComplete": true, "onError": true,
+ * "onQuestion": true, "sound": true, "volume": 0.4 }`. Defaults: all on.
+ * Flags: --no-notify disables everything for one run.
+ *
+ * Best-effort: every notification path is wrapped so a failure to notify can
+ * never break the agent flow. Plain JS (pi-budget pattern).
+ */
+
+import { execFile } from "node:child_process";
+import { accessSync, constants, readFileSync } from "node:fs";
+import { delimiter, join } from "node:path";
+import os from "node:os";
+
+const DEFAULTS = {
+  onComplete: true,
+  onError: true,
+  onQuestion: true,
+  sound: true,
+  volume: 0.4,
+};
+
+/**
+ * Read the `notify` settings key from settings.json, searching <cwd>/.pi →
+ * ~/.pi/agent → ~/.pi/agents (same pattern as pi-references/pi-permission).
+ * The project scope is trust-gated (pi-cron pattern): `trusted === false`
+ * skips <cwd>/.pi entirely, so settings.json in an untrusted checkout cannot
+ * disable or enable notifications — global settings still apply.
+ * A settings.json that is missing, unreadable, or has no object value for the
+ * key is skipped and the search continues; the first file WITH a valid object
+ * wins. Returns undefined when no file provides one.
+ */
+export function readSettingsKey(cwd, key, trusted = false) {
+  const home = os.homedir();
+  const dirs = [
+    ...(trusted ? [join(cwd || process.cwd(), ".pi")] : []),
+    process.env.PI_CODING_AGENT_DIR || join(home, ".pi", "agent"),
+    join(home, ".pi", "agents"),
+  ];
+  for (const dir of dirs) {
+    try {
+      const parsed = JSON.parse(readFileSync(join(dir, "settings.json"), "utf8"));
+      const v = parsed?.[key];
+      if (v && typeof v === "object" && !Array.isArray(v)) return v;
+      if (v !== undefined) {
+        // Parsed but wrong shape: warn and CONTINUE to the next settings location,
+        // so a bad project-level key can't shadow a valid global one.
+        console.warn(
+          `${key}: ${join(dir, "settings.json")} has a non-object "${key}" value — ignoring (trying next settings location)`,
+        );
+      }
+    } catch {
+      // missing/unreadable settings.json is fine — try next location
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Merge user config over defaults. Exported for testing.
+ */
+export function resolveConfig(user) {
+  return { ...DEFAULTS, ...(user && typeof user === "object" ? user : {}) };
+}
+
+// Does an executable `name` exist on PATH? Zero-dep best-effort probe.
+function hasBinary(name) {
+  for (const dir of (process.env.PATH || "").split(delimiter)) {
+    if (!dir) continue;
+    try {
+      accessSync(join(dir, name), constants.X_OK);
+      return true;
+    } catch { /* keep scanning */ }
+  }
+  return false;
+}
+
+// Memoized: PATH probing on every notification would be wasteful.
+let backendCache;
+
+/** Pick the backend: platform desktop path when its binary exists, else the
+ *  terminal/OSC path. Exported (with cache reset) for testing. */
+export function detectBackend() {
+  if (backendCache) return backendCache;
+  if (process.platform === "darwin") {
+    backendCache = hasBinary("osascript") ? "darwin" : "terminal";
+  } else if (process.platform === "win32") {
+    // WT_SESSION is deliberately NOT consulted: Windows Terminal sets it in
+    // WSL too, where the platform is linux and must route through
+    // notify-send/OSC — spawning powershell.exe there is wrong.
+    backendCache = hasBinary("powershell.exe") ? "windows" : "terminal";
+  } else {
+    backendCache = hasBinary("notify-send") ? "linux" : "terminal";
+  }
+  return backendCache;
+}
+
+/** Test seam: clear the memoized backend (PATH manipulation tests). */
+export function _resetBackendCacheForTest() {
+  backendCache = undefined;
+}
+
+/** Run a command, swallowing all errors (best-effort notification). */
+function run(cmd, args) {
+  try {
+    // timeout: hung osascript/afplay/notify-send/paplay children are killed
+    // instead of lingering forever (best-effort notification, bounded cost).
+    execFile(cmd, args, { timeout: 5000 }, (err) => {
+      if (err) { /* best-effort: silent (includes timeout kills) */ }
+    });
+  } catch { /* best-effort */ }
+}
+
+/** Sanitize a string for OSC embedding: title/body can be model-controlled
+ * (ui_prompt_start), so strip C0 controls + DEL (ESC/BEL could forge terminal
+ * escape sequences) and replace `;` (the OSC field separator). Exported for
+ * tests, same as toastScript. */
+export function sanitizeOsc(str) {
+  return String(str).replace(/[\x00-\x1f\x7f]/g, "").replace(/;/g, ",");
+}
+
+/**
+ * Escape a string for safe embedding inside an AppleScript double-quoted
+ * literal: `"` and `\` are the two chars that break out of (or corrupt) the
+ * string. Exported for testing. Used by the darwin branch of notify().
+ */
+export function appleScriptEscape(str) {
+  return str.replace(/["\\]/g, "\\$&");
+}
+
+function notifyOSC777(title, body) {
+  // OSC only renders on a terminal — stdout must be a TTY. Pipes/files are
+  // skipped entirely: raw escape bytes there are pure pollution (pi | tee,
+  // a2a-spawned stdout). TERM is NOT a terminal sentinel — it leaks from the
+  // launching shell into every pipe, so gating on it writes escape bytes into
+  // logs and pipes.
+  if (!process.stdout.isTTY) return;
+  try {
+    process.stdout.write(`\x1b]777;notify;${sanitizeOsc(title)};${sanitizeOsc(body)}\x07`);
+  } catch { /* best-effort */ }
+}
+
+function notifyOSC99(title, body) {
+  if (!process.stdout.isTTY) return; // same TTY-only rule as OSC 777
+  try {
+    process.stdout.write(`\x1b]99;i=1:d=0;${sanitizeOsc(title)}\x1b\\`);
+    process.stdout.write(`\x1b]99;i=1:p=body;${sanitizeOsc(body)}\x1b\\`);
+  } catch { /* best-effort */ }
+}
+
+/**
+ * Fire a desktop notification. Exported (curried) for testing with a backend
+ * override so tests never spawn real processes.
+ */
+export function notify(title, body, backend = detectBackend()) {
+  switch (backend) {
+    case "darwin":
+      run("osascript", ["-e", `display notification "${appleScriptEscape(body)}" with title "${appleScriptEscape(title)}"`]);
+      return;
+    case "windows":
+      run("powershell.exe", ["-NoProfile", "-Command", toastScript(title, body)]);
+      return;
+    case "linux":
+      run("notify-send", [title, body]);
+      return;
+    case "terminal":
+      if (process.env.KITTY_WINDOW_ID) notifyOSC99(title, body);
+      else notifyOSC777(title, body);
+  }
+}
+
+// Exported for tests (same as playSound/notify): the Windows script builder
+// carries escaping logic worth locking down.
+export function toastScript(title, body) {
+  // Minimal cross-version toast: writes title+body via BurntToast-free approach.
+  // ponytail: use msg.exe-free PowerShell one-liner; avoids WinRT type plumbing.
+  const t = title.replace(/'/g, "''");
+  const b = body.replace(/'/g, "''");
+  return `[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') > $null; $n = New-Object System.Windows.Forms.NotifyIcon; $n.Icon = [System.Drawing.SystemIcons]::Information; $n.Visible = $true; $n.ShowBalloonTip(5000, '${t}', '${b}', 'Info'); Start-Sleep -Seconds 6; $n.Dispose()`;
+}
+
+/**
+ * Play a sound. Best-effort; volume is a hint for backends that support it.
+ */
+export function playSound(volume, backend = detectBackend()) {
+  const v = Math.min(1, Math.max(0, Number(volume) || 0));
+  switch (backend) {
+    case "darwin":
+      // afplay has no volume flag; rely on system volume. Default sound.
+      run("afplay", ["/System/Library/Sounds/Glass.aiff"]);
+      return;
+    case "windows":
+      run("powershell.exe", ["-NoProfile", "-Command", "[console]::beep(800, 300)"]);
+      return;
+    case "linux":
+      run("paplay", ["--volume=" + Math.round(v * 65536), "/usr/share/sounds/freedesktop/stereo/complete.oga"].filter(Boolean));
+      return;
+    case "terminal":
+      // bell
+      try { process.stdout.write("\x07"); } catch { /* best-effort */ }
+  }
+}
+
+export default function notifyExtension(pi, opts = {}) {
+  // Test seam: injectable notifier/sound so tests observe the EFFECT (call
+  // counts), not just "does not throw". Falls back to the real implementations.
+  const doNotify = opts.notify || notify;
+  const doSound = opts.playSound || playSound;
+
+  pi.registerFlag("no-notify", {
+    description: "Disable pi-notify desktop notifications and sounds",
+    type: "boolean",
+  });
+
+  // CLI flags are immutable after parse; the runtime is active while the
+  // factory runs, so capture once here instead of touching `pi` from event
+  // handlers (which fire on a stale runner after session replacement/reload
+  // and throw "extension ctx is stale").
+  let noNotify = false;
+  try {
+    noNotify = Boolean(pi.getFlag("no-notify"));
+  } catch {
+    noNotify = false;
+  }
+
+  // notify settings — cached, refreshed on session_start with a fresh ctx.cwd.
+  let cfg = resolveConfig(undefined);
+  const refreshConfig = (cwd, trusted) => {
+    try {
+      cfg = resolveConfig(readSettingsKey(cwd, "notify", trusted));
+    } catch {
+      cfg = resolveConfig(undefined); // best-effort: keep defaults
+    }
+  };
+
+  const fire = (title, body, opts) => {
+    try {
+      if (noNotify) return;
+      const kind = opts?.kind;
+      if (kind === "complete" && !cfg.onComplete) return;
+      if (kind === "error" && !cfg.onError) return;
+      if (kind === "question" && !cfg.onQuestion) return;
+      try { doNotify(title, body); } catch { /* best-effort */ }
+      if (cfg.sound) {
+        try { doSound(cfg.volume); } catch { /* best-effort */ }
+      }
+    } catch {
+      // Notifications must never throw out of an event handler (stale ctx,
+      // missing config, anything) — best-effort by contract.
+    }
+  };
+
+  // Error: tool result flagged as error. We only fire on the first error per
+  // turn to avoid a storm; best-effort dedupe via a turn-scoped flag.
+  let erroredThisTurn = false;
+
+  // Agent finished a full turn and is waiting for input. A turn that already
+  // fired the error notification does not also get "Task complete".
+  pi.on("agent_settled", () => {
+    if (erroredThisTurn) return;
+    fire("Pi", "Task complete", { kind: "complete" });
+  });
+  pi.on("session_start", (_event, ctx) => {
+    erroredThisTurn = false;
+    // Project settings load only for trusted checkouts; untrusted falls back
+    // to the global settings files (readSettingsKey gates the cwd/.pi scope).
+    refreshConfig(ctx?.cwd || process.cwd(), ctx?.isProjectTrusted?.() === true);
+  });
+  pi.on("turn_start", () => { erroredThisTurn = false; });
+  pi.on("tool_result", (event) => {
+    if (erroredThisTurn) return;
+    if (event?.isError) {
+      // Latch only when the error notification will really fire — otherwise
+      // onError:false users would also lose "Task complete" (0.1.6 behavior).
+      if (!noNotify && cfg.onError !== false) erroredThisTurn = true;
+      fire("Pi", "An error occurred", { kind: "error" });
+    }
+  });
+
+  // Question: Pi is waiting on a blocking user-facing UI prompt (e.g.
+  // ask_user_question). The SDK fires ui_prompt_start for every kind
+  // (select/confirm/input/editor/custom) — that IS "the agent asked me
+  // something". Gated by cfg.onQuestion in fire().
+  pi.on("ui_prompt_start", (event) => {
+    const title = typeof event?.title === "string" && event.title ? event.title : "waiting for your input";
+    fire("Pi", `Question: ${title}`, { kind: "question" });
+  });
+}
