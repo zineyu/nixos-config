@@ -106,6 +106,15 @@ const SubagentParams = Type.Object({
     }),
   ),
   model: Type.Optional(Type.String({ description: "Model override (overrides agent default)" })),
+  fork: Type.Optional(
+    Type.Boolean({
+      description:
+        "Start the sub-agent from this conversation's history instead of an empty session. Decide per " +
+        "spawn: true when the work needs what this session already discussed, read or changed; false for " +
+        "independent work, where a fresh context is cheaper and unbiased. Omit it to accept the agent's " +
+        "own `session-mode` default.",
+    }),
+  ),
   cwd: Type.Optional(
     Type.String({
       description:
@@ -367,6 +376,9 @@ function resolveEffectiveSessionMode(
   params: Static<typeof SubagentParams>,
   agentDefs: AgentDefaults | null,
 ): SubagentSessionMode {
+  // The caller owns the fork/fresh decision: an explicit flag beats the agent
+  // definition, which only supplies a default when the call says nothing.
+  if (params.fork !== undefined) return params.fork ? "fork" : "standalone";
   return agentDefs?.sessionMode ?? "standalone";
 }
 
