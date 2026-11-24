@@ -95,7 +95,7 @@ direnv allow
 代理（AI coding agents）在该仓库中工作前，请先阅读：
 
 - `AGENTS.md` — 构建命令、代码风格、模块结构、安全注意事项。
-- `CONTEXT.md` — 项目术语与模块边界。
+- `GLOSSARY.md` — 项目上下文、示例对话与术语表（模块边界）。
 - `docs/adr/` — 关键架构决策记录。
 - `docs/module-reference.md` — 模块与辅助函数速查表。
 - `docs/secrets.md` — sops-nix secret 管理流程。

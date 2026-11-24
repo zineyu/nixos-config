@@ -1,9 +1,9 @@
 # AGENTS.md
 
 Operating notes for coding agents working in this repository. Read
-`CONTEXT.md`, `GLOSSARY.md` and `docs/module-reference.md` before changing
-structure; use the glossary's terms (Host, Tag, Gate, Program Module, Host
-Inventory, User Environment).
+`GLOSSARY.md` (project context, example dialogue and the canonical terms — Host,
+Tag, Gate, Program Module, Host Inventory, User Environment) and
+`docs/module-reference.md` before changing structure.
 
 ## Build and check
 
@@ -59,7 +59,8 @@ value with a default) → a `zine.*` knob assigned by a Machine File.
 ## Rules for changes
 
 Before writing a gate or changing how a host differs, read the **Tag**, **Gate** and
-**Axis** entries in `GLOSSARY.md`: they define what each metadata field means.
+**Axis** entries in the Language section of `GLOSSARY.md`: they define what each
+metadata field means.
 
 - **New program**: create `programs/<category>/<name>/default.nix` and test the
   prerequisite it needs — `lib.mkIf (host.hasTag "gui")`, `lib.mkIf host.form.pc`,
