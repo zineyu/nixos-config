@@ -4,7 +4,8 @@
 
 Accepted (supersedes the layout decisions of ADR-0009; keeps ADR-0009's
 "one directory per program, installation and configuration gated by one option"
-principle)
+principle). Amended by ADR-0022: package recipes moved out of the consuming
+program/module directory into `pkgs/<name>/`.
 
 ## Date
 
@@ -72,7 +73,8 @@ they had historically grown. That left five problems:
   `nix-update --flake <attr>` name. Self-maintained update scripts sit in the
   same directory (`update.sh`) and locate their recipe through the git index by
   directory name, since the script itself runs from the Nix store.
-- **`pkgs/` is deleted.**
+  （已由 ADR-0022 取代：配方集中到 `pkgs/<name>/`，`update.sh` 仍与配方同目录。）
+- **`pkgs/` is deleted.**（ADR-0022 恢复了 `pkgs/`，但只放配方，不放程序。）
 
 ## Alternatives Considered
 

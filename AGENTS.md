@@ -35,7 +35,8 @@ changing a gate instead of evaluating hosts one option at a time.
 | `modules/darwin/` | nix-darwin system modules: `sops.nix`. |
 | `modules/home-manager/` | Home Manager modules: `common/` (state version, `agent-skills/`) and `desktop/` (the user half of the desktop, on `gui` + `platform.linux`). |
 | `modules/shared/` | Cross-platform leaves: `sshd.nix`, `tailscale/{nixos,darwin}.nix`, `mihomo/{config.yaml,nixos,darwin}.nix`. |
-| `programs/<category>/<name>/` | One self-contained program: `default.nix`, optional `package.nix`, native config files. Categories: `shell`, `terminal`, `dev`, `gui`, `misc`. |
+| `programs/<category>/<name>/` | One self-contained program: `default.nix` and native config files. Categories: `shell`, `terminal`, `dev`, `gui`, `misc`. |
+| `pkgs/<name>/` | One custom package recipe: `package.nix` (attr `.#<name>`) plus an optional self-maintained `update.sh` beside it. The sole exception is the pi extension `pi-fff`, whose recipe shares its directory with the npm source tree it builds. |
 | `overlays/` | Overlay functions: `nixpaks.nix` (the `pkgs.nixpaks.*` overlay) plus its manifests in `nixpaks/` (`common.nix`, `qq.nix`, `wechat.nix`). |
 | `lib/` | Generic helpers (`mkSystem`, `scanPaths`, `storeLinks`, `nix-settings`, `host-axes`, `mkUpdateScript`). |
 | `vars/` | Shared identity only (`git`, `ssh`). Machine facts belong to the Host Inventory's `facts`. |
@@ -72,8 +73,12 @@ metadata field means.
   Platform/form/profile → their dedicated fields; a label → `tags`, tested with
   `host.hasTag "<tag>"`; hardware → `facts`; a value with a default → a
   knob overridden from `hosts/<hostname>/home.nix`. Never branch on `host.name`.
-- **New custom package**: put `package.nix` in the consuming program (or system
-  module) directory; the flake exposes it as `.#<directory-name>`.
+- **New custom package**: create `pkgs/<name>/package.nix` and call it by path
+  from the module that installs it; the flake exposes it as `.#<name>` (attr =
+  directory name) for `nix build` and `nix-update`. A self-maintained `update.sh`
+  sits beside the recipe. Only a recipe that builds its own source tree
+  (`src = ./.`, e.g. `programs/dev/pi/extensions/pi-fff`) stays where that source
+  lives (ADR-0022).
 - **New host**: add an entry to `inventory.nix` with `platform`, `form`,
   `profile` and `facts` (`gpu` is required), then create
   `hosts/<hostname>/default.nix` with machine wiring only. Set

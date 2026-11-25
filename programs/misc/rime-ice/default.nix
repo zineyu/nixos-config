@@ -7,7 +7,7 @@
 
 let
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-  squirrel = pkgs.callPackage ./squirrel/package.nix { };
+  squirrel = pkgs.callPackage ../../../pkgs/squirrel/package.nix { };
   squirrelApp = "${squirrel}/Library/Input Methods/Squirrel.app";
 in
 {

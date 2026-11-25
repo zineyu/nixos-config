@@ -6,7 +6,7 @@
 }:
 
 let
-  breezex-cursor = pkgs.callPackage ../breezex-cursor/package.nix { };
+  breezex-cursor = pkgs.callPackage ../../../pkgs/breezex-cursor/package.nix { };
 in
 {
   # XCursor 主题只对 Linux 图形会话有意义：macOS 的指针由系统管，Home Manager 的

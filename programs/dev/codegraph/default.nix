@@ -5,6 +5,6 @@
 
 {
   config = {
-    home.packages = [ (pkgs.callPackage ./package.nix { }) ];
+    home.packages = [ (pkgs.callPackage ../../../pkgs/codegraph/package.nix { }) ];
   };
 }

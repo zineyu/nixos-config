@@ -7,9 +7,10 @@
 | 目录 | 职责 |
 |------|------|
 | `programs/` | 纯软件：每个程序一个自包含 Home Manager 模块目录，模块自己测试所需前提（`gui` 标签 / `form.pc` / `platform.linux`），无需前提者为基线 |
+| `pkgs/` | 自定义包配方：每包一个 `pkgs/<name>/`，含 `package.nix` 与可选的自维护 `update.sh`；flake 暴露为 `.#<name>`（ADR-0022） |
 | `modules/` | 系统侧与 user 侧配置：`nixos/`、`darwin/`（按平台），`home-manager/`（平台无关 HM 层，含 `common/` 与 `desktop/`），`shared/`（跨平台叶子） |
 | `overlays/` | overlay 函数：`nixpaks.nix`（`pkgs.nixpaks.*`）与其 manifest 目录 `nixpaks/` |
-| `lib/` | 通用辅助函数（`mkSystem`、`host-axes`、`scanPaths`、`storeLinks`、`nix-settings`） |
+| `lib/` | 通用辅助函数（`mkSystem`、`host-axes`、`scanPaths`、`storeLinks`、`nix-settings`、`mkUpdateScript`） |
 | `inventory.nix` | Host Inventory：**唯一**的 host 差异来源（见 [Registry & Entry Points](#registry--entry-points)） |
 | `hosts/<hostname>/` | 该机器的一切：`default.nix`（系统事实）、`home.nix`（user 级覆盖，可选）、`hardware-configuration.nix` |
 
@@ -121,11 +122,10 @@ R3 Machine File 只允许 `zine.*`、R4 knob 必须有 default、R5 inventory �
 | `bluetooth.nix` | 启用 BlueZ（`hardware.bluetooth`）。 | 内核已检测到 hci0；不启用则桌面客户端报“无适配器” |
 | `desktop.nix` | 配置 greetd、niri、libinput 与 xdg-portal。 | `programs.niri`、`services.greetd`、`xdg.portal` |
 | `graphics.nix` | NVIDIA 专有驱动设置。 | `hardware.nvidia`、modesetting、powerManagement |
-| `input-method.nix` | 启用 Fcitx5 + Rime 输入法，含小鹤音形方案。 | `fcitx5-rime`、`rime-ice`、`rime-flypy/package.nix`、wayland 前端 |
+| `input-method.nix` | 启用 Fcitx5 + Rime 输入法，含小鹤音形方案。 | `fcitx5-rime`、`rime-ice`、`pkgs/rime-flypy` 配方、wayland 前端 |
 | `networking.nix` | 桌面网络管理器与防火墙配置。 | `networking.networkmanager`；防火墙已关闭 |
 | `nixpak.nix` | 把 `overlays/nixpaks.nix` 挂进 `nixpkgs.overlays`，产出 `pkgs.nixpaks.{qq,wechat}`，供 `programs/gui/{qq,wechat}` 消费。 | `nixpkgs.overlays`；overlay 本体与 manifest 在 `overlays/`；依赖 Home Manager 作为 NixOS 模块集成（`useGlobalPkgs`） |
 | `packages.nix` | 桌面系统级软件清单：Steam、An Anime Game Launcher、KDE Connect。 | `programs.steam`、`programs.anime-game-launcher`、`programs.kdeconnect` |
-| `rime-flypy/package.nix` | 小鹤音形 Rime 挂接配方（`.#rime-flypy`）。 | 与消费它的 `input-method.nix` 同目录 |
 | `steam.nix` | Steam 与 gamescope 的图形支持。 | `hardware.graphics.enable32Bit`；防火墙整体禁用，未单独开放端口 |
 
 ---
@@ -223,7 +223,7 @@ Wayland 桌面环境与合成器配置。本层由 `modules/home-manager/desktop
 
 ### `programs/` — 纯软件
 
-仓库根的软件树。每个目录 = 一个程序：模块自己测试所需的前提（`lib.mkIf (host.hasTag "gui")`、`lib.mkIf host.form.pc`、`lib.mkIf host.platform.linux` 等）；不需要任何前提的程序属于 User Environment 基线，直接写 `config = { … };`，不做门控（ADR-0016）。原生配置文件与可选 `package.nix` 共置。分类只按软件种类，不按平台。
+仓库根的软件树。每个目录 = 一个程序：模块自己测试所需的前提（`lib.mkIf (host.hasTag "gui")`、`lib.mkIf host.form.pc`、`lib.mkIf host.platform.linux` 等）；不需要任何前提的程序属于 User Environment 基线，直接写 `config = { … };`，不做门控（ADR-0016）。原生配置文件与应用共置；自定义包配方不在这里，而在 `pkgs/<name>/`（ADR-0022）。分类只按软件种类，不按平台。
 
 各层聚合器：`programs/default.nix` 扫描分类目录，`programs/<category>/default.nix` 扫描程序目录（`extraLibs.scanPaths`）。整棵树由 `lib/mkSystem.nix` 通过 `home-manager.sharedModules` 一次性接入；没有 per-host 软件清单，一个程序属于哪台机由模块自己读 host 的标签与轴决定。
 
@@ -248,14 +248,14 @@ Wayland 桌面环境与合成器配置。本层由 `modules/home-manager/desktop
 
 | Directory | Purpose | Notable |
 |-----------|---------|---------|
-| `codegraph/` | 代码知识图谱 CLI（自定义配方 + 多平台 hash 更新脚本）。 | `package.nix`、`update.sh` → `.#codegraph` |
+| `codegraph/` | 代码知识图谱 CLI（自定义配方 + 多平台 hash 更新脚本）。 | `pkgs/codegraph/` → `.#codegraph` |
 | `dbeaver/` | DBeaver 数据库客户端。 | `programs.dbeaver` |
 | `devenv/` | devenv shell 集成。 | `programs.devenv` |
 | `dsh/` | dsh 编码 Agent（来自 `llm-agents-nix`）。 | `inputs.llm-agents-nix` |
 | `fabric/` | fabric 自定义 patterns（commit/PR/分支名生成）与 `fabric-ai` 包。 | `xdg.configFile`，单文件链接 |
 | `git/` | Git 配置，含 GPG 签名与 LFS。 | `programs.git` |
 | `jj/` | Jujutsu 版本控制，含 GPG 签名。 | `programs.jujutsu` |
-| `jj-bond/` | Jujutsu TUI（自定义配方）。 | `package.nix` → `.#jj-bond` |
+| `jj-bond/` | Jujutsu TUI（自定义配方）。 | `pkgs/jj-bond/` → `.#jj-bond` |
 | `mise/` | mise 运行时管理器，集成 fish。 | `programs.mise` |
 | `nixvim/` | Neovim 编辑器（nixvim），核心与插件配置拆分。 | `inputs.nixvim.homeModules.nixvim`；`core.nix`、`plugins/` |
 | `npm/` | npm prefix 配置。 | `programs.npm` |
@@ -269,10 +269,10 @@ Wayland 桌面环境与合成器配置。本层由 `modules/home-manager/desktop
 
 | Directory | Purpose | Notable |
 |-----------|---------|---------|
-| `breezex-cursor/` | BreezeX 光标主题包（自定义配方）。 | `package.nix` → `.#breezex-cursor` |
+| `breezex-cursor/` | BreezeX 光标主题包（自定义配方）。 | `pkgs/breezex-cursor/` → `.#breezex-cursor` |
 | `chromium/` | Chromium。 | `programs.chromium` |
 | `cursor/` | 指针主题配置（消费 `breezex-cursor`）。 | `home.pointerCursor` |
-| `dbx-desktop/` | DBX Desktop（自定义配方 + FOD hash 更新脚本）。 | `package.nix`、`update.sh` → `.#dbx-desktop` |
+| `dbx-desktop/` | DBX Desktop（自定义配方 + FOD hash 更新脚本）。 | `pkgs/dbx-desktop/` → `.#dbx-desktop` |
 | `dolphin/` | KDE Dolphin 安装与默认目录关联。 | `xdg.mimeApps` |
 | `firefox/` | Firefox。 | `programs.firefox` |
 | `kitty/` | Kitty 图形终端，含主题与自定义配置；`zine.programs.kitty.fontSize` 是程度轴 knob。 | `programs.kitty`；`lib/storeLinks.nix`（`mkOutOfStoreDotfiles`，指向 `programs/gui/kitty/config/`） |
@@ -290,7 +290,7 @@ Wayland 桌面环境与合成器配置。本层由 `modules/home-manager/desktop
 |-----------|---------|---------|
 | `gnupg/` | GnuPG、gpg-agent 与 SSH agent，通过 sops-nix 导入私钥。 | `programs.gpg`、`services.gpg-agent`、自定义导入服务 |
 | `karabiner-elements/` | Karabiner-Elements 键盘配置（Darwin）。 | 包由 Homebrew cask 安装；`xdg.configFile` |
-| `rime-ice/` | Rime Ice（雾凇拼音）输入法与 Squirrel 前端（Darwin）。 | `home.file`、`home.activation`；`squirrel/package.nix` → `.#squirrel` |
+| `rime-ice/` | Rime Ice（雾凇拼音）输入法与 Squirrel 前端（Darwin）。 | `home.file`、`home.activation`；`pkgs/squirrel/` → `.#squirrel` |
 | `sops/` | sops 与 age 命令行工具。 | `home.packages` |
 | `ssh/` | SSH 客户端配置：sops 渲染的公网主机（如 `aliyun-01`）+ tailnet 成员别名 + 公钥授权。 | `sops.templates.ssh-hosts`、`~/.ssh/authorized_keys`（`vars.ssh.zinePublicKey`） |
 
@@ -300,16 +300,21 @@ Wayland 桌面环境与合成器配置。本层由 `modules/home-manager/desktop
 
 ## Package Recipes
 
-自定义包不再是集中目录，而是与消费它的模块共置的 `package.nix`。`flake.nix` 扫描 `programs/` 与 `modules/nixos/desktop/`，**attr 名 = 目录名**。
+自定义包集中在 `pkgs/<name>/`：一个目录 = 一个包，`package.nix` 旁边可以放自维护的 `update.sh`。`flake.nix` 扫描 `pkgs/`（外加 `programs/dev/pi/extensions/`，见下表的 `pi-fff`），**attr 名 = 目录名**；消费方按路径 `callPackage`。
 
 | Recipe | Flake attr | 消费方 |
 |--------|-----------|--------|
-| `programs/dev/codegraph/package.nix` | `#codegraph` | `programs/dev/codegraph/default.nix` |
-| `programs/dev/jj-bond/package.nix` | `#jj-bond` | `programs/dev/jj-bond/default.nix` |
-| `programs/gui/breezex-cursor/package.nix` | `#breezex-cursor` | `programs/gui/{breezex-cursor,cursor}` |
-| `programs/gui/dbx-desktop/package.nix` | `#dbx-desktop` | `programs/gui/dbx-desktop/default.nix` |
-| `programs/misc/rime-ice/squirrel/package.nix` | `#squirrel` | `programs/misc/rime-ice/default.nix` |
-| `modules/nixos/desktop/rime-flypy/package.nix` | `#rime-flypy` | `modules/nixos/desktop/input-method.nix` |
+| `pkgs/breezex-cursor/package.nix` | `#breezex-cursor` | `programs/gui/{breezex-cursor,cursor}` |
+| `pkgs/codegraph/{package.nix,update.sh}` | `#codegraph` | `programs/dev/codegraph/default.nix` |
+| `pkgs/dbx-desktop/{package.nix,update.sh}` | `#dbx-desktop` | `programs/gui/dbx-desktop/default.nix` |
+| `pkgs/jj-bond/package.nix` | `#jj-bond` | `programs/dev/jj-bond/default.nix` |
+| `pkgs/rime-flypy/package.nix` | `#rime-flypy` | `modules/nixos/desktop/input-method.nix` |
+| `pkgs/squirrel/package.nix` | `#squirrel` | `programs/misc/rime-ice/default.nix` |
+| `programs/dev/pi/extensions/pi-fff/package.nix` | `#pi-fff` | `programs/dev/pi/default.nix` |
+
+`pi-fff` 是唯一留在源码旁的配方：它构建的就是自己所在的扩展源码树（`src = ./.`，带 `package-lock.json`），搬走会把源码与配方拆开（ADR-0022）。
+
+`nix-update --flake <attr>` 依 `meta.position` 定位配方文件，移动目录无需改脚本。`breezex-cursor`、`jj-bond`、`rime-flypy`、`squirrel` 的 `updateScript` 都由 `lib/mkUpdateScript.nix` 生成：它在调用 nix-update 前先 `nix flake prefetch` 把工作树复制进 store，因为 Nix 2.35 起 `nix flake metadata` 只报告路径不再复制，nix-update ≤ 1.16 会因此报 `opening file /nix/store/…-source: No such file or directory`（Mic92/nix-update#687）。`codegraph` 与 `dbx-desktop` 的更新逻辑无法由 nix-update 表达，各自带 `update.sh`；`updateScript` 会被复制进 `/nix/store`，因此脚本用 git 索引按目录名定位配方，而不是靠自身路径。
 
 `nix-update --flake <attr>` 依 `meta.position` 定位配方文件，移动目录无需改脚本。`breezex-cursor`、`jj-bond`、`rime-flypy`、`squirrel` 的 `updateScript` 都由 `lib/mkUpdateScript.nix` 生成：它在调用 nix-update 前先 `nix flake prefetch` 把工作树复制进 store，因为 Nix 2.35 起 `nix flake metadata` 只报告路径不再复制，nix-update ≤ 1.16 会因此报 `opening file /nix/store/…-source: No such file or directory`（Mic92/nix-update#687）。`codegraph` 与 `dbx-desktop` 的更新逻辑无法由 nix-update 表达，各自带 `update.sh`；`updateScript` 会被复制进 `/nix/store`，因此脚本用 git 索引按目录名定位配方，而不是靠自身路径。
 
@@ -352,7 +357,7 @@ overlay 函数与它的 manifest 分开放：`overlays/` 只放 overlay 函数�
 | `vars/default.nix` | 共享身份：`git` 身份与 zine 的 SSH 公钥。 | `git.*`、`ssh.zinePublicKey`；机器事实属于 `inventory.nix` 的 `facts` |
 | `inventory.nix` | 结构化 host inventory（仓库根），也是**唯一**的 host 差异来源：`system` / `platform`（nixos / wsl / darwin）/ `form`（vm / pc / server）/ `profile`（work / personal）/ `facts`（GPU、显示器）/ `tags` / `userEnvironment` / 可选 `homeStateVersion` / 可选 `deploy`。 | `flake.nix` 按 `platform` 生成 `nixosConfigurations` / `darwinConfigurations`（wsl 归入 NixOS），按 `deploy.enable` 生成 deploy-rs nodes；`tags` 与三条轴由 `specialArgs.host` 送达每个模块 |
 | `hosts/<hostname>/home.nix` | Machine File：只放机器专属的 user 级覆盖（字体大小、单机包）。 | 是否存在由 inventory 的 `userEnvironment` 声明，不由文件推断；空文件是正常状态 |
-| `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、扫描出的 `package.nix` 包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `inventory.nix` 注册表构建 |
+| `flake.nix` | Flake 输入/输出：formatter、`nix flake check` lint、`nix-conf` 包、扫描 `pkgs/` 得到的自定义包、`nixosConfigurations`、`darwinConfigurations`、deploy-rs 配置。 | 系统配置由 `mkSystem` / `mkDarwinSystem` 从 `inventory.nix` 注册表构建 |
 
 ---
 

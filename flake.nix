@@ -118,13 +118,15 @@
         perSystem =
           { pkgs, system, ... }:
           let
-            # 自定义包配方（package.nix）与消费它的模块共置，attr 名 = 目录名，
-            # 例如 programs/dev/codegraph/package.nix → `codegraph`。
-            # 暴露为 flake packages，供 nix-update（update-pkgs.yml）、目录内的
-            # update*.sh（nix-update 依 meta.position 定位文件）与 `nix build .#<name>` 使用。
+            # 自定义包配方在 `pkgs/<name>/package.nix`，attr 名 = 目录名，
+            # 例如 pkgs/codegraph/package.nix → `codegraph`。
+            # 暴露为 flake packages，供 nix-update（update-pkgs.yml）、包目录内的
+            # update.sh（nix-update 依 meta.position 定位文件）与 `nix build .#<name>` 使用。
+            # 唯一的例外是 pi 扩展 `pi-fff`：它的配方与 npm 源码树是同一个目录
+            # （`src = ./.`），搬走会把源码和配方拆开，因此随源码留在扩展目录下。
             packageRoots = [
-              ./programs
-              ./modules/nixos/desktop
+              ./pkgs
+              ./programs/dev/pi/extensions
             ];
             customPkgs = builtins.listToAttrs (
               map

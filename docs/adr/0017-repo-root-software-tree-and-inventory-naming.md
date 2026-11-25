@@ -46,6 +46,7 @@ states:
    `{shell,terminal,dev,gui,misc}/`. `modules/home-manager/` is deleted.
    `lib/mkSystem.nix` adds `../programs` to `home-manager.sharedModules`, and
    `flake.nix` scans `./programs` and `./modules/desktop` for `package.nix`.
+   （扫描根已由 ADR-0022 改为 `./pkgs`。）
 2. **The inventory is `hosts/inventory.nix`.** It is the same mapping, renamed
    to match the term used in `GLOSSARY.md` and to stop colliding with per-host
    `default.nix`. `flake.nix` imports it by name and CI evaluates it by name.

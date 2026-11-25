@@ -79,7 +79,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   passthru.updateScript =
-    import ../../../lib/mkUpdateScript.nix
+    import ../../lib/mkUpdateScript.nix
       {
         inherit writeShellApplication nix-update git;
       }

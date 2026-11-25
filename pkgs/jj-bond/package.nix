@@ -21,7 +21,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   cargoHash = "sha256-RNORw0xN3NByg2XrYQdvyMDd6QC3s8nc+YZYUYzLob8=";
 
   passthru.updateScript =
-    import ../../../lib/mkUpdateScript.nix
+    import ../../lib/mkUpdateScript.nix
       {
         inherit writeShellApplication nix-update git;
       }

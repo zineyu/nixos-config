@@ -7,6 +7,6 @@
 
 {
   config = lib.mkIf host.form.pc {
-    home.packages = [ (pkgs.callPackage ./package.nix { }) ];
+    home.packages = [ (pkgs.callPackage ../../../pkgs/dbx-desktop/package.nix { }) ];
   };
 }

@@ -110,8 +110,9 @@ A self-contained directory `programs/<category>/<name>/`. It owns that program's
 and configuration, and it decides for itself whether it belongs by testing the prerequisite
 it needs: `lib.mkIf (host.hasTag "gui")`, `lib.mkIf host.platform.linux`, `lib.mkIf host.form.pc`,
 and so on. A program with no prerequisite is part of the User Environment baseline and
-is not gated at all (`config = { … };`). Native configuration files and an optional
-`package.nix` live in the same directory. Nothing lists programs per host.
+is not gated at all (`config = { … };`). Native configuration files live in the same
+directory; a custom package recipe does not — it lives in `pkgs/<name>/` (ADR-0022).
+Nothing lists programs per host.
 _Avoid_: package config, app config, install side, entry.
 
 **Category**:
@@ -120,9 +121,11 @@ of software, never by platform.
 _Avoid_: group, bundle, platform.
 
 **Package Recipe**:
-`package.nix` inside a program directory (or, for a package consumed by a system module,
-inside its system module directory). The flake exposes it as `.#<directory-name>`, which is
-also the name `nix-update --flake <name>` uses.
+`pkgs/<name>/package.nix`, called by path from the module that installs the package. The
+flake exposes it as `.#<name>` (attribute = directory name), which is also the name
+`nix-update --flake <name>` uses; a self-maintained `update.sh` sits beside it. The one
+exception: a recipe that builds the directory it sits in (`src = ./.`, e.g.
+`programs/dev/pi/extensions/pi-fff`) stays next to that source.
 _Avoid_: custom package, pkgs entry, derivation file.
 
 **Base Layer**:
