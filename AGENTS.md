@@ -37,7 +37,7 @@ changing a gate instead of evaluating hosts one option at a time.
 | `modules/shared/` | Cross-platform leaves: `sshd.nix`, `tailscale/{nixos,darwin}.nix`, `mihomo/{config.yaml,nixos,darwin}.nix`. |
 | `programs/<category>/<name>/` | One self-contained program: `default.nix`, optional `package.nix`, native config files. Categories: `shell`, `terminal`, `dev`, `gui`, `misc`. |
 | `overlays/` | Overlay functions: `nixpaks.nix` (the `pkgs.nixpaks.*` overlay) plus its manifests in `nixpaks/` (`common.nix`, `qq.nix`, `wechat.nix`). |
-| `lib/` | Generic helpers (`mkSystem`, `scanPaths`, `storeLinks`, `nix-settings`, `host-axes`). |
+| `lib/` | Generic helpers (`mkSystem`, `scanPaths`, `storeLinks`, `nix-settings`, `host-axes`, `mkUpdateScript`). |
 | `vars/` | Shared identity only (`git`, `ssh`). Machine facts belong to the Host Inventory's `facts`. |
 | `secrets/` | sops-nix encrypted secrets (see `docs/secrets.md`). |
 | `scripts/` | Linters that enforce structure: `lint-skills.py`, `lint-structure.py` (difference axes, ADR-0018). |

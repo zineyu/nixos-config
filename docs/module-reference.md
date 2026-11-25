@@ -311,7 +311,7 @@ Wayland 桌面环境与合成器配置。本层由 `modules/home-manager/desktop
 | `programs/misc/rime-ice/squirrel/package.nix` | `#squirrel` | `programs/misc/rime-ice/default.nix` |
 | `modules/nixos/desktop/rime-flypy/package.nix` | `#rime-flypy` | `modules/nixos/desktop/input-method.nix` |
 
-`nix-update --flake <attr>` 依 `meta.position` 定位配方文件，移动目录无需改脚本。`codegraph` 与 `dbx-desktop` 的更新逻辑无法由 nix-update 表达，各自带 `update.sh`；`updateScript` 会被复制进 `/nix/store`，因此脚本用 git 索引按目录名定位配方，而不是靠自身路径。
+`nix-update --flake <attr>` 依 `meta.position` 定位配方文件，移动目录无需改脚本。`breezex-cursor`、`jj-bond`、`rime-flypy`、`squirrel` 的 `updateScript` 都由 `lib/mkUpdateScript.nix` 生成：它在调用 nix-update 前先 `nix flake prefetch` 把工作树复制进 store，因为 Nix 2.35 起 `nix flake metadata` 只报告路径不再复制，nix-update ≤ 1.16 会因此报 `opening file /nix/store/…-source: No such file or directory`（Mic92/nix-update#687）。`codegraph` 与 `dbx-desktop` 的更新逻辑无法由 nix-update 表达，各自带 `update.sh`；`updateScript` 会被复制进 `/nix/store`，因此脚本用 git 索引按目录名定位配方，而不是靠自身路径。
 
 ---
 

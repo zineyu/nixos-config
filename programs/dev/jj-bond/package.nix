@@ -20,14 +20,15 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   cargoHash = "sha256-RNORw0xN3NByg2XrYQdvyMDd6QC3s8nc+YZYUYzLob8=";
 
-  passthru.updateScript = writeShellApplication {
-    name = "update-jj-bond";
-    runtimeInputs = [
-      nix-update
-      git
-    ];
-    text = ''exec nix-update --flake jj-bond "$@"'';
-  };
+  passthru.updateScript =
+    import ../../../lib/mkUpdateScript.nix
+      {
+        inherit writeShellApplication nix-update git;
+      }
+      {
+        name = "update-jj-bond";
+        attr = "jj-bond";
+      };
 
   meta = {
     description = "Jujutsu TUI";

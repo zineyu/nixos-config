@@ -60,14 +60,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   # Preserve the valid ad-hoc signature produced above.
   dontFixup = true;
 
-  passthru.updateScript = writeShellApplication {
-    name = "update-squirrel";
-    runtimeInputs = [
-      nix-update
-      git
-    ];
-    text = ''exec nix-update --flake squirrel "$@"'';
-  };
+  passthru.updateScript =
+    import ../../../../lib/mkUpdateScript.nix
+      {
+        inherit writeShellApplication nix-update git;
+      }
+      {
+        name = "update-squirrel";
+        attr = "squirrel";
+      };
 
   meta = {
     description = "Rime input method for macOS";

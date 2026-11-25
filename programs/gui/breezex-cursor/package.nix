@@ -78,14 +78,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = writeShellApplication {
-    name = "update-breezex-cursor";
-    runtimeInputs = [
-      nix-update
-      git
-    ];
-    text = ''exec nix-update --flake breezex-cursor "$@"'';
-  };
+  passthru.updateScript =
+    import ../../../lib/mkUpdateScript.nix
+      {
+        inherit writeShellApplication nix-update git;
+      }
+      {
+        name = "update-breezex-cursor";
+        attr = "breezex-cursor";
+      };
 
   meta = {
     description = "Extended KDE cursor theme";

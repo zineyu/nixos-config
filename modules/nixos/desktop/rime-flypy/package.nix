@@ -30,14 +30,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = writeShellApplication {
-    name = "update-rime-flypy";
-    runtimeInputs = [
-      nix-update
-      git
-    ];
-    text = ''exec nix-update --flake rime-flypy "$@"'';
-  };
+  passthru.updateScript =
+    import ../../../../lib/mkUpdateScript.nix
+      {
+        inherit writeShellApplication nix-update git;
+      }
+      {
+        name = "update-rime-flypy";
+        attr = "rime-flypy";
+      };
 
   meta = {
     description = "小鹤音形 Rime 挂接 (flypy schema for Rime)";
