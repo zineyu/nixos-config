@@ -24,3 +24,14 @@
   `nix flake prefetch --json . >/dev/null` 一行；helper 本身保留（它仍是这四个配方的唯一
   更新入口）。改完 `nix run .#jj-bond.updateScript` 应仍以 `Not updating version, already …`
   正常退出。
+
+## 给 build.yml 的 inventory job 加 push 触发器
+
+- **为什么**：`build.yml` 只有 `schedule` 与 `workflow_dispatch`，因此矩阵派生步骤
+  （`nix eval --file ./inventory.nix`）在重构时会静默失效——`inventory.nix` 从
+  `hosts/` 移到仓库根后，CI 连续 5 天（2026-11-21 起）都在 inventory job 失败，
+  没有任何提交触发它报错。lint/update/update-pkgs 都通过，只有主机矩阵构建挂了。
+- **怎么做**：把 inventory 求值拆成独立的轻量 workflow（或给 `build.yml` 加
+  `on: push: paths: ['inventory.nix', 'flake.nix', 'hosts/**', 'modules/**']`
+  只跑 job 级 `if` 限定 inventory + lint），这样路径改动会立刻暴露。
+  主机全量构建仍只在 schedule 上跑。
