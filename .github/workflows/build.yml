@@ -15,9 +15,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # 矩阵从 hosts/inventory.nix 派生，而不是手写：新注册的主机自动进入 CI。
+  # 矩阵从 inventory.nix 派生，而不是手写：新注册的主机自动进入 CI。
   # 之前的静态列表漏掉了 work-hp-laptop，它从未被构建过。
-  # hosts/inventory.nix 只含字面量，不依赖任何 flake 输入，因此可以直接求值。
+  # inventory.nix 只含字面量，不依赖任何 flake 输入，因此可以直接求值。
   inventory:
     name: inventory
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
         id: matrix
         run: |
           set -euo pipefail
-          json=$(nix eval --json --file ./hosts/inventory.nix)
+          json=$(nix eval --json --file ./inventory.nix)
           matrix=$(jq -c '{
             include: [to_entries[] | {
               host: .key,
