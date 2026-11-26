@@ -1,5 +1,4 @@
 {
-  hostname,
   pkgs,
   ...
 }:
@@ -12,8 +11,6 @@ in
 
   # Darwin 模块树由 modules/darwin/default.nix 广播，sops 恒启用，
   # tailscale / sshd 走 host.profile.personal，mihomo 按 platform 自门控。
-  networking.hostName = hostname;
-
   system.primaryUser = "zine";
 
   users.knownUsers = [ "zine" ];

@@ -24,12 +24,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-# R1 无例外：所有模块都受 hostname 分支禁令约束。
-HOSTNAME_BRANCH_ALLOWLIST = set()
-
-# R4 例外：只读投影里的子选项由 config 赋值，本就不该有默认值（见下方的 read_only
-# 分支）。knob 只允许出现在 programs/ 与 modules/ 的程序模块里。
-OPTION_DEFAULT_SKIP = set()
 
 violations: list[str] = []
 
@@ -78,8 +72,6 @@ def code_lines(path: Path) -> list[tuple[int, str]]:
 def check_hostname_branches() -> None:
     """R1：模块里不得出现按主机名分支。"""
     for path in nix_files("modules", "programs"):
-        if path.relative_to(ROOT).as_posix() in HOSTNAME_BRANCH_ALLOWLIST:
-            continue
         for number, text in code_lines(path):
             if re.search(r"\bhost\.name\b", text) or re.search(r"\bhostname\s*[!=]=", text):
                 fail(
@@ -129,9 +121,7 @@ def check_machine_files() -> None:
         in_string = False
         escaped = False
         pending: list[str] = []
-        line_number = 1
         for number, text in code_lines(path):
-            line_number = number
             pending = []
             for char in text:
                 if escaped:
@@ -162,14 +152,11 @@ def check_machine_files() -> None:
                     pending.append(char)
                 elif depth == 1 and char in " \t\n:":
                     continue
-        del line_number
 
 
 def check_option_defaults() -> None:
     """R4：非 readOnly 的 mkOption 必须有 default。"""
     for path in nix_files("modules", "programs"):
-        if path.relative_to(ROOT).as_posix() in OPTION_DEFAULT_SKIP:
-            continue
         text = "\n".join(strip_comment(line) for line in path.read_text(encoding="utf-8").splitlines())
         blocks = []
         for match in re.finditer(r"\bmkOption\s*\{", text):

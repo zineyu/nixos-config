@@ -8,9 +8,9 @@ set positional-arguments
 default:
     @just --list
 
-# Build a host configuration without activating it
+# Build a host configuration without activating it (same as CI: nix build .#<host>)
 build host:
-    nixos-rebuild build --flake .#{{host}}
+    nix build .#{{host}} -L
 
 # Switch a host configuration (requires confirmation in real use)
 switch host:

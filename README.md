@@ -4,16 +4,16 @@
 
 ## 快速开始
 
-构建当前主机（`.#tianxuan`）配置，但不应用：
+构建当前主机配置（`<host>` 取 `inventory.nix` 的 attr key，例如 `tianxuan`），但不应用：
 
 ```bash
-nixos-rebuild build --flake .#tianxuan
+nixos-rebuild build --flake .#<host>
 ```
 
 应用配置（会修改系统状态，执行前请确认）：
 
 ```bash
-sudo nixos-rebuild switch --flake .#tianxuan
+sudo nixos-rebuild switch --flake .#<host>
 ```
 
 远程主机（`aliyun-01`）可通过 `deploy-rs` 部署：
@@ -64,7 +64,7 @@ direnv allow
 | `skills/<command>/<name>/` | Agent skill 源目录，目录名即命令：`/refactor` 路由到 `skills/refactor/` 里的技能。`principles/` 与 `tools/` 不属于任何命令，`references/` 放共享清单。每个 skill 经 Home Manager 扁平安装到 `~/.agents/skills/<name>` |
 | `programs/dev/pi/prompts/` | pi 的 prompt 模板源目录：一个 `.md` 就是一个 `/命令`，经 Home Manager 链接到 `~/.pi/agent/prompts/` |
 | `overlays/` | overlay 函数：`nixpaks.nix`（`pkgs.nixpaks.*`）与它的 manifest 目录 `nixpaks/`（`common.nix`、`qq.nix`、`wechat.nix`） |
-| `lib/` | 可复用 Nix 函数（`mkSystem.nix`、`host-axes.nix`、`nix-settings.nix`、`storeLinks.nix`、`scanPaths.nix`、`mkUpdateScript.nix`） |
+| `lib/` | 可复用 Nix 函数（`mkSystem.nix`、`host-axes.nix`、`nix-settings.nix`、`scanPaths.nix`、`mkUpdateScript.nix`） |
 | `vars/default.nix` | 共享身份：`git` 身份与 `ssh.zinePublicKey`。机器事实属于 `inventory.nix` 的 `facts` |
 | `docs/adr/` | 架构决策记录（ADRs） |
 | `docs/module-reference.md` | 模块与辅助函数速查表 |

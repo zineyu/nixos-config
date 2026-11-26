@@ -1,8 +1,5 @@
-{ config, ... }:
+{ pkgs, ... }:
 
-let
-  storeLinks = import ../../../../lib/storeLinks.nix { inherit config; };
-in
 {
   fonts.fontconfig = {
     enable = true;
@@ -28,18 +25,18 @@ in
   };
 
   xdg.configFile = {
-    # Static dotfiles are linked from the Nix store.
     "fontconfig" = {
-      source = storeLinks.mkInStore ./config;
+      source = ./config;
       recursive = true;
     };
 
-    # These files are provided by the host system's fontconfig package and
-    # must not be copied into /nix/store, so we use an out-of-store symlink.
+    # 这两份 conf.avail 来自 nixpkgs 的 fontconfig 包：系统里没有
+    # /usr/share/fontconfig（NixOS 不提供 /usr/share），链接进 store 后
+    # 随字体配置一起切换，不再依赖宿主机文件。
     "fontconfig/conf.d/10-sub-pixel-rgb.conf".source =
-      storeLinks.mkOutOfStore "/usr/share/fontconfig/conf.avail/10-sub-pixel-rgb.conf";
+      "${pkgs.fontconfig}/share/fontconfig/conf.avail/10-sub-pixel-rgb.conf";
 
     "fontconfig/conf.d/50-user.conf".source =
-      storeLinks.mkOutOfStore "/usr/share/fontconfig/conf.avail/50-user.conf";
+      "${pkgs.fontconfig}/share/fontconfig/conf.avail/50-user.conf";
   };
 }

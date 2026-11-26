@@ -22,17 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: cachix/install-nix-action@v31
+      # `nix flake check` 会构建 deploy-rs 的 activation profile（即整机闭包），
+      # 因此既要 numtide 的预构建二进制（否则掉进从源码编译 Rust 的坑），也要
+      # 登录 cache：否则每轮都重建同一批路径，4 小时后 build.yml 再建一遍。
+      - uses: ./.github/actions/nix-setup
         with:
-          # `nix flake check` 会构建 deploy-rs 的 activation profile（即整机闭包），
-          # 与 build.yml 一样需要 llm-agents.nix 的预构建二进制，否则同样会掉进
-          # 从源码编译 Rust 的坑。与 lib/nix-settings.nix 的 substituters 对齐。
-          extra_nix_config: |
-            extra-substituters = https://cache.numtide.com https://ezkea.cachix.org
-            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= ezkea.cachix.org-1:ioBmUbJTZIKsHmWWXPe1FSFbeVe+afhfgqgTSNd34eI=
-            max-jobs = auto
-            http-connections = 50
-            fallback = true
+          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Update flake.lock
         run: |
@@ -59,12 +54,22 @@ jobs:
       - name: Commit and push
         if: steps.changes.outputs.updated == 'true'
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add flake.lock
           git commit -m "chore: update flake.lock" \
             -m "nixpkgs pinned to nixos-unstable channel ${NIXPKGS_REV}"
-          git push origin "HEAD:${{ github.ref_name }}"
+          # update-pkgs.yml / build.yml 与手动 dispatch 都可能同时改这条分支：
+          # 单次 push 撞车会让一小时的构建白跑，重试时先 rebase 到最新远端。
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:${{ github.ref_name }}"; then
+              exit 0
+            fi
+            echo "push failed (attempt $attempt), rebasing onto origin/${{ github.ref_name }}"
+            git pull --rebase --autostash origin "${{ github.ref_name }}"
+          done
+          exit 1
 
       - name: Notify via Gotify
         if: steps.changes.outputs.updated == 'true'

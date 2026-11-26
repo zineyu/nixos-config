@@ -3,4 +3,6 @@
 #（如 boot.loader.systemd-boot.enable = true、fileSystems."/" = ... 等），保持开启会产生大量误报，
 # 因此全局禁用。
 disabled = ["empty_pattern", "repeated_keys"]
-ignore = [".direnv", ".devenv", "hosts/tianxuan/hardware-configuration.nix"]
+# 只忽略工具自身的工作目录：hardware-configuration.nix 在 deadnix / statix
+# 下无需例外（由具体规则禁用来覆盖，而不是按文件豁免）。
+ignore = [".direnv", ".devenv"]

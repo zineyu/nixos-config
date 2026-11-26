@@ -110,7 +110,7 @@ machine:
 - ADR-0007's remaining claims are fully superseded: a Machine File no longer
   lists imports, no longer carries a switch table, and is no longer discovered
   by file presence.
-- The `home/<hostname>.nix` → `hosts/<hostname>/home.nix` move changes the
-  path of the `mkOutOfStoreDotfiles` root only in that `lib/storeLinks.nix`
-  still points at `~/.config/home-manager`; the repository layout move does not
-  alter the symlink target.
+- The `home/<hostname>.nix` → `hosts/<hostname>/home.nix` move changed the path
+  that `mkOutOfStoreDotfiles` pointed at. That helper and its out-of-store links
+  were removed later in favour of in-store links (`source = ./config/…`), which
+  do not depend on where the repository is checked out.

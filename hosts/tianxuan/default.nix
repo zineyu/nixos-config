@@ -2,14 +2,12 @@
 #
 # 本文件只写这台机器的系统事实。模块树由 lib/mkSystem.nix 广播、由
 # inventory.nix 的 tags 门控；user 级覆盖见 ./home.nix。
-{ hostname, pkgs, ... }:
+{ pkgs, ... }:
 {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
   ];
-
-  networking.hostName = hostname;
 
   # Host-specific timezone.
   time.timeZone = "Asia/Shanghai";

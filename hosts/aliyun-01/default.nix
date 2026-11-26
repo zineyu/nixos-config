@@ -40,8 +40,6 @@
 
   boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
-  # Server hostname is declared directly here instead of via vars/.
-  networking.hostName = "aliyun-01";
   networking.domain = "";
   users.users.root.openssh.authorizedKeys.keys = [
     vars.ssh.zinePublicKey

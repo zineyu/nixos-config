@@ -5,12 +5,9 @@
   pkgs,
   ...
 }:
-
 let
   cfg = config.zine.programs.kitty;
-
-  storeLinks = import ../../../lib/storeLinks.nix { inherit config; };
-  kittyConfig = relPath: storeLinks.mkOutOfStoreDotfiles "programs/gui/kitty/config/${relPath}";
+  kittyConfig = relPath: ./config/${relPath};
 in
 {
   options.zine.programs.kitty.fontSize = lib.mkOption {

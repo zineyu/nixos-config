@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (supersedes the pi package source in ADR-0020's Decision)
+Accepted (supersedes the pi package source decision of the earlier ADR, which was
+removed from this directory; see Context)
 
 ## Date
 
@@ -10,7 +11,8 @@ Accepted (supersedes the pi package source in ADR-0020's Decision)
 
 ## Context
 
-ADR-0020 决定仓库不再维护 agent 工作流，`programs/dev/pi/` 只装 pi 本体。当时
+此前的决定是仓库不再维护 agent 工作流，`programs/dev/pi/` 只装 pi 本体（那份 ADR
+已随本决定删除，历史见 git 记录）。当时
 本体取自 `numtide/llm-agents.nix` 的 `packages.pi`：一个第三方 flake，用
 `buildNpmPackage` + `bun build --compile` 在构建期从 npm tarball 自行编译，产物
 推到 `cache.numtide.com`。这带来三个问题：

@@ -18,7 +18,9 @@ just deploy <host>                       # deploy-rs to a remote host
 ```
 
 The dev environment is `devenv.nix` (enter with `direnv allow`). Do not add a
-`devShells` output to `flake.nix`.
+`devShells` output to `flake.nix`. The same checks also run as git hooks (nixfmt,
+deadnix, statix, `scripts/lint-structure.py`, `scripts/lint-skills.py`), so structural
+violations fail at commit time instead of only in CI.
 
 `just table` prints what each host derives (docker, tailscale, mihomo, nvidia, sshd);
 `just programs` prints the Home Manager program modules each host enables. Run them after
@@ -38,7 +40,7 @@ changing a gate instead of evaluating hosts one option at a time.
 | `programs/<category>/<name>/` | One self-contained program: `default.nix` and native config files. Categories: `shell`, `terminal`, `dev`, `gui`, `misc`. |
 | `pkgs/<name>/` | One custom package recipe: `package.nix` (attr `.#<name>`) plus an optional self-maintained `update.sh` beside it. The sole exception is the pi extension `pi-fff`, whose recipe shares its directory with the npm source tree it builds. |
 | `overlays/` | Overlay functions: `nixpaks.nix` (the `pkgs.nixpaks.*` overlay) plus its manifests in `nixpaks/` (`common.nix`, `qq.nix`, `wechat.nix`). |
-| `lib/` | Generic helpers (`mkSystem`, `scanPaths`, `storeLinks`, `nix-settings`, `host-axes`, `mkUpdateScript`). |
+| `lib/` | Generic helpers (`mkSystem`, `scanPaths`, `nix-settings`, `host-axes`, `mkUpdateScript`). |
 | `vars/` | Shared identity only (`git`, `ssh`). Machine facts belong to the Host Inventory's `facts`. |
 | `secrets/` | sops-nix encrypted secrets (see `docs/secrets.md`). |
 | `scripts/` | Linters that enforce structure: `lint-skills.py`, `lint-structure.py` (difference axes, ADR-0018). |

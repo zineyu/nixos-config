@@ -5,7 +5,8 @@
 #   - platform  构建路径与运行平台：nixos / wsl / darwin
 #   - form      机器形态：vm / pc / server
 #   - profile   使用场景：work / personal
-#   - facts     机器**事实**：GPU、显示器。必须写全，缺失求值期报错。
+#   - facts    机器**事实**：`gpu` 必填（缺失求值期报错，R5 也检查）；
+#               `displays` 可选，目前只作为记录（没有模块消费它）。
 #   - tags      机器的**标签**：自由书写，说明这台机是什么（gui / docker / tailscale…）
 #   - userEnvironment    （可选）true 表示该 host 有 User Environment
 #   - homeStateVersion   （可选）Home Manager 兼容版本，默认 "26.05"

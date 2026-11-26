@@ -195,7 +195,7 @@
                       echo "Checking Nix formatting..."
                       find . -type f -name '*.nix' -print0 | xargs -0 nixfmt --check
                       echo "Checking for dead Nix code..."
-                      deadnix --fail --exclude ./hosts/tianxuan/hardware-configuration.nix .
+                      deadnix --fail .
                       echo "Running statix..."
                       statix check .
                       echo "Linting skills..."

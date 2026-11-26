@@ -1,0 +1,32 @@
+name: Nix setup
+description: >-
+  安装 Nix 并配置 substituter；传入 cachix-token 时同时登录 zineyu cache。
+  三个 workflow 共用同一份配置，避免与 lib/nix-settings.nix 之外的第三、第四份副本漂移。
+
+inputs:
+  cachix-token:
+    description: Cachix auth token；留空则不登录 cache（只读拉取）
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    # 与 lib/nix-settings.nix 的 substituters 对齐（TUNA 镜像对海外托管 runner
+    # 反而更慢，故 CI 不启用）。cache.numtide.com 提供 llm-agents.nix（codex 等）
+    # 的预构建二进制，缺这一条，runner 会从源码编译 codex，单次约 50 分钟。
+    # ezkea.cachix.org 对应 aagl-gtk-on-nix（anime-game-launcher 等）。
+    - uses: cachix/install-nix-action@v31
+      with:
+        extra_nix_config: |
+          extra-substituters = https://cache.numtide.com https://ezkea.cachix.org
+          extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= ezkea.cachix.org-1:ioBmUbJTZIKsHmWWXPe1FSFbeVe+afhfgqgTSNd34eI=
+          max-jobs = auto
+          http-connections = 50
+          fallback = true
+
+    - if: inputs.cachix-token != ''
+      uses: cachix/cachix-action@v17
+      with:
+        name: zineyu
+        authToken: ${{ inputs.cachix-token }}

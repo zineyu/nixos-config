@@ -2,6 +2,15 @@
 
 一次性清理项：做完即删条目。不需要长期维护的事项不写在这里。
 
+## 决定 `facts.displays` 的去向
+
+- **为什么**：`inventory.nix` 里 tianxuan 条目的 `displays`（输出名、分辨率、刷新率、
+  scale）目前没有任何模块读取——没有模块消费它，R5 也只校验 `facts.gpu`。注释写的是
+  “只记录事实，不据此生成 niri 配置”，因此它现在是纯文档数据，却看起来像机器事实。
+- **两条出路**：一是让它成为 knob 的默认值（niri 输出布局或 `zine.programs.*` 的默认
+  参数），二是删掉字段并把注释改成 `gpu` 必填。二选一之前不要新增第三台带 displays 的
+  主机，否则又多一份无人读取的数据。
+
 ## 等 nix-update ≥ 1.17.0，删掉 `lib/mkUpdateScript.nix` 里的 prefetch
 
 - **为什么**：Nix 2.35 起 `nix flake metadata` 只报告 flake 源的 store 路径、不再真的复制
@@ -24,14 +33,3 @@
   `nix flake prefetch --json . >/dev/null` 一行；helper 本身保留（它仍是这四个配方的唯一
   更新入口）。改完 `nix run .#jj-bond.updateScript` 应仍以 `Not updating version, already …`
   正常退出。
-
-## 给 build.yml 的 inventory job 加 push 触发器
-
-- **为什么**：`build.yml` 只有 `schedule` 与 `workflow_dispatch`，因此矩阵派生步骤
-  （`nix eval --file ./inventory.nix`）在重构时会静默失效——`inventory.nix` 从
-  `hosts/` 移到仓库根后，CI 连续 5 天（2026-11-21 起）都在 inventory job 失败，
-  没有任何提交触发它报错。lint/update/update-pkgs 都通过，只有主机矩阵构建挂了。
-- **怎么做**：把 inventory 求值拆成独立的轻量 workflow（或给 `build.yml` 加
-  `on: push: paths: ['inventory.nix', 'flake.nix', 'hosts/**', 'modules/**']`
-  只跑 job 级 `if` 限定 inventory + lint），这样路径改动会立刻暴露。
-  主机全量构建仍只在 schedule 上跑。

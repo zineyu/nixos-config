@@ -99,6 +99,9 @@ in
         inputs.sops-nix.nixosModules.sops
         (mkHomeManagerModule hostname host)
         ../hosts/${hostname}
+        # 主机名是 Host Inventory 的 attr key，不属于机器事实：在这里设一次，
+        # hosts/<hostname>/default.nix 不再重复写 networking.hostName。
+        { networking.hostName = hostname; }
         # 广播：所有 NixOS 模块树无条件导入，各树 default.nix 自行门控。
         ../modules/nixos
       ];
@@ -123,6 +126,8 @@ in
         inputs.home-manager.darwinModules.home-manager
         (mkHomeManagerModule hostname host)
         ../hosts/${hostname}
+        # 同 mkSystem：主机名只有 inventory.nix 一处来源。
+        { networking.hostName = hostname; }
         # 广播：所有 Darwin 模块树无条件导入，各树 default.nix 自行门控。
         ../modules/darwin
       ];

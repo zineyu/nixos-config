@@ -23,35 +23,13 @@ jobs:
       - uses: actions/checkout@v4
 
       # 构建验证会编译 dbx-desktop 这类 Rust 包，同样需要额外的磁盘与交换空间。
-      - name: Free disk space and add swap
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-            /usr/local/share/boost /opt/hostedtoolcache/CodeQL
-          if ! swapon --show | grep -q /mnt/swapfile; then
-            sudo fallocate -l 8G /mnt/swapfile \
-              || sudo dd if=/dev/zero of=/mnt/swapfile bs=1M count=8192 status=none
-            sudo chmod 600 /mnt/swapfile
-            sudo mkswap /mnt/swapfile >/dev/null
-            sudo swapon /mnt/swapfile
-          fi
-          df -h / /mnt
-          free -h
+      - uses: ./.github/actions/free-disk
 
-      - uses: cachix/install-nix-action@v31
+      # 更新后的包会重新构建；登录 cache 后这些路径在当天 build.yml 与本地
+      # rebuild 时直接命中，不会重编一遍。
+      - uses: ./.github/actions/nix-setup
         with:
-          # 与 build.yml / lib/nix-settings.nix 的 substituters 对齐。
-          extra_nix_config: |
-            extra-substituters = https://cache.numtide.com https://ezkea.cachix.org
-            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= ezkea.cachix.org-1:ioBmUbJTZIKsHmWWXPe1FSFbeVe+afhfgqgTSNd34eI=
-            max-jobs = auto
-            http-connections = 50
-            fallback = true
-
-      # 更新后的包会重新构建，顺带推入 cache，加速当天 build.yml 与本地 rebuild
-      - uses: cachix/cachix-action@v17
-        with:
-          name: zineyu
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       # 各包的更新逻辑内嵌在 passthru.updateScript 中：
       # - 简单包（breezex-cursor / jj-bond / rime-flypy / squirrel）：薄封装 nix-update
@@ -115,12 +93,22 @@ jobs:
       - name: Commit and push
         if: steps.changes.outputs.updated == 'true'
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- '*package.nix'
           git commit -m "chore: auto-update custom package recipes" \
             -m "$(git diff --cached --stat | tail -1)"
-          git push origin "HEAD:${{ github.ref_name }}"
+          # 与 update.yml / build.yml 抢同一条分支：单次 push 撞车会让一小时的
+          # 构建白跑，重试时先 rebase 到最新远端。
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:${{ github.ref_name }}"; then
+              exit 0
+            fi
+            echo "push failed (attempt $attempt), rebasing onto origin/${{ github.ref_name }}"
+            git pull --rebase --autostash origin "${{ github.ref_name }}"
+          done
+          exit 1
 
       - name: Notify via Gotify
         if: steps.changes.outputs.updated == 'true'
@@ -159,3 +147,15 @@ jobs:
             -F "title=自定义包自动更新被跳过" \
             -F "message=以下包的 updateScript 执行失败，本次未更新，需人工处理: $FAILED_SCRIPTS；详见 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             -F "priority=8"
+
+      # 通知发完之后再置红：失败要么来自 updateScript，要么来自构建验证，
+      # 两者都意味着有包停在旧版本上。此前只用 ::warning:: 标注，job 保持绿色，
+      # 检测完全依赖 Gotify 推送。
+      - name: Fail when some packages were not updated
+        if: steps.update_scripts.outputs.failed != '' || steps.verify.outputs.failed != ''
+        env:
+          FAILED_SCRIPTS: ${{ steps.update_scripts.outputs.failed }}
+          FAILED_BUILDS: ${{ steps.verify.outputs.failed }}
+        run: |
+          echo "::error::更新未完成：updateScript 失败=[$FAILED_SCRIPTS] 构建失败=[$FAILED_BUILDS]"
+          exit 1
